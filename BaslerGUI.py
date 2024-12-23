@@ -1127,7 +1127,7 @@ class BaslerGuiWindow(wx.Frame):
             video_output_path = output_path + ".avi"
             print(f'Writing raw output video to {output_path}')
             video_writer = cv2.VideoWriter(video_output_path,
-                                           cv2.VideoWriter_fourcc(*'RGBA'),
+                                           cv2.VideoWriter_fourcc(*'DIVX'),
                                            self.framerate,
                                            (width, height), isColor=False)
             for frame_index in range(0, frames_to_capture):
