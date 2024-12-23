@@ -1,7 +1,7 @@
 # import pandas as pd
 
 import wx
-from skimage.feature import greycomatrix, greycoprops
+from skimage.feature import graycomatrix, graycoprops
 from scipy.optimize import curve_fit
 import numpy as np
 import cv2
