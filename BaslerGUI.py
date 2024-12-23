@@ -390,8 +390,8 @@ class BaslerGuiWindow(wx.Frame):
     def AllocateMemory(self):
         self.frame_width = 1440
         self.frame_height = 1088
-        self.camera.Width = self.frame_width
-        self.camera.Height = self.frame_height
+        self.camera.Width.setValue(self.frame_width)
+        self.camera.Height.setValue(self.frame_height)
         self.gray = np.zeros((self.frame_height, self.frame_width), np.uint8)
         self.mean_img_sq = np.zeros((self.frame_height, self.frame_width), np.float32)
         self.sq = np.zeros((self.frame_height, self.frame_width), np.float32)
@@ -689,8 +689,8 @@ class BaslerGuiWindow(wx.Frame):
                         self.framerate_slider.SetValue(self.camera.AcquisitionFrameRate.Value)
                         self.framerate = self.camera.AcquisitionFrameRate.Value
                         
-                        self.camera.OffsetX = 16
-                        self.camera.OffsetY = 0
+                        self.camera.OffsetX.SetValue(16)
+                        self.camera.OffsetY.SetValue(0)
 
                         self.connect_btn.SetLabel("Disconnect")
                         self.refresh_btn.Disable()
