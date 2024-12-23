@@ -390,8 +390,8 @@ class BaslerGuiWindow(wx.Frame):
     def AllocateMemory(self):
         self.frame_width = 1440
         self.frame_height = 1088
-        self.camera.Width.setValue(self.frame_width)
-        self.camera.Height.setValue(self.frame_height)
+        self.camera.Width.SetValue(self.frame_width)
+        self.camera.Height.SetValue(self.frame_height)
         self.gray = np.zeros((self.frame_height, self.frame_width), np.uint8)
         self.mean_img_sq = np.zeros((self.frame_height, self.frame_width), np.float32)
         self.sq = np.zeros((self.frame_height, self.frame_width), np.float32)
