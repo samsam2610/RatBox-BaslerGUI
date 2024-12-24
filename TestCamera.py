@@ -93,11 +93,11 @@ def main():
             fps=30,
             dim=(1440, 1088)
         )
+        session.start_recording()
 
+        time.sleep(2)
         # Start grabbing frames
         camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
-
-        session.start_recording()
         print("Press Ctrl+C to stop.")
 
         while camera.IsGrabbing():
