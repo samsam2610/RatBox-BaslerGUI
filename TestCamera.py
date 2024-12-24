@@ -53,6 +53,7 @@ class VideoRecordingSession:
     def _process_frames(self):
         print("Starting frame processing")
         while self.recording_status:
+            print("Buffer length: {}".format(len(self.frame_buffer)))
             with self.buffer_lock:
                 if self.frame_buffer:
                     self._write_frame()
