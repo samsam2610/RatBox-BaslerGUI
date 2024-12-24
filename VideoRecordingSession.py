@@ -47,6 +47,7 @@ class VideoRecordingSession:
         print(f"Cam {self.cam_num}: Recording stopped.")
 
     def write_remaining_frames(self):
+        print("Writing the remaining {} frames".format(len(self.frame_buffer)))
         with self.buffer_lock:
             while self.frame_buffer:
                 self._write_frame()
