@@ -119,11 +119,10 @@ def main():
         while camera.IsGrabbing():
             grab_result = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
             if grab_result.GrabSucceeded():
-                frame = grab_result.GetArray().copy()  # NumPy array of the image
+                frame = grab_result.Array()  # NumPy array of the image
                 timestamp = time.time()
                 frame_number = grab_result.BlockID
 
-                print(f"Grabbed frame {frame_number}, shape: {frame.shape}")
                 session.acquire_frame(frame, timestamp, frame_number)
 
             grab_result.Release()
