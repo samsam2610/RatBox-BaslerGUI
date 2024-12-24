@@ -62,7 +62,6 @@ class VideoRecordingSession:
             with self.buffer_lock:
                 buffer_len = len(self.frame_buffer)
                 if buffer_len:
-                    print(f"Cam {self.cam_num}: Processing frame. Buffer length: {buffer_len}")
                     self._write_frame()
             time.sleep(0.01)
         
@@ -80,8 +79,8 @@ class VideoRecordingSession:
             self.frame_num.append(frame_number)
             self.frame_count += 1
             
-            if self.frame_count % 100 == 0:  # Print every 100 frames
-                print(f"Cam {self.cam_num}: Written {self.frame_count} frames")
+            if self.frame_count % 1000 == 0:  # Print every 100 frames
+                print(f"Cam {self.cam_num}: Written {self.frame_count} frames. Current buffer size: {len(self.frame_buffer)}")
         except Exception as e:
             print(f"Cam {self.cam_num}: Error writing frame: {str(e)}")
 
