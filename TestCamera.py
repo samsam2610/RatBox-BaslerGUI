@@ -10,7 +10,7 @@ class VideoRecordingSession:
         self.cam_num = cam_num
         self.recording_status = False
         self.vid_out = None
-        self.frame_buffer = deque(maxlen=2000)
+        self.frame_buffer = deque(maxlen=5000)
         self.buffer_lock = threading.Lock()
         self.frame_count = 0
         self.frame_times = []
@@ -97,7 +97,7 @@ def main():
         camera.MaxNumBuffer = 5000
         camera.AcquisitionFrameRateEnable.SetValue(True)
         camera.AcquisitionFrameRate.SetValue(200.0)
-        camera.ExposureTime.SetValue(200)
+        camera.ExposureTime.SetValue(1000)
         camera.OffsetX.SetValue(16)
         camera.OffsetY.SetValue(0)
         camera.Width.SetValue(1440)
