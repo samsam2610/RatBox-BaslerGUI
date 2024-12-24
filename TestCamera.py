@@ -64,11 +64,6 @@ class VideoRecordingSession:
         self.frame_num.append(frame_number)
         self.frame_count += 1
 
----
-
-### Main Script with PyPylon Integration
-
-```python
 def main():
     # Create camera instance
     camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
