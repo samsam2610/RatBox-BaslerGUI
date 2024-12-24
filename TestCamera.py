@@ -67,6 +67,13 @@ class VideoRecordingSession:
 def main():
     # Create camera instance
     camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
+    camera.MaxNumBuffer = 180
+    camera.AcquisitionFrameRateEnable.SetValue(True)
+    camera.AcquisitionFrameRate.SetValue(200.0)
+    camera.Width.SetValue(1440)
+    camera.Height.SetValue(1088)
+    camera.PixelFormat.SetValue("Mono8")
+    
     session = VideoRecordingSession(cam_num=0)
 
     try:
@@ -75,8 +82,8 @@ def main():
         session.set_params(
             video_file="output.avi",
             fourcc="XVID",
-            fps=30,
-            dim=(640, 480)
+            fps=200,
+            dim=(1440, 1088)
         )
 
         # Start grabbing frames
