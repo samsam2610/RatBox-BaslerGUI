@@ -107,7 +107,7 @@ def main():
             video_file="output.avi",
             fourcc="XVID",
             fps=30,
-            dim=(1440, 1088)
+            dim=(1088, 1440)
         )
         session.start_recording()
 
