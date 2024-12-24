@@ -76,6 +76,8 @@ def main():
         camera.MaxNumBuffer = 180
         camera.AcquisitionFrameRateEnable.SetValue(True)
         camera.AcquisitionFrameRate.SetValue(200.0)
+        camera.OffsetX.SetValue(16)
+        camera.OffsetY.SetValue(0)
         camera.Width.SetValue(1440)
         camera.Height.SetValue(1088)
         camera.PixelFormat.SetValue("Mono8")
