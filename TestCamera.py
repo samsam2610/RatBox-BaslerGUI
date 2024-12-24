@@ -24,7 +24,7 @@ class VideoRecordingSession:
         self.fourcc = cv2.VideoWriter_fourcc(*fourcc)
         self.fps = fps
         self.dim = dim
-        self.vid_out = cv2.VideoWriter(video_file, self.fourcc, fps, dim)
+        self.vid_out = cv2.VideoWriter(video_file, self.fourcc, fps, dim, False)
         print(f"Cam {self.cam_num}: Video writer set up with {video_file}")
         if not self.vid_out.isOpened():
             print(f"Error: Failed to initialize video writer for {video_file}")
@@ -46,6 +46,7 @@ class VideoRecordingSession:
         time.sleep(0.1)  # Allow buffer processing to finish
         self.write_remaining_frames()
         if self.vid_out:
+            print(f"Cam {self.cam_num}: Releasing video writer")
             self.vid_out.release()
             self.vid_out = None
         print(f"Cam {self.cam_num}: Recording stopped.")
@@ -107,7 +108,7 @@ def main():
             video_file="output.avi",
             fourcc="DIVX",
             fps=30,
-            dim=(1088, 1440)
+            dim=(1440, 1088)
         )
         session.start_recording()
 
