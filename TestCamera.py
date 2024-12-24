@@ -68,7 +68,6 @@ def main():
     # Create camera instance
     camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
     camera.MaxNumBuffer = 180
-    camera.AcquisitionFrameRateEnable.SetValue(True)
     camera.AcquisitionFrameRate.SetValue(200.0)
     camera.Width.SetValue(1440)
     camera.Height.SetValue(1088)
