@@ -105,7 +105,7 @@ def main():
         # Configure session
         session.set_params(
             video_file="output.avi",
-            fourcc="XVID",
+            fourcc="DIVX",
             fps=30,
             dim=(1088, 1440)
         )
