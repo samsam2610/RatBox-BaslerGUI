@@ -62,6 +62,7 @@ class VideoRecordingSession:
         print("Frame processing stopped")
 
     def _write_frame(self):
+        print("Writing frame")
         frame, timestamp, frame_number = self.frame_buffer.popleft()
         self.vid_out.write(frame)
         self.frame_times.append(timestamp)
