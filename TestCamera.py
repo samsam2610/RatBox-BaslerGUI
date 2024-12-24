@@ -9,7 +9,7 @@ class VideoRecordingSession:
         self.cam_num = cam_num
         self.recording_status = False
         self.vid_out = None
-        self.frame_buffer = deque(maxlen=250)
+        self.frame_buffer = deque(maxlen=500)
         self.buffer_lock = threading.Lock()
         self.frame_count = 0
         self.frame_times = []
@@ -90,7 +90,7 @@ def main():
         session.set_params(
             video_file="output.avi",
             fourcc="XVID",
-            fps=200,
+            fps=30,
             dim=(1440, 1088)
         )
 
