@@ -51,11 +51,14 @@ class VideoRecordingSession:
                 self._write_frame()
 
     def _process_frames(self):
+        print("Starting frame processing")
         while self.recording_status:
             with self.buffer_lock:
                 if self.frame_buffer:
                     self._write_frame()
             time.sleep(0.01)  # Adjust for processing speed
+        
+        print("Frame processing stopped")
 
     def _write_frame(self):
         frame, timestamp, frame_number = self.frame_buffer.popleft()
