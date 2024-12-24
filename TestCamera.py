@@ -63,7 +63,8 @@ class VideoRecordingSession:
                 buffer_len = len(self.frame_buffer)
                 if buffer_len:
                     self._write_frame()
-            time.sleep(0.01)
+                    if self.frame_count % 1000 == 0:  # Print every 100 frames
+                        print(f"Cam {self.cam_num}: Written {self.frame_count} frames. Current buffer size: {len(self.frame_buffer)}")
         
         print(f"Cam {self.cam_num}: Frame processing stopped")
 
@@ -124,7 +125,7 @@ def main():
                 frame_number = grab_result.BlockID
 
                 session.acquire_frame(frame, timestamp, frame_number)
-                delay(0.001)
+                time.sleep(0.001)
             grab_result.Release()
 
     except KeyboardInterrupt:
