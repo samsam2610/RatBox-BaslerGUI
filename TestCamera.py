@@ -63,7 +63,7 @@ class VideoRecordingSession:
                 buffer_len = len(self.frame_buffer)
                 if buffer_len:
                     self._write_frame()
-                    if self.frame_count % 1000 == 0:  # Print every 100 frames
+                    if self.frame_count % 1000 == 0:  # Print every 1000 frames
                         print(f"Cam {self.cam_num}: Written {self.frame_count} frames. Current buffer size: {len(self.frame_buffer)}")
             # time.sleep(0.01)
         
@@ -98,7 +98,7 @@ def main():
         camera.MaxNumBuffer = 5000
         camera.AcquisitionFrameRateEnable.SetValue(True)
         camera.AcquisitionFrameRate.SetValue(200.0)
-        camera.ExposureTime.SetValue(1000)
+        camera.ExposureTime.SetValue(1200)
         camera.OffsetX.SetValue(16)
         camera.OffsetY.SetValue(0)
         camera.Width.SetValue(1440)
@@ -126,7 +126,7 @@ def main():
                 frame_number = grab_result.BlockID
 
                 session.acquire_frame(frame, timestamp, frame_number)
-                # time.sleep(0.001)
+            time.sleep(0.001)
             grab_result.Release()
 
     except KeyboardInterrupt:
