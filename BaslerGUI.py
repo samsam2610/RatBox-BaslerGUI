@@ -11,7 +11,7 @@ import threading
 from pypylon import pylon
 import wx.lib.agw.floatspin as FS
 import csv
-
+from VideoRecordingSession import VideoRecordingSession
 
 class ImagePanel(wx.Panel):
 
@@ -391,7 +391,7 @@ class BaslerGuiWindow(wx.Frame):
         self.frame_width = 1440
         self.frame_height = 1088
         self.camera.Width.SetValue(self.frame_width)
-        self.camera.Height.SetValue(self.frame_height)
+        self.camera.Height.setValue(self.frame_height)
         self.gray = np.zeros((self.frame_height, self.frame_width), np.uint8)
         self.mean_img_sq = np.zeros((self.frame_height, self.frame_width), np.float32)
         self.sq = np.zeros((self.frame_height, self.frame_width), np.float32)
@@ -976,17 +976,10 @@ class BaslerGuiWindow(wx.Frame):
         self.connect_btn.Disable()
         self.capture_btn.Enable()
         self.capture_status_timer.Start(200, oneShot=True)
-
-    def StopCapture(self):
-        if self.capture_thread_obj.is_alive() is True:
-            self.capture_thread_obj.join()
-        self.EnableGUI(True)
-        self.capture_status_timer.Stop()
-        self.capture_sequence_timer.Stop()
-
-    def capture_thread(self):
-        self.capture_on = True
-        self.last_capture_time = time.time()
+    
+    def SetupCapture(self):
+        # Prepare data output file and buffer
+        
         sequence_length = int(self.sequence_ctrl.GetValue())
         video_length = float(self.framescap_ctrl.GetValue())
         frames_to_capture = int(video_length * self.framerate)
@@ -1082,6 +1075,19 @@ class BaslerGuiWindow(wx.Frame):
             frames_to_capture = 1
 
         buffer = np.zeros((frames_to_capture, height, width), np.uint8)
+        
+
+    def StopCapture(self):
+        if self.capture_thread_obj.is_alive() is True:
+            self.capture_thread_obj.join()
+        self.EnableGUI(True)
+        self.capture_status_timer.Stop()
+        self.capture_sequence_timer.Stop()
+
+    def capture_thread(self):
+        self.capture_on = True
+        self.last_capture_time = time.time()
+        
         self.camera.StartGrabbingMax(frames_to_capture, pylon.GrabStrategy_OneByOne)
 
         current_date_and_time = str(datetime.datetime.now())
