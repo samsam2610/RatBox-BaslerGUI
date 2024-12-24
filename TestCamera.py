@@ -97,7 +97,7 @@ def main():
         camera.MaxNumBuffer = 500
         camera.AcquisitionFrameRateEnable.SetValue(True)
         camera.AcquisitionFrameRate.SetValue(30.0)
-        camera.ExposureTime.SetValue(30)
+        camera.ExposureTime.SetValue(1000)
         camera.OffsetX.SetValue(16)
         camera.OffsetY.SetValue(0)
         camera.Width.SetValue(1440)
