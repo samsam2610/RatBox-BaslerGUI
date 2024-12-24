@@ -26,6 +26,10 @@ class VideoRecordingSession:
         self.dim = dim
         self.vid_out = cv2.VideoWriter(video_file, self.fourcc, fps, dim)
         print(f"Cam {self.cam_num}: Video writer set up with {video_file}")
+        if not self.vid_out.isOpened():
+            print(f"Error: Failed to initialize video writer for {video_file}")
+        else:
+            print(f"Cam {self.cam_num}: Video writer initialized successfully")
 
     def acquire_frame(self, frame, timestamp, frame_number):
         with self.buffer_lock:
@@ -52,23 +56,33 @@ class VideoRecordingSession:
                 self._write_frame()
 
     def _process_frames(self):
-        print("Starting frame processing")
+        print(f"Cam {self.cam_num}: Starting frame processing")
         while self.recording_status:
-            print("Buffer length: {}".format(len(self.frame_buffer)))
             with self.buffer_lock:
-                if self.frame_buffer:
+                buffer_len = len(self.frame_buffer)
+                if buffer_len:
+                    print(f"Cam {self.cam_num}: Processing frame. Buffer length: {buffer_len}")
                     self._write_frame()
-            time.sleep(0.01)  # Adjust for processing speed
+            time.sleep(0.01)
         
-        print("Frame processing stopped")
+        print(f"Cam {self.cam_num}: Frame processing stopped")
 
     def _write_frame(self):
-        print("Writing frame")
         frame, timestamp, frame_number = self.frame_buffer.popleft()
-        self.vid_out.write(frame)
-        self.frame_times.append(timestamp)
-        self.frame_num.append(frame_number)
-        self.frame_count += 1
+        try:
+            if frame is None:
+                print(f"Cam {self.cam_num}: Error - Empty frame detected")
+                return
+            
+            self.vid_out.write(frame)
+            self.frame_times.append(timestamp)
+            self.frame_num.append(frame_number)
+            self.frame_count += 1
+            
+            if self.frame_count % 100 == 0:  # Print every 100 frames
+                print(f"Cam {self.cam_num}: Written {self.frame_count} frames")
+        except Exception as e:
+            print(f"Cam {self.cam_num}: Error writing frame: {str(e)}")
 
 def main():
     # Create camera instance
@@ -108,7 +122,7 @@ def main():
                 timestamp = time.time()
                 frame_number = grab_result.BlockID
 
-                # Add frame to session buffer
+                print(f"Grabbed frame {frame_number}, shape: {frame.shape}")
                 session.acquire_frame(frame, timestamp, frame_number)
 
             grab_result.Release()
