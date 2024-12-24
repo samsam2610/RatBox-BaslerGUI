@@ -124,7 +124,7 @@ def main():
                 frame_number = grab_result.BlockID
 
                 session.acquire_frame(frame, timestamp, frame_number)
-
+                delay(0.001)
             grab_result.Release()
 
     except KeyboardInterrupt:
