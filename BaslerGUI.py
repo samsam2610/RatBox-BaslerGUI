@@ -95,6 +95,8 @@ class BaslerGuiWindow(wx.Frame):
     mask = np.zeros((480, 640, 1), bool)
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)).astype(np.float32)
     kernel /= np.sum(kernel)
+    
+    video_session = VideoRecordingSession(cam_num=0)
 
     def __init__(self, *args, **kwargs):
         super(BaslerGuiWindow, self).__init__(*args, **kwargs)
@@ -970,6 +972,7 @@ class BaslerGuiWindow(wx.Frame):
 
     def StartCapture(self):
         self.StopPreview()
+        self.SetupCapture()
         self.capture_thread_obj = threading.Thread(target=self.capture_thread)
         self.capture_thread_obj.start()
         self.EnableGUI(False)
@@ -978,8 +981,7 @@ class BaslerGuiWindow(wx.Frame):
         self.capture_status_timer.Start(200, oneShot=True)
     
     def SetupCapture(self):
-        # Prepare data output file and buffer
-        
+        # Prepare data output file before starting capture
         sequence_length = int(self.sequence_ctrl.GetValue())
         video_length = float(self.framescap_ctrl.GetValue())
         frames_to_capture = int(video_length * self.framerate)
@@ -1054,29 +1056,18 @@ class BaslerGuiWindow(wx.Frame):
             self.current_step = sequence_length
             return
 
-        width = 0
-        height = 0
-        roi_min_row = 0
-        roi_max_row = self.frame_height - 1
-        roi_min_col = 0
-        roi_max_col = self.frame_width - 1
-        if self.roi_on is True:
-            roi_min_row = self.roi_y
-            roi_max_row = self.roi_y + self.roi_height
-            roi_min_col = self.roi_x
-            roi_max_col = self.roi_x + self.roi_width
-            width = self.roi_width
-            height = self.roi_height
-        else:
-            width = self.frame_width
-            height = self.frame_height
-
-        if self.capture_mode == 3:
-            frames_to_capture = 1
-
-        buffer = np.zeros((frames_to_capture, height, width), np.uint8)
+        # Configure session
+        # Prepare data output file and buffer
+        self.video_session = VideoRecordingSession()
         
-
+        # TODO: add more options for output file
+        self.video_session.set_params(
+            video_file="output.avi",
+            fourcc="DIVX",
+            fps=200,
+            dim=(1440, 1088)
+        )
+ 
     def StopCapture(self):
         if self.capture_thread_obj.is_alive() is True:
             self.capture_thread_obj.join()
@@ -1085,180 +1076,42 @@ class BaslerGuiWindow(wx.Frame):
         self.capture_sequence_timer.Stop()
 
     def capture_thread(self):
+        # Indefinite capture mode
         self.capture_on = True
-        self.last_capture_time = time.time()
         
-        self.camera.StartGrabbingMax(frames_to_capture, pylon.GrabStrategy_OneByOne)
+        # Start the video recording session
+        self.video_session.start_recording()
+        
+        # Start the camera grabbing
+        self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
 
         current_date_and_time = str(datetime.datetime.now())
 
         print(f'Capturing video started at: {current_date_and_time}')
 
         captured_frames = 0
-        while captured_frames < frames_to_capture:
-            if self.camera.IsGrabbing():
-                grabResult = self.camera.RetrieveResult(500,
-                                                        pylon.TimeoutHandling_ThrowException)
-                if grabResult.GrabSucceeded():
-                    if self.roi_on is True:
-                        buffer[captured_frames, :, :] = grabResult.GetArray()[roi_min_row:roi_max_row, 
-                                                                              roi_min_col:roi_max_col].copy()
-                    else:
-                        buffer[captured_frames, :, :] = grabResult.GetArray().copy()
-                    captured_frames += 1
-                else:
-                    print("Error: ",
-                          grabResult.ErrorCode)
-                grabResult.Release()
-            if self.capture_on is False:
-                self.camera.StopGrabbing()
-                self.current_step = sequence_length
-                return
+        while self.camera.IsGrabbing() and self.capture_on is True:
+            grabResult = self.camera.RetrieveResult(500,
+                                                    pylon.TimeoutHandling_ThrowException)
+            if grabResult.GrabSucceeded():
+                frame = grabResult.GetArray()
+                timestamp = time.time()
+                frame_number = grabResult.BlockID
+                captured_frames += 1
 
-        self.camera.StopGrabbing()
+                self.video_session.acquire_frame(frame, timestamp, frame_number)
+            
+            else:
+                print("Error: ",
+                        grabResult.ErrorCode)
+            time.sleep(0.001)
+            grabResult.Release()
+        else:
+            self.camera.StopGrabbing()
+            self.video_session.stop_recording()
+
         print(f'Capturing finished after grabbing {captured_frames} frames')
-
-        if self.process_thread_obj is not None:
-            if self.process_thread_obj.is_alive():
-                self.process_thread_obj.join()
-
-        self.process_thread_obj = threading.Thread(target=self.process_data, args=(
-            buffer.copy(), self.capture_mode, output_path, current_date_and_time))
-        self.process_thread_obj.start()
-
-        self.capture_on = False
-
-    def process_data(self, buffer, capture_mode, output_path, current_date_and_time):
-
-        frames_to_capture, height, width = buffer.shape
-        date_time = time.strftime("%Y%m%d_%H%M%S")
-        if capture_mode == 0:
-            video_output_path = output_path + ".avi"
-            print(f'Writing raw output video to {output_path}')
-            video_writer = cv2.VideoWriter(video_output_path,
-                                           cv2.VideoWriter_fourcc(*'DIVX'),
-                                           self.framerate,
-                                           (width, height), isColor=False)
-            for frame_index in range(0, frames_to_capture):
-                video_writer.write(buffer[frame_index, :, :])
-
-            video_writer.release()
-            print("Video data written")
-
-        if capture_mode == 1:
-            output_path = output_path + ".avi"
-            print(f'Writing LASCA output video to {output_path}')
-            video_writer = cv2.VideoWriter(output_path,
-                                           cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'),
-                                           self.framerate,
-                                           (width, height))
-            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9)).astype(np.float32)
-            kernel /= np.sum(kernel)
-            for frame_index in range(0, frames_to_capture):
-                img = buffer[frame_index, :, :].copy().astype(np.float32, copy=False)
-                mean_img = cv2.filter2D(img, ddepth=cv2.CV_32F, kernel=kernel)
-                mean_img_sq = np.multiply(mean_img, mean_img)
-                sq = np.multiply(img, img)
-                sq_img_mean = cv2.filter2D(sq, ddepth=cv2.CV_32F, kernel=kernel)
-                std = cv2.subtract(sq_img_mean, mean_img_sq)
-                std[std <= 0] = 0.000001
-                cv2.sqrt(std, dst=std)
-                mask = mean_img < 5
-                mean_img[mask] = 10000000.00
-                cv2.pow(mean_img, power=-1.0, dst=mean_img)
-
-                LASCA = cv2.multiply(std, mean_img, scale=255, dtype=cv2.CV_8U)
-                LASCA = 255 - LASCA
-                cv2.filter2D(LASCA, dst=LASCA, ddepth=cv2.CV_8U, kernel=kernel)
-                im_color = cv2.applyColorMap(LASCA, colormap=cv2.COLORMAP_JET)
-                video_writer.write(im_color)
-
-            video_writer.release()
-
-        if capture_mode == 2 or capture_mode == 4:
-
-            file_name = output_path.split('\\')[-1]
-            file_name = file_name + "_" + date_time
-
-            if capture_mode == 4:
-                video_output_path = output_path + "_" + date_time + ".avi"
-                print(f'Writing raw output video to {video_output_path}')
-                video_writer = cv2.VideoWriter(video_output_path, cv2.VideoWriter_fourcc(*'RGBA'), self.framerate,
-                                               (width, height), isColor=False)
-                for frame_index in range(0, frames_to_capture):
-                    video_writer.write(buffer[frame_index, :, :])
-                video_writer.release()
-
-            output_path = output_path + ".csv"
-            print(f'Writing output data to {output_path}')
-
-            mean_slasca = 0
-            mean_tlasca = 0
-            inertia_moment_2 = 0
-
-            buffer_array = np.zeros((width * height, frames_to_capture),
-                                    dtype=np.float32, order='C')
-            for frame_index in range(0, frames_to_capture):
-                buffer_array[:, frame_index] = buffer[frame_index, :, :] \
-                    .flatten(order='C')  \
-                    .astype(np.float32)
-                mean_slasca += np.std(buffer[frame_index, :, :]) / \
-                    np.mean(buffer[frame_index, :, :])
-
-            mean_slasca /= frames_to_capture
-            mean_tlasca = np.mean(np.std(buffer_array, axis=1) /
-                                  np.mean(buffer_array, axis=1))
-
-            buffer_array = buffer_array.astype(np.int32)
-            result = greycomatrix(buffer_array, [1], [0], normed=False,
-                                  levels=256, symmetric=True)
-            com = result[:, :, 0, 0] / frames_to_capture
-            distance_matrix = np.tile(np.arange(256), (256, 1))
-            distance_matrix = np.abs(distance_matrix - distance_matrix.T) * (np.sqrt(2) / 2)
-            inertia_moment_2 = np.sum(com*distance_matrix)
-            #
-            max_lag = frames_to_capture // 3
-            samples = 0
-            correlations = np.zeros(max_lag)
-            time_scale = np.zeros(max_lag)
-            for i in range(0, frames_to_capture-max_lag, 5):
-                samples = samples + 1
-                for lag in range(0, max_lag):
-                    out = np.corrcoef(buffer_array[:, i], buffer_array[:, i + lag])
-                    correlations[lag] = correlations[lag] + out.item((0, 1))
-
-            for lag in range(0, max_lag):
-                time_scale[lag] = (1/self.framerate)*lag
-
-            correlations = correlations / samples
-            def fitfunc(x, a, b): return np.exp(-1*((x/a)**b))
-
-            popt, pcov = curve_fit(fitfunc,
-                                   xdata=time_scale,
-                                   ydata=correlations,
-                                   maxfev=6000,
-                                   p0=[1, 1],
-                                   bounds=((0.001, 0.001), (1000, 1000)))
-
-            a, b = popt
-
-            file = open(output_path, 'a', newline='', encoding='UTF8')
-            writer = csv.writer(file)
-
-            data = [self.current_step, date_time, file_name,
-                    mean_slasca, mean_tlasca, inertia_moment_2, a, b,
-                    self.framerate, self.exposure, self.gain]
-            writer.writerow(data)
-            writer = None
-            file.close()
-            print(f'Data saved in output file: {output_path}')
-
-        if capture_mode == 3:
-            output_path = output_path + ".tif"
-            print(f'Writing output image to {output_path}')
-            cv2.imwrite(output_path, buffer[0, :, :])
-
-        print('\n')
+        
 
     def capture_status(self, evt):
         if self.capture_on is True:

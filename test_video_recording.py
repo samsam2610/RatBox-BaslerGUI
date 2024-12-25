@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import Mock, patch, MagicMock
 import numpy as np
 import time
-from TestCamera import VideoRecordingSession
+from VideoRecordingSession import VideoRecordingSession
 
 class TestVideoRecordingSession(unittest.TestCase):
     def setUp(self):
