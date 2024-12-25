@@ -63,8 +63,6 @@ class VideoRecordingSession:
                 buffer_len = len(self.frame_buffer)
                 if buffer_len:
                     self._write_frame()
-                    if self.frame_count % 1000 == 0:  # Print every 1000 frames
-                        print(f"Cam {self.cam_num}: Written {self.frame_count} frames. Current buffer size: {len(self.frame_buffer)}")
             # time.sleep(0.01)
         
         print(f"Cam {self.cam_num}: Frame processing stopped")
