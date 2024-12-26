@@ -64,26 +64,38 @@ class VideoRecordingSession:
 
     def _process_frames(self):
         print(f"Cam {self.cam_num}: Starting frame processing")
+        batch_size = 10  # Process multiple frames per iteration
+        max_process_time = 0.001  # Maximum time to spend processing in each iteration
+        
         while self.recording_status:
             if len(self.frame_buffer) > 0:
-                self._write_frame()
-                time.sleep(0.00001)
-        print(f"Cam {self.cam_num}: Frame processing stopped")
+                start_time = time.perf_counter()
+                frames_processed = 0
+                
+                while (time.perf_counter() - start_time) < max_process_time and frames_processed < batch_size:
+                    if len(self.frame_buffer) == 0:
+                        break
+                    self._write_frame()
+                    frames_processed += 1
+                
+                if len(self.frame_buffer) > self.frame_buffer.maxlen * 0.8:  # Buffer is getting full
+                    print(f"Cam {self.cam_num}: Warning - Buffer at {len(self.frame_buffer)}/{self.frame_buffer.maxlen}")
+            else:
+                time.sleep(0.0001)  # Short sleep when buffer is empty
         
+        print(f"Cam {self.cam_num}: Frame processing stopped")
+    
     def _write_frame(self):
-        while len(self.frame_buffer) > 0:
-            frame, timestamp, frame_number = self.frame_buffer.popleft()
-            if frame is None:
-                print(f"Cam {self.cam_num}: Error - Empty frame detected")
-                return
-            
-            self.vid_out.write(frame)
-            # self.frame_times.append(timestamp)
-            # self.frame_num.append(frame_number)
-            self.frame_count += 1
-            
-            if self.frame_count % 1000 == 0:  # Print every 5000 frames
-                print(f"Cam {self.cam_num}: Written {self.frame_count} frames. Current buffer size: {len(self.frame_buffer)}")
+        frame, timestamp, frame_number = self.frame_buffer.popleft()
+        if frame is None:
+            print(f"Cam {self.cam_num}: Error - Empty frame detected")
+            return
+        
+        self.vid_out.write(frame)
+        self.frame_count += 1
+        
+        if self.frame_count % 1000 == 0:
+            print(f"Cam {self.cam_num}: Written {self.frame_count} frames. Current buffer size: {len(self.frame_buffer)}")
     
     @staticmethod
     def precise_sleep(duration):
