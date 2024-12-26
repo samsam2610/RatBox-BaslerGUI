@@ -82,6 +82,7 @@ class BaslerGuiWindow(wx.Frame):
     process_thread_obj = None
     max_contrast = 0.8
 
+    # TODO: reorganize these variables to make it customizable
     current_frame = np.zeros((480, 640, 1), np.float32)
     gray = np.zeros((480, 640, 1), np.uint8)
     mean_img_sq = np.zeros((480, 640, 1), np.float32)
@@ -1086,6 +1087,8 @@ class BaslerGuiWindow(wx.Frame):
         self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
 
         current_date_and_time = str(datetime.datetime.now())
+        last_display_time = time.time()
+        display_interval = 1/60  # Update display every 1/60 seconds (to match 60Hz refresh rate)
 
         print(f'Capturing video started at: {current_date_and_time}')
 
@@ -1100,6 +1103,9 @@ class BaslerGuiWindow(wx.Frame):
                 captured_frames += 1
 
                 self.video_session.acquire_frame(frame, timestamp, frame_number)
+                # Update self.frame at 60 FPS
+                if time.time() - last_display_time >= display_interval:
+                    self.display_frame = frame
             
             else:
                 print("Error: ",
@@ -1157,6 +1163,16 @@ class BaslerGuiWindow(wx.Frame):
                     self.StartPreview()
                     return
         return
+    
+    def display_thread(self):
+        while self.capture_on is True:
+            self.lock.acquire()
+            if self.display_frame is not None:
+                self.frame = self.display_frame
+                self.display_frame = None
+            else:
+                time.sleep(0.001)
+            self.lock.release()
 
     def count_elapsed(self, evt):
         self.time_to_next -= 1
