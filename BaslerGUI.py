@@ -332,6 +332,9 @@ class BaslerGuiWindow(wx.Frame):
         self.frame = np.zeros([480, 640, 3], dtype=np.uint8)
         self.frame[:] = 255
 
+        self.display_frame = np.zeros([480, 640, 3], dtype=np.uint8)
+        self.display_frame[:] = 255
+
         self.Window = ImagePanel(panel)
         self.Window.SetSize = (480, 640)
         self.Window.Fit()
