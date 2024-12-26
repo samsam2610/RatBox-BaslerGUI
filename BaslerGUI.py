@@ -1123,13 +1123,13 @@ class BaslerGuiWindow(wx.Frame):
 
                 self.video_session.acquire_frame(frame, timestamp, frame_number)
                 # Update self.frame at 60 FPS
-                if time.time() - last_display_time >= display_interval:
-                    self.frame = frame
+                # if time.time() - last_display_time >= display_interval:
+                #     self.frame = frame
             
             else:
                 print("Error: ",
                         grabResult.ErrorCode)
-            # time.sleep(0.001)
+            self.precise_sleep(0.0005)
             grabResult.Release()
         else:
             self.camera.StopGrabbing()
@@ -1203,6 +1203,12 @@ class BaslerGuiWindow(wx.Frame):
             self.capture_sequence_timer.Start(1000, oneShot=True)
         else:
             self.StartCapture()
+    
+    @staticmethod
+    def precise_sleep(duration):
+        start_time = time.perf_counter()
+        while (time.perf_counter() - start_time) < duration:
+            pass  # Busy-waiting until the time has elapsed
 
 
 if __name__ == '__main__':
