@@ -32,12 +32,13 @@ class VideoRecordingSession:
             print(f"Cam {self.cam_num}: Video writer initialized successfully")
 
     def acquire_frame(self, frame, timestamp, frame_number):
-        self.frame_buffer.append((frame, timestamp, frame_number))
+        with self.buffer_lock:
+            self.frame_buffer.append((frame, timestamp, frame_number))
 
     def start_recording(self):
         self.recording_status = True
-        processing_thread = threading.Thread(target=self._process_frames, daemon=True)
-        processing_thread.start()
+        self.processing_thread = threading.Thread(target=self._process_frames, daemon=True)
+        self.processing_thread.start()
         print(f"Cam {self.cam_num}: Recording started.")
 
     def stop_recording(self):
@@ -58,9 +59,7 @@ class VideoRecordingSession:
         print(f"Cam {self.cam_num}: Starting frame processing")
         while self.recording_status:
             self._write_frame()
-            buffer_len = len(self.frame_buffer)
-            if buffer_len == 0:
-                time.sleep(0.001)
+
         
         print(f"Cam {self.cam_num}: Frame processing stopped")
         
