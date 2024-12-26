@@ -1102,40 +1102,40 @@ class BaslerGuiWindow(wx.Frame):
         # Start the video recording session
         self.video_session.start_recording()
         
-        # Start the camera grabbing
-        self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
+        # Configure camera for grab loop thread
+        self.camera.StaticChunkNodeMapPoolSize = 500
+        self.camera.MaxNumBuffer = 180
+        self.camera.OutputQueueSize = 500
 
+        # Register callback for image event
+        class ImageHandler(pylon.ImageEventHandler):
+            def OnImageGrabbed(self, camera, grab_result):
+                if grab_result.GrabSucceeded():
+                    frame = grab_result.GetArray()
+                    timestamp = time.time()
+                    frame_number = grab_result.BlockID
+                    self.video_session.acquire_frame(frame, timestamp, frame_number)
+
+        image_handler = ImageHandler()
+
+        # Start grabbing using Grab Loop Thread
+        self.camera.RegisterImageEventHandler(image_handler, 
+                                              pylon.RegistrationMode_Append, 
+                                              pylon.Cleanup_Delete)
+        self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne, 
+                                  pylon.GrabLoop_ProvidedByInstantCamera)
+
+        # Print start time
         current_date_and_time = str(datetime.datetime.now())
-        last_display_time = time.time()
-        display_interval = 1/60  # Update display every 1/60 seconds (to match 60Hz refresh rate)
-
         print(f'Capturing video started at: {current_date_and_time}')
 
-        captured_frames = 0
-        while self.camera.IsGrabbing() and self.capture_on is True:
-            grabResult = self.camera.RetrieveResult(500,
-                                                    pylon.TimeoutHandling_ThrowException)
-            if grabResult.GrabSucceeded():
-                frame = grabResult.GetArray()
-                timestamp = time.time()
-                frame_number = grabResult.BlockID
-                captured_frames += 1
+        # Wait while grabbing
+        while self.camera.IsGrabbing() and self.capture_on:
+            time.sleep(0.001)  # Small sleep to prevent CPU overload
 
-                self.video_session.acquire_frame(frame, timestamp, frame_number)
-                # Update self.frame at 60 FPS
-                # if time.time() - last_display_time >= display_interval:
-                #     self.frame = frame 
-            else:
-                print("Error: ",
-                        grabResult.ErrorCode)
-            
-            grabResult.Release()
-        else:
-            self.camera.StopGrabbing()
-            self.video_session.stop_recording()
-
-        print(f'Capturing finished after grabbing {captured_frames} frames')
-        
+        # Clean up
+        self.camera.StopGrabbing()
+        self.video_session.stop_recording()
 
     def capture_status(self, evt):
         if self.capture_on is True:
