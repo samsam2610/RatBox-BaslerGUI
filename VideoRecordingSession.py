@@ -63,7 +63,7 @@ class VideoRecordingSession:
                 buffer_len = len(self.frame_buffer)
                 if buffer_len:
                     self._write_frame()
-            self.precise_sleep(0.0001)
+            time.sleep(0.001)
         
         print(f"Cam {self.cam_num}: Frame processing stopped")
         
