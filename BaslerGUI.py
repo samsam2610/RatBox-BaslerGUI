@@ -987,7 +987,7 @@ class BaslerGuiWindow(wx.Frame):
         self.EnableGUI(False)
         self.connect_btn.Disable()
         self.capture_btn.Enable()
-        self.capture_status_timer.Start(200, oneShot=True)
+        self.capture_status_timer.Start(10000, oneShot=True)
     
     def SetupCapture(self):
         # Prepare data output file before starting capture
@@ -1123,9 +1123,6 @@ class BaslerGuiWindow(wx.Frame):
                     captured_frames += 1
 
                     self.video_session.acquire_frame(frame, timestamp, frame_number)
-                    # Update self.frame at 60 FPS
-                    # if time.time() - last_display_time >= display_interval:
-                    #     self.frame = frame
                 else:
                     print("Error: ", grabResult.ErrorCode)
                 

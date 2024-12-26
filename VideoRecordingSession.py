@@ -78,7 +78,7 @@ class VideoRecordingSession:
             self.frame_count += 1
             
             if self.frame_count % 1000 == 0:
-                print(f"Cam {self.cam_num}: Recorded {self.frame_count} frames")
+                print(f"Cam {self.cam_num}: Recorded {self.frame_count} frames. Remaining: {len(self.frame_buffer)}")
     
     @staticmethod
     def precise_sleep(duration):
