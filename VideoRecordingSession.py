@@ -57,6 +57,7 @@ class VideoRecordingSession:
         print(f"Cam {self.cam_num}: Recording stopped.")
 
     def write_remaining_frames(self):
+        print(f"Remaining frames: {len(self.frame_buffer)}")
         while self.frame_buffer:
             with self.buffer_lock:
                 if len(self.frame_buffer) > 0:
@@ -71,11 +72,7 @@ class VideoRecordingSession:
         print(f"Cam {self.cam_num}: Frame processing stopped")
     
     def _write_frame(self):
-        frame, timestamp, frame_number = self.frame_buffer.popleft()
-        if frame is None:
-            print(f"Cam {self.cam_num}: Error - Empty frame detected")
-            return
-        
+        frame, timestamp, frame_number = self.frame_buffer.popleft()    
         self.vid_out.write(frame)
         self.frame_count += 1
     
