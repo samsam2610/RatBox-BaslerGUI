@@ -1129,7 +1129,7 @@ class BaslerGuiWindow(wx.Frame):
             else:
                 print("Error: ",
                         grabResult.ErrorCode)
-            time.sleep(0.001)
+            # time.sleep(0.001)
             grabResult.Release()
         else:
             self.camera.StopGrabbing()
