@@ -1125,7 +1125,7 @@ class BaslerGuiWindow(wx.Frame):
                 # Update self.frame at 60 FPS
                 # if time.time() - last_display_time >= display_interval:
                 #     self.frame = frame
-                time.sleep(0.001)
+                self.precise_sleep(0.0001)
             
             else:
                 print("Error: ",
