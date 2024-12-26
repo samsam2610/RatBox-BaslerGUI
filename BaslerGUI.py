@@ -1109,12 +1109,12 @@ class BaslerGuiWindow(wx.Frame):
 
         # Register callback for image event
         class ImageHandler(pylon.ImageEventHandler):
-            def OnImageGrabbed(self, camera, grab_result):
+            def OnImageGrabbed(self, camera, grab_result, video_session):
                 if grab_result.GrabSucceeded():
                     frame = grab_result.GetArray()
                     timestamp = time.time()
                     frame_number = grab_result.BlockID
-                    self.video_session.acquire_frame(frame, timestamp, frame_number)
+                    video_session.acquire_frame(frame, timestamp, frame_number)
 
         image_handler = ImageHandler()
 
