@@ -974,8 +974,13 @@ class BaslerGuiWindow(wx.Frame):
     def StartCapture(self):
         self.StopPreview()
         self.SetupCapture()
+        
+        # Start the capture and display threads
         self.capture_thread_obj = threading.Thread(target=self.capture_thread)
         self.capture_thread_obj.start()
+        self.display_thread_thread_obj = threading.Thread(target=self.display_thread)
+        self.display_thread_thread_obj.start()
+        
         self.EnableGUI(False)
         self.connect_btn.Disable()
         self.capture_btn.Enable()
@@ -1081,6 +1086,8 @@ class BaslerGuiWindow(wx.Frame):
     def StopCapture(self):
         if self.capture_thread_obj.is_alive() is True:
             self.capture_thread_obj.join()
+        if self.display_thread_thread_obj.is_alive() is True:
+            self.display_thread_thread_obj.join()
         self.EnableGUI(True)
         self.capture_status_timer.Stop()
         self.capture_sequence_timer.Stop()
