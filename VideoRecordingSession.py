@@ -68,6 +68,9 @@ class VideoRecordingSession:
         while self.recording_status:
             if len(self.frame_buffer) > 0:
                 self._write_frame()
+            
+            if len(self.frame_buffer)%1000 == 0:
+                print(f"Cam {self.cam_num}: Frames in buffer: {len(self.frame_buffer)}")
         
         print(f"Cam {self.cam_num}: Frame processing stopped")
     
