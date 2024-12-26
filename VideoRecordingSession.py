@@ -64,11 +64,9 @@ class VideoRecordingSession:
 
     def _process_frames(self):
         print(f"Cam {self.cam_num}: Starting frame processing")
-        batch_size = 10  # Process multiple frames per iteration
-        max_process_time = 0.001  # Maximum time to spend processing in each iteration
-        
         while self.recording_status:
-            self._write_frame()
+            if len(self.frame_buffer) > 0:
+                self._write_frame()
             time.sleep(0.0001)  # Short sleep when buffer is empty
         
         print(f"Cam {self.cam_num}: Frame processing stopped")
