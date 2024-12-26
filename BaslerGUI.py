@@ -1189,8 +1189,6 @@ class BaslerGuiWindow(wx.Frame):
             if self.display_frame is not None:
                 self.frame = self.display_frame
                 self.display_frame = None
-            else:
-                time.sleep(0.001)
             self.lock.release()
 
     def count_elapsed(self, evt):
