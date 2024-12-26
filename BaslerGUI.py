@@ -981,8 +981,8 @@ class BaslerGuiWindow(wx.Frame):
         # Start the capture and display threads
         self.capture_thread_obj = threading.Thread(target=self.capture_thread)
         self.capture_thread_obj.start()
-        self.display_thread_thread_obj = threading.Thread(target=self.display_thread)
-        self.display_thread_thread_obj.start()
+        # self.display_thread_thread_obj = threading.Thread(target=self.display_thread)
+        # self.display_thread_thread_obj.start()
         
         self.EnableGUI(False)
         self.connect_btn.Disable()
@@ -1089,8 +1089,8 @@ class BaslerGuiWindow(wx.Frame):
     def StopCapture(self):
         if self.capture_thread_obj.is_alive() is True:
             self.capture_thread_obj.join()
-        if self.display_thread_thread_obj.is_alive() is True:
-            self.display_thread_thread_obj.join()
+        # if self.display_thread_thread_obj.is_alive() is True:
+        #     self.display_thread_thread_obj.join()
         self.EnableGUI(True)
         self.capture_status_timer.Stop()
         self.capture_sequence_timer.Stop()
@@ -1124,7 +1124,7 @@ class BaslerGuiWindow(wx.Frame):
                 self.video_session.acquire_frame(frame, timestamp, frame_number)
                 # Update self.frame at 60 FPS
                 if time.time() - last_display_time >= display_interval:
-                    self.display_frame = frame
+                    self.frame = frame
             
             else:
                 print("Error: ",
