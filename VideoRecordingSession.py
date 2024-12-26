@@ -34,7 +34,8 @@ class VideoRecordingSession:
 
     def acquire_frame(self, frame, timestamp, frame_number):
         if self.recording_status:
-            self.frame_buffer.append((frame, timestamp, frame_number))
+            with self.buffer_lock:
+                self.frame_buffer.append((frame, timestamp, frame_number))
 
     def start_recording(self):
         self.recording_status = True
