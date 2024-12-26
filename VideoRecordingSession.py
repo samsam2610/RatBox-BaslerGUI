@@ -72,9 +72,10 @@ class VideoRecordingSession:
         print(f"Cam {self.cam_num}: Frame processing stopped")
     
     def _write_frame(self):
-        frame, timestamp, frame_number = self.frame_buffer.popleft()    
-        self.vid_out.write(frame)
-        self.frame_count += 1
+        while len(self.frame_buffer) > 0:
+            frame, timestamp, frame_number = self.frame_buffer.popleft()    
+            self.vid_out.write(frame)
+            self.frame_count += 1
     
     @staticmethod
     def precise_sleep(duration):
