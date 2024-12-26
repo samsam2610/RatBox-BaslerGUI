@@ -3,6 +3,7 @@ import threading
 import time
 from collections import deque
 from pypylon import pylon
+import datetime
 
 
 class VideoRecordingSession:
@@ -32,7 +33,7 @@ class VideoRecordingSession:
             print(f"Cam {self.cam_num}: Video writer initialized successfully")
 
     def acquire_frame(self, frame, timestamp, frame_number):
-        with self.buffer_lock:
+        if self.recording_status:
             self.frame_buffer.append((frame, timestamp, frame_number))
 
     def start_recording(self):
@@ -44,7 +45,8 @@ class VideoRecordingSession:
     def stop_recording(self):
         self.recording_status = False
         if self.processing_thread.is_alive():
-            print(f"Cam {self.cam_num}: Stopping frame processing")
+            current_date_and_time = str(datetime.datetime.now())
+            print(f"Cam {self.cam_num}: Stopping frame processing at {current_date_and_time}")
             self.processing_thread.join()
         time.sleep(0.1)  # Allow buffer processing to finish
         self.write_remaining_frames()
@@ -82,7 +84,7 @@ class VideoRecordingSession:
                 self.frame_num.append(frame_number)
                 self.frame_count += 1
                 
-                if self.frame_count % 1000 == 0:  # Print every 100 frames
+                if self.frame_count % 5000 == 0:  # Print every 100 frames
                     print(f"Cam {self.cam_num}: Written {self.frame_count} frames. Current buffer size: {len(self.frame_buffer)}")
             except Exception as e:
                 print(f"Cam {self.cam_num}: Error writing frame: {str(e)}")
