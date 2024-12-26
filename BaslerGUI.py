@@ -1130,7 +1130,7 @@ class BaslerGuiWindow(wx.Frame):
         print(f'Capturing video started at: {current_date_and_time}')
 
         # Wait while grabbing
-        while self.camera.IsGrabbing() and self.capture_on:
+        while self.capture_on:
             time.sleep(0.001)  # Small sleep to prevent CPU overload
 
         # Clean up
