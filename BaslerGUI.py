@@ -1195,11 +1195,7 @@ class BaslerGuiWindow(wx.Frame):
         else:
             self.StartCapture()
     
-    @staticmethod
-    def precise_sleep(duration):
-        start_time = time.perf_counter()
-        while (time.perf_counter() - start_time) < duration:
-            pass  # Busy-waiting until the time has elapsed
+
 
 
 if __name__ == '__main__':

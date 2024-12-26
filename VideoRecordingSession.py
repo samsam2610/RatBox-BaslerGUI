@@ -63,10 +63,10 @@ class VideoRecordingSession:
                 buffer_len = len(self.frame_buffer)
                 if buffer_len:
                     self._write_frame()
-            time.sleep(0.001)
+            self.precise_sleep(0.0001)
         
         print(f"Cam {self.cam_num}: Frame processing stopped")
-
+        
     def _write_frame(self):
         frame, timestamp, frame_number = self.frame_buffer.popleft()
         try:
@@ -83,3 +83,9 @@ class VideoRecordingSession:
                 print(f"Cam {self.cam_num}: Written {self.frame_count} frames. Current buffer size: {len(self.frame_buffer)}")
         except Exception as e:
             print(f"Cam {self.cam_num}: Error writing frame: {str(e)}")
+    
+    @staticmethod
+    def precise_sleep(duration):
+        start_time = time.perf_counter()
+        while (time.perf_counter() - start_time) < duration:
+            pass  # Busy-waiting until the time has elapsed
