@@ -74,20 +74,17 @@ class VideoRecordingSession:
     def _write_frame(self):
         while len(self.frame_buffer) > 0:
             frame, timestamp, frame_number = self.frame_buffer.popleft()
-            try:
-                if frame is None:
-                    print(f"Cam {self.cam_num}: Error - Empty frame detected")
-                    return
-                
-                self.vid_out.write(frame)
-                self.frame_times.append(timestamp)
-                self.frame_num.append(frame_number)
-                self.frame_count += 1
-                
-                if self.frame_count % 5000 == 0:  # Print every 100 frames
-                    print(f"Cam {self.cam_num}: Written {self.frame_count} frames. Current buffer size: {len(self.frame_buffer)}")
-            except Exception as e:
-                print(f"Cam {self.cam_num}: Error writing frame: {str(e)}")
+            if frame is None:
+                print(f"Cam {self.cam_num}: Error - Empty frame detected")
+                return
+            
+            self.vid_out.write(frame)
+            # self.frame_times.append(timestamp)
+            # self.frame_num.append(frame_number)
+            self.frame_count += 1
+            
+            if self.frame_count % 5000 == 0:  # Print every 5000 frames
+                print(f"Cam {self.cam_num}: Written {self.frame_count} frames. Current buffer size: {len(self.frame_buffer)}")
     
     @staticmethod
     def precise_sleep(duration):
