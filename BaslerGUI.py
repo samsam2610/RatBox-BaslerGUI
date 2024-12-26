@@ -1151,7 +1151,6 @@ class BaslerGuiWindow(wx.Frame):
         if self.capture_on is True:
             self.capture_status_timer.Start(200, oneShot=True)
             self.current_state.SetLabel("Current status: capturing data!")
-            self.check_buffer_status()  # Check buffer status during capture
             return
         else:
             sequence_length = int(self.sequence_ctrl.GetValue())
