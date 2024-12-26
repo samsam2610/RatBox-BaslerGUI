@@ -66,7 +66,7 @@ class VideoRecordingSession:
     def _process_frames(self):
         print(f"Cam {self.cam_num}: Starting frame processing")
         while self.recording_status:
-            if len(self.frame_buffer) > 100:
+            if len(self.frame_buffer) > 0:
                 with self.buffer_lock:
                     self._write_frame()
         
