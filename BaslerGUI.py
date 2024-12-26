@@ -1117,7 +1117,7 @@ class BaslerGuiWindow(wx.Frame):
                 grabResult = self.camera.RetrieveResult(500,
                                                         pylon.TimeoutHandling_ThrowException)
                 if grabResult.GrabSucceeded():
-                    frame = grabResult.GetArray()
+                    frame = grabResult.GetArrayZeroCopy()
                     timestamp = time.time()
                     frame_number = grabResult.BlockID
                     captured_frames += 1
