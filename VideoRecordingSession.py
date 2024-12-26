@@ -67,7 +67,6 @@ class VideoRecordingSession:
         while self.recording_status:
             if len(self.frame_buffer) > 0:
                 self._write_frame()
-            time.sleep(0.0001)  # Short sleep when buffer is empty
         
         print(f"Cam {self.cam_num}: Frame processing stopped")
     
