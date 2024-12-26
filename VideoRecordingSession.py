@@ -78,9 +78,6 @@ class VideoRecordingSession:
         
         self.vid_out.write(frame)
         self.frame_count += 1
-        
-        if self.frame_count % 1000 == 0:
-            print(f"Cam {self.cam_num}: Written {self.frame_count} frames. Current buffer size: {len(self.frame_buffer)}")
     
     @staticmethod
     def precise_sleep(duration):
