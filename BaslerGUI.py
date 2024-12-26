@@ -1128,6 +1128,7 @@ class BaslerGuiWindow(wx.Frame):
                 
                 grabResult.Release()
             else:
+                print("Camera Buffer is empty")
                 time.sleep(0.00001)  # Small sleep to prevent CPU overload when buffer is empty
 
         self.camera.StopGrabbing()
