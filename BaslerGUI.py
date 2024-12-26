@@ -1113,35 +1113,45 @@ class BaslerGuiWindow(wx.Frame):
 
         captured_frames = 0
         while self.camera.IsGrabbing() and self.capture_on is True:
-            grabResult = self.camera.RetrieveResult(500,
-                                                    pylon.TimeoutHandling_ThrowException)
-            if grabResult.GrabSucceeded():
-                frame = grabResult.GetArray()
-                timestamp = time.time()
-                frame_number = grabResult.BlockID
-                captured_frames += 1
+            if self.camera.NumQueuedBuffers > 0:
+                grabResult = self.camera.RetrieveResult(500,
+                                                        pylon.TimeoutHandling_ThrowException)
+                if grabResult.GrabSucceeded():
+                    frame = grabResult.GetArray()
+                    timestamp = time.time()
+                    frame_number = grabResult.BlockID
+                    captured_frames += 1
 
-                self.video_session.acquire_frame(frame, timestamp, frame_number)
-                # Update self.frame at 60 FPS
-                # if time.time() - last_display_time >= display_interval:
-                #     self.frame = frame
-                time.sleep(0.001)
+                    self.video_session.acquire_frame(frame, timestamp, frame_number)
+                    # Update self.frame at 60 FPS
+                    # if time.time() - last_display_time >= display_interval:
+                    #     self.frame = frame
+                else:
+                    print("Error: ", grabResult.ErrorCode)
+                
+                grabResult.Release()
             else:
-                print("Error: ",
-                        grabResult.ErrorCode)
-            
-            grabResult.Release()
-        else:
-            self.camera.StopGrabbing()
-            self.video_session.stop_recording()
+                time.sleep(0.001)  # Small sleep to prevent CPU overload when buffer is empty
+
+        self.camera.StopGrabbing()
+        self.video_session.stop_recording()
 
         print(f'Capturing finished after grabbing {captured_frames} frames')
-        
+
+    def check_buffer_status(self):
+        if self.camera_connected:
+            num_buffers = self.camera.NumQueuedBuffers
+            print(f"Number of frames in buffer: {num_buffers}")
+            return num_buffers
+        else:
+            print("Camera is not connected.")
+            return 0
 
     def capture_status(self, evt):
         if self.capture_on is True:
             self.capture_status_timer.Start(200, oneShot=True)
             self.current_state.SetLabel("Current status: capturing data!")
+            self.check_buffer_status()  # Check buffer status during capture
             return
         else:
             sequence_length = int(self.sequence_ctrl.GetValue())
