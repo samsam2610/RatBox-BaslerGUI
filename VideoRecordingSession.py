@@ -70,7 +70,6 @@ class VideoRecordingSession:
             if len(self.frame_buffer) > 0:
                 self._write_frame()
             else:
-                print("Cam {self.cam_num}: Frame buffer empty. Waiting for frames.")
                 time.sleep(0.001)
         
         print(f"Cam {self.cam_num}: Frame processing stopped")
