@@ -990,7 +990,12 @@ class BaslerGuiWindow(wx.Frame):
 
         output_path = []
         output_file_name = self.exportfile_ctrl.GetValue()
+        if len(output_file_name) <= 1:
+            output_file_name = "output.avi"
+            
         output_folder_name = self.exportfolder_ctrl.GetValue()
+        if len(output_folder_name) <= 1:
+            output_folder_name = "C:\\"
         if len(output_folder_name) > 0:
             output_path = output_folder_name + "\\" + output_file_name
         else:
@@ -1056,6 +1061,10 @@ class BaslerGuiWindow(wx.Frame):
             self.capture_on = False
             self.current_step = sequence_length
             return
+        
+        # Making sure the output file is .avi
+        if not output_path.endswith('.avi'):
+            output_path += '.avi'
 
         # Configure session
         # Prepare data output file and buffer
@@ -1063,7 +1072,7 @@ class BaslerGuiWindow(wx.Frame):
         
         # TODO: add more options for output file
         self.video_session.set_params(
-            video_file="output.avi",
+            video_file=output_path,
             fourcc="DIVX",
             fps=200,
             dim=(1440, 1088)
