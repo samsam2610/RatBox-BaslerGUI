@@ -64,24 +64,12 @@ class VideoRecordingSession:
 
     def _process_frames(self):
         print(f"Cam {self.cam_num}: Starting frame processing")
-        batch_size = 200  # Process multiple frames per iteration
+        batch_size = 10  # Process multiple frames per iteration
         max_process_time = 0.001  # Maximum time to spend processing in each iteration
         
         while self.recording_status:
-            if len(self.frame_buffer) > 0:
-                start_time = time.perf_counter()
-                frames_processed = 0
-                
-                while (time.perf_counter() - start_time) < max_process_time and frames_processed < batch_size:
-                    if len(self.frame_buffer) == 0:
-                        break
-                    self._write_frame()
-                    frames_processed += 1
-                
-                if len(self.frame_buffer) > self.frame_buffer.maxlen * 0.8:  # Buffer is getting full
-                    print(f"Cam {self.cam_num}: Warning - Buffer at {len(self.frame_buffer)}/{self.frame_buffer.maxlen}")
-            else:
-                time.sleep(0.0001)  # Short sleep when buffer is empty
+            self._write_frame()
+            time.sleep(0.0001)  # Short sleep when buffer is empty
         
         print(f"Cam {self.cam_num}: Frame processing stopped")
     
