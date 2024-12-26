@@ -1113,7 +1113,7 @@ class BaslerGuiWindow(wx.Frame):
 
         captured_frames = 0
         while self.camera.IsGrabbing() and self.capture_on is True:
-            if self.camera.NumQueuedBuffers > 0:
+            if int(self.camera.NumQueuedBuffers.Value) > 0:
                 grabResult = self.camera.RetrieveResult(500,
                                                         pylon.TimeoutHandling_ThrowException)
                 if grabResult.GrabSucceeded():
@@ -1140,7 +1140,7 @@ class BaslerGuiWindow(wx.Frame):
 
     def check_buffer_status(self):
         if self.camera_connected:
-            num_buffers = self.camera.NumQueuedBuffers
+            num_buffers = int(self.camera.NumQueuedBuffers.Value)
             print(f"Number of frames in buffer: {num_buffers}")
             return num_buffers
         else:
