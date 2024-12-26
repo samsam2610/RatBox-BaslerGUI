@@ -1117,7 +1117,7 @@ class BaslerGuiWindow(wx.Frame):
                 grabResult = self.camera.RetrieveResult(500,
                                                         pylon.TimeoutHandling_ThrowException)
                 if grabResult.GrabSucceeded():
-                    frame = grabResult.GetArrayZeroCopy()
+                    frame = grabResult.GetArray()
                     timestamp = time.time()
                     frame_number = grabResult.BlockID
                     captured_frames += 1
@@ -1128,7 +1128,7 @@ class BaslerGuiWindow(wx.Frame):
                 
                 grabResult.Release()
             else:
-                time.sleep(0.001)  # Small sleep to prevent CPU overload when buffer is empty
+                time.sleep(0.00001)  # Small sleep to prevent CPU overload when buffer is empty
 
         self.camera.StopGrabbing()
         self.video_session.stop_recording()
