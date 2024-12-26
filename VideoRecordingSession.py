@@ -43,6 +43,9 @@ class VideoRecordingSession:
 
     def stop_recording(self):
         self.recording_status = False
+        if self.processing_thread.is_alive():
+            print(f"Cam {self.cam_num}: Stopping frame processing")
+            self.processing_thread.join()
         time.sleep(0.1)  # Allow buffer processing to finish
         self.write_remaining_frames()
         if self.vid_out:
@@ -53,14 +56,16 @@ class VideoRecordingSession:
 
     def write_remaining_frames(self):
         while self.frame_buffer:
-            self._write_frame()
+            with self.buffer_lock:
+                if len(self.frame_buffer) > 0:
+                    self._write_frame()
 
     def _process_frames(self):
         print(f"Cam {self.cam_num}: Starting frame processing")
         while self.recording_status:
-            self._write_frame()
-
-        
+            with self.buffer_lock:
+                if len(self.frame_buffer) > 0:
+                    self._write_frame()        
         print(f"Cam {self.cam_num}: Frame processing stopped")
         
     def _write_frame(self):
