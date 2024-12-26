@@ -1113,7 +1113,7 @@ class BaslerGuiWindow(wx.Frame):
 
         captured_frames = 0
         while self.camera.IsGrabbing() and self.capture_on is True:
-            if int(self.camera.NumQueuedBuffers.Value) > 0:
+            while int(self.camera.NumQueuedBuffers.Value) > 0:
                 grabResult = self.camera.RetrieveResult(500,
                                                         pylon.TimeoutHandling_ThrowException)
                 if grabResult.GrabSucceeded():
