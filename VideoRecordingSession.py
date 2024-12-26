@@ -64,7 +64,7 @@ class VideoRecordingSession:
 
     def _process_frames(self):
         print(f"Cam {self.cam_num}: Starting frame processing")
-        batch_size = 10  # Process multiple frames per iteration
+        batch_size = 200  # Process multiple frames per iteration
         max_process_time = 0.001  # Maximum time to spend processing in each iteration
         
         while self.recording_status:
