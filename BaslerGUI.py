@@ -1125,11 +1125,12 @@ class BaslerGuiWindow(wx.Frame):
                 # Update self.frame at 60 FPS
                 # if time.time() - last_display_time >= display_interval:
                 #     self.frame = frame
+                time.sleep(0.001)
             
             else:
                 print("Error: ",
                         grabResult.ErrorCode)
-            self.precise_sleep(0.0005)
+            
             grabResult.Release()
         else:
             self.camera.StopGrabbing()
@@ -1182,14 +1183,6 @@ class BaslerGuiWindow(wx.Frame):
                     self.StartPreview()
                     return
         return
-    
-    def display_thread(self):
-        while self.capture_on is True:
-            self.lock.acquire()
-            if self.display_frame is not None:
-                self.frame = self.display_frame
-                self.display_frame = None
-            self.lock.release()
 
     def count_elapsed(self, evt):
         self.time_to_next -= 1
