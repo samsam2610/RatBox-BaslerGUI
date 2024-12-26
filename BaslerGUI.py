@@ -1081,7 +1081,7 @@ class BaslerGuiWindow(wx.Frame):
         # TODO: add more options for output file
         self.video_session.set_params(
             video_file=output_path,
-            fourcc="XVID",
+            fourcc="MJPG",
             fps=200,
             dim=(1440, 1088)
         )
