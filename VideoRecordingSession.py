@@ -83,7 +83,7 @@ class VideoRecordingSession:
             # self.frame_num.append(frame_number)
             self.frame_count += 1
             
-            if self.frame_count % 5000 == 0:  # Print every 5000 frames
+            if self.frame_count % 1000 == 0:  # Print every 5000 frames
                 print(f"Cam {self.cam_num}: Written {self.frame_count} frames. Current buffer size: {len(self.frame_buffer)}")
     
     @staticmethod
