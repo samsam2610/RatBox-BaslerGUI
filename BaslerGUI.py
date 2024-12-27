@@ -1126,9 +1126,10 @@ class BaslerGuiWindow(wx.Frame):
 
                     self.video_session.acquire_frame(frame, timestamp, frame_number)
                     
-                    imageWindow.SetImage(grabResult)
+                    
                     if (timestamp - last_display_time) > display_interval:
-                        imageWindow.ShowImage()
+                        imageWindow.SetImage(grabResult)
+                        imageWindow.Show()
                         last_display_time = time.time()
                 else:
                     print("Error: ", grabResult.ErrorCode)
