@@ -247,7 +247,7 @@ class BaslerGuiWindow(wx.Frame):
         roi_x_ctrl_label = wx.StaticText(panel, label="Center X:")
         sizer.Add(roi_x_ctrl_label, pos=(16, 3), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.roi_x_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=frame_width,
+        self.roi_x_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=self.frame_width,
                                     size=(220, -1),
                                     style=wx.SL_HORIZONTAL | wx.SL_LABELS)
         sizer.Add(self.roi_x_ctrl, pos=(17, 3), span=(1, 1),
