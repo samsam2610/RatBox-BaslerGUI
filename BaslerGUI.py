@@ -1135,15 +1135,7 @@ class BaslerGuiWindow(wx.Frame):
                     if (timestamp - last_display_time) > display_interval:
                         # Resize frame for display
                         display_frame = cv2.resize(frame, (display_width, display_height))
-                        # Create a new grab result with resized image
-                        display_result = pylon.PylonImage()
-                        display_result.AttachGrabResultBuffer(
-                            grabResult
-                        )
-                        # Set the resized image data
-                        display_result.CopyBuffer(display_frame.tobytes())
-                        # Update the image window
-                        imageWindow.SetImage(display_result)
+                        imageWindow.SetImage(display_frame)
                         imageWindow.Show()
                         last_display_time = time.time()
                 else:
