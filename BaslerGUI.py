@@ -15,9 +15,9 @@ from VideoRecordingSession import VideoRecordingSession
 
 class ImagePanel(wx.Panel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, frame_height=1088, frame_width=1440):
         wx.Panel.__init__(self, parent)
-        h, w = self.frame_height, self.frame_width
+        h, w = frame_height, frame_width
         src = (255 * np.random.rand(h, w)).astype(np.uint8)
         buf = src.repeat(3, 1).tobytes()
         self.bitmap = wx.Image(w, h, buf).ConvertToBitmap()
