@@ -23,8 +23,13 @@ class ImagePanel(wx.Panel):
         self.bitmap = wx.Image(w, h, buf).ConvertToBitmap()
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Size = (frame_height, frame_width)
-        self.Fit()
+        self.Bind(wx.EVT_SIZE, self.OnSize)  # Add size event handler
+        self.SetMinSize((480, 640))  # Set minimum size
+
+    def OnSize(self, event):
+        # Handle resize events
+        self.Refresh()
+        event.Skip()
 
     def OnPaint(self, evt):
         wx.BufferedPaintDC(self, self.bitmap)
@@ -342,7 +347,11 @@ class BaslerGuiWindow(wx.Frame):
         self.Window.SetSize = (self.frame_height, self.frame_width)
         self.Window.Fit()
         sizer.Add(self.Window, pos=(0, 3), span=(15, 4),
-                  flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
+                  flag=wx.LEFT | wx.TOP | wx.EXPAND | wx.GROW | wx.ALL, border=5)
+                  
+        # Make the sizer expandable
+        sizer.AddGrowableCol(3)
+        sizer.AddGrowableRow(0)
 
         lasca_filter_label = wx.StaticText(panel, label="LASCA filter size:")
         sizer.Add(lasca_filter_label, pos=(16, 5),
