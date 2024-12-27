@@ -993,6 +993,8 @@ class BaslerGuiWindow(wx.Frame):
         video_length = float(self.framescap_ctrl.GetValue())
         frames_to_capture = int(video_length * self.framerate)
         interval_length = float(self.interval_ctrl.GetValue())
+        
+        fourcc_code = str(self.fourcc_combo.GetValue())
 
         output_path = []
         output_file_name = self.exportfile_ctrl.GetValue()
@@ -1077,7 +1079,7 @@ class BaslerGuiWindow(wx.Frame):
         # TODO: add more options for output file
         self.video_session.set_params(
             video_file=output_path,
-            fourcc="MJPG",
+            fourcc=fourcc_code,
             fps=200,
             dim=(1440, 1088)
         )
