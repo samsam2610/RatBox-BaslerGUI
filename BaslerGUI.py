@@ -15,7 +15,7 @@ from VideoRecordingSession import VideoRecordingSession
 
 class ImagePanel(wx.ScrolledWindow):
 
-    def __init__(self, parent, frame_height=1088, frame_width=1440):
+    def __init__(self, parent, frame_height=480, frame_width=640):
         wx.ScrolledWindow.__init__(self, parent)
         h, w = frame_height, frame_width
         src = (255 * np.random.rand(h, w)).astype(np.uint8)
