@@ -499,16 +499,16 @@ class BaslerGuiWindow(wx.Frame):
                 roi_max_col = self.roi_x + self.roi_width
                 self.im_color = self.DrawHistogram(self.frame[roi_min_row:roi_max_row,
                                                               roi_min_col:roi_max_col],
-                                                   (640, 480),
+                                                   (self.frame_width, self.frame_height),
                                                    (255, 255, 255),
                                                    (250, 155, 0))
             else:
                 self.im_color = self.DrawHistogram(self.frame,
-                                                   (640, 480),
+                                                   (self.frame_width, self.frame_height),
                                                    (255, 255, 255),
                                                    (250, 155, 0))
 
-            self.bitmap = wx.Image(self.frame_width, self.frame_height,
+            self.bitmap = wx.Image(640, 480,
                                    self.im_color.tobytes()).ConvertToBitmap()
 
         self.Window.update(self.bitmap)
