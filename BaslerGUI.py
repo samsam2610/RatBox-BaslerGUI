@@ -981,8 +981,6 @@ class BaslerGuiWindow(wx.Frame):
         # Start the capture and display threads
         self.capture_thread_obj = threading.Thread(target=self.capture_thread)
         self.capture_thread_obj.start()
-        # self.display_thread_thread_obj = threading.Thread(target=self.display_thread)
-        # self.display_thread_thread_obj.start()
         
         self.EnableGUI(False)
         self.connect_btn.Disable()
@@ -1099,6 +1097,10 @@ class BaslerGuiWindow(wx.Frame):
         # Indefinite capture mode
         self.capture_on = True
         
+        # Create Image Windows to display live video while capturing
+        imageWindow = pylon.PylonImageWindow()
+        imageWindow.Create(1)
+        
         # Start the video recording session
         self.video_session.start_recording()
         
@@ -1123,6 +1125,11 @@ class BaslerGuiWindow(wx.Frame):
                     captured_frames += 1
 
                     self.video_session.acquire_frame(frame, timestamp, frame_number)
+                    
+                    imageWindow.SetImage(grabResult)
+                    if (timestamp - last_display_time) > display_interval:
+                        imageWindow.ShowImage()
+                        last_display_time = time.time()
                 else:
                     print("Error: ", grabResult.ErrorCode)
                 
