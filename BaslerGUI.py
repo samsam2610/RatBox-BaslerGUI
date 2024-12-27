@@ -314,12 +314,14 @@ class BaslerGuiWindow(wx.Frame):
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.append_date.SetBackgroundColour(wx.NullColour)
         self.append_date.Bind(wx.EVT_CHECKBOX, self.OnAppendDate)
+        self.append_date.SetValue(True)  
 
         self.auto_index = wx.CheckBox(panel, label="Auto index")
         sizer.Add(self.auto_index, pos=(12, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.auto_index.SetBackgroundColour(wx.NullColour)
         self.auto_index.Bind(wx.EVT_CHECKBOX, self.OnAutoIndex)
+        self.auto_index.SetValue(True)  # Set checkbox to checked by default
 
         self.index_ctrl = wx.TextCtrl(panel)
         self.index_ctrl.SetValue(str(1))
