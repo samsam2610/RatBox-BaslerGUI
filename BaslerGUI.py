@@ -994,7 +994,7 @@ class BaslerGuiWindow(wx.Frame):
         frames_to_capture = int(video_length * self.framerate)
         interval_length = float(self.interval_ctrl.GetValue())
         
-        fourcc_code = str(self.fourcc_combo.GetValue())
+        fourcc_code = str(self.encoding_mode_combo.GetValue())
 
         output_path = []
         output_file_name = self.exportfile_ctrl.GetValue()
