@@ -971,6 +971,8 @@ class BaslerGuiWindow(wx.Frame):
                     if ((current_time - self.previous_time) > 20):
                         self.lock.acquire()
                         self.frame = grabResult.GetArray()
+                        # Convert to 8-bit grayscale
+                        self.frame = cv2.cvtColor(self.frame, cv2.COLOR_BAYER_BG2GRAY)
                         self.lock.release()
                         self.previous_time = current_time
                 else:
