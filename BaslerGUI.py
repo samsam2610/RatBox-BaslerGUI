@@ -1133,9 +1133,7 @@ class BaslerGuiWindow(wx.Frame):
                     self.video_session.acquire_frame(frame, timestamp, frame_number)
                     
                     if (timestamp - last_display_time) > display_interval:
-                        # Resize frame for display
-                        display_frame = cv2.resize(frame, (display_width, display_height))
-                        imageWindow.SetImage(display_frame)
+                        imageWindow.SetImage(grabResult)
                         imageWindow.Show()
                         last_display_time = time.time()
                 else:
@@ -1147,6 +1145,7 @@ class BaslerGuiWindow(wx.Frame):
                 time.sleep(0.00001)
 
         self.camera.StopGrabbing()
+        imageWindow.Close()
         self.video_session.stop_recording()
 
         print(f'Capturing finished after grabbing {captured_frames} frames')
