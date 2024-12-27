@@ -144,7 +144,7 @@ class BaslerGuiWindow(wx.Frame):
 
         fourcc_label = wx.StaticText(panel, label="Fourcc Code:")
         sizer.Add(fourcc_label, pos=(13, 0), flag=wx.EXPAND | wx.ALL, border=5)
-        fourcc_modes = ["DIVX", "XVID", "MJPG"]
+        fourcc_modes = ["MJPG", "DIVX", "XVID"]
         self.encoding_mode_combo = wx.ComboBox(panel, choices=fourcc_modes)
         sizer.Add(self.encoding_mode_combo, pos=(13, 1), flag=wx.ALL, border=5)
         self.encoding_mode_combo.Bind(wx.EVT_COMBOBOX, self.OnCapModeCombo)
@@ -1112,6 +1112,10 @@ class BaslerGuiWindow(wx.Frame):
         current_date_and_time = str(datetime.datetime.now())
         last_display_time = time.time()
         display_interval = 1/60  # Update display every 1/60 seconds (to match 60Hz refresh rate)
+        
+        # Define display dimensions
+        display_width = 720  # Half of 1440
+        display_height = 544  # Half of 1088
 
         print(f'Capturing video started at: {current_date_and_time}')
 
@@ -1128,9 +1132,18 @@ class BaslerGuiWindow(wx.Frame):
 
                     self.video_session.acquire_frame(frame, timestamp, frame_number)
                     
-                    
                     if (timestamp - last_display_time) > display_interval:
-                        imageWindow.SetImage(grabResult)
+                        # Resize frame for display
+                        display_frame = cv2.resize(frame, (display_width, display_height))
+                        # Create a new grab result with resized image
+                        display_result = pylon.PylonImage()
+                        display_result.AttachGrabResultBuffer(
+                            grabResult
+                        )
+                        # Set the resized image data
+                        display_result.CopyBuffer(display_frame.tobytes())
+                        # Update the image window
+                        imageWindow.SetImage(display_result)
                         imageWindow.Show()
                         last_display_time = time.time()
                 else:
@@ -1139,7 +1152,7 @@ class BaslerGuiWindow(wx.Frame):
                 grabResult.Release()
             else:
                 print("Camera Buffer is empty")
-                time.sleep(0.00001)  # Small sleep to prevent CPU overload when buffer is empty
+                time.sleep(0.00001)
 
         self.camera.StopGrabbing()
         self.video_session.stop_recording()
