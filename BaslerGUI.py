@@ -24,7 +24,6 @@ class ImagePanel(wx.ScrolledWindow):
         self.SetDoubleBuffered(True)
         self.SetScrollbars(20, 20, w // 20, h // 20)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.SetMinSize((480, 640))  # Set minimum size
 
     def OnPaint(self, evt):
         dc = wx.BufferedPaintDC(self)
