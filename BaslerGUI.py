@@ -17,13 +17,13 @@ class ImagePanel(wx.Panel):
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
-        h, w = 480, 640
+        h, w = frame_height, frame_width
         src = (255 * np.random.rand(h, w)).astype(np.uint8)
         buf = src.repeat(3, 1).tobytes()
         self.bitmap = wx.Image(w, h, buf).ConvertToBitmap()
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Size = (480, 640)
+        self.Size = (frame_height, frame_width)
         self.Fit()
 
     def OnPaint(self, evt):
@@ -61,6 +61,7 @@ class BaslerGuiWindow(wx.Frame):
     capture_on = False
     framerate = 120
     exposure = 7
+    
     gain = 0
     cameras_list = []
     capture_sequence_timer = None
@@ -68,7 +69,7 @@ class BaslerGuiWindow(wx.Frame):
     camera_connected = False
     camera = []
 
-    frame_width = 640
+    frame_width = 640 
     frame_height = 480
 
     roi_on = False
@@ -83,17 +84,17 @@ class BaslerGuiWindow(wx.Frame):
     max_contrast = 0.8
 
     # TODO: reorganize these variables to make it customizable
-    current_frame = np.zeros((480, 640, 1), np.float32)
-    gray = np.zeros((480, 640, 1), np.uint8)
-    mean_img_sq = np.zeros((480, 640, 1), np.float32)
-    sq = np.zeros((480, 640, 1), np.float32)
-    img = np.zeros((480, 640, 1), np.float32)
-    mean_img = np.zeros((480, 640, 1), np.float32)
-    sq_img_mean = np.zeros((480, 640, 1), np.float32)
-    std = np.zeros((480, 640, 1), np.float32)
-    LASCA = np.zeros((480, 640, 1), np.uint8)
-    im_color = np.zeros((480, 640, 3), np.uint8)
-    mask = np.zeros((480, 640, 1), bool)
+    current_frame = np.zeros((frame_height, frame_width, 1), np.float32)
+    gray = np.zeros((frame_height, frame_width, 1), np.uint8)
+    mean_img_sq = np.zeros((frame_height, frame_width, 1), np.float32)
+    sq = np.zeros((frame_height, frame_width, 1), np.float32)
+    img = np.zeros((frame_height, frame_width, 1), np.float32)
+    mean_img = np.zeros((frame_height, frame_width, 1), np.float32)
+    sq_img_mean = np.zeros((frame_height, frame_width, 1), np.float32)
+    std = np.zeros((frame_height, frame_width, 1), np.float32)
+    LASCA = np.zeros((frame_height, frame_width, 1), np.uint8)
+    im_color = np.zeros((frame_height, frame_width, 3), np.uint8)
+    mask = np.zeros((frame_height, frame_width, 1), bool)
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)).astype(np.float32)
     kernel /= np.sum(kernel)
     
@@ -246,7 +247,7 @@ class BaslerGuiWindow(wx.Frame):
         roi_x_ctrl_label = wx.StaticText(panel, label="Center X:")
         sizer.Add(roi_x_ctrl_label, pos=(16, 3), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.roi_x_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=640,
+        self.roi_x_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=frame_width,
                                     size=(220, -1),
                                     style=wx.SL_HORIZONTAL | wx.SL_LABELS)
         sizer.Add(self.roi_x_ctrl, pos=(17, 3), span=(1, 1),
@@ -256,7 +257,7 @@ class BaslerGuiWindow(wx.Frame):
         roi_y_ctrl_label = wx.StaticText(panel, label="Center Y:")
         sizer.Add(roi_y_ctrl_label, pos=(18, 3), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.roi_y_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=480,
+        self.roi_y_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=frame_height,
                                     size=(220, 20),
                                     style=wx.SL_HORIZONTAL | wx.SL_LABELS)
         sizer.Add(self.roi_y_ctrl, pos=(19, 3), span=(1, 1),
@@ -267,7 +268,7 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(roi_width_ctrl_label, pos=(16, 4), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
         self.roi_width_ctrl = wx.Slider(panel, value=10, minValue=10,
-                                        maxValue=640, size=(220, -1),
+                                        maxValue=frame_width, size=(220, -1),
                                         style=wx.SL_HORIZONTAL | wx.SL_LABELS)
         sizer.Add(self.roi_width_ctrl, pos=(17, 4), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
@@ -277,7 +278,7 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(roi_height_ctrl_label, pos=(18, 4), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
         self.roi_height_ctrl = wx.Slider(panel, value=10, minValue=10,
-                                         maxValue=480, size=(220, 20),
+                                         maxValue=frame_height, size=(220, 20),
                                          style=wx.SL_HORIZONTAL | wx.SL_LABELS)
         sizer.Add(self.roi_height_ctrl, pos=(19, 4), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
@@ -331,14 +332,14 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(self.current_state, pos=(18, 0), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
-        self.frame = np.zeros([480, 640, 3], dtype=np.uint8)
+        self.frame = np.zeros([frame_height, frame_width, 3], dtype=np.uint8)
         self.frame[:] = 255
 
-        self.display_frame = np.zeros([480, 640, 3], dtype=np.uint8)
+        self.display_frame = np.zeros([frame_height, frame_width, 3], dtype=np.uint8)
         self.display_frame[:] = 255
 
         self.Window = ImagePanel(panel)
-        self.Window.SetSize = (480, 640)
+        self.Window.SetSize = (frame_height, frame_width)
         self.Window.Fit()
         sizer.Add(self.Window, pos=(0, 3), span=(15, 4),
                   flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
