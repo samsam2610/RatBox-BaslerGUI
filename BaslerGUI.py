@@ -23,7 +23,7 @@ class ImagePanel(wx.Panel):
         self.bitmap = wx.Image(w, h, buf).ConvertToBitmap()
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Size = (self.frame_height, self.frame_width)
+        self.Size = (frame_height, frame_width)
         self.Fit()
 
     def OnPaint(self, evt):
