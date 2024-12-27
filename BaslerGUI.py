@@ -432,43 +432,44 @@ class BaslerGuiWindow(wx.Frame):
         cv2.filter2D(self.LASCA, dst=self.LASCA, ddepth=cv2.CV_8U, kernel=self.kernel)
 
     def Draw(self, evt):
+
         self.lock.acquire()
         # Resize frame by half
-        resized_frame = cv2.resize(self.frame, (self.frame_width // 2, self.frame_height // 2))
-
+        self.frame = cv2.resize(self.frame, (self.frame_width//2, self.frame_height//2))
+        
         if (self.selected_mode == 0):
-            cv2.cvtColor(src=resized_frame, code=cv2.COLOR_GRAY2RGB, dst=self.im_color)
+            cv2.cvtColor(src=self.frame, code=cv2.COLOR_GRAY2RGB, dst=self.im_color)
             if self.roi_on is True:
-                cv2.line(self.im_color, (self.roi_x // 2, self.roi_y // 2),
-                         (self.roi_x // 2 + self.roi_width // 2, self.roi_y // 2), (255, 0, 0), 3)
-                cv2.line(self.im_color, (self.roi_x // 2, self.roi_y // 2 + self.roi_height // 2),
-                         (self.roi_x // 2 + self.roi_width // 2, self.roi_y // 2 + self.roi_height // 2),
+                cv2.line(self.im_color, (self.roi_x, self.roi_y),
+                         (self.roi_x + self.roi_width, self.roi_y), (255, 0, 0), 3)
+                cv2.line(self.im_color, (self.roi_x, self.roi_y + self.roi_height),
+                         (self.roi_x + self.roi_width, self.roi_y + self.roi_height),
                          (255, 0, 0), 3)
-                cv2.line(self.im_color, (self.roi_x // 2, self.roi_y // 2),
-                         (self.roi_x // 2, self.roi_y // 2 + self.roi_height // 2), (255, 0, 0), 3)
-                cv2.line(self.im_color, (self.roi_x // 2 + self.roi_width // 2, self.roi_y // 2),
-                         (self.roi_x // 2 + self.roi_width // 2, self.roi_y // 2 + self.roi_height // 2),
+                cv2.line(self.im_color, (self.roi_x, self.roi_y),
+                         (self.roi_x, self.roi_y + self.roi_height), (255, 0, 0), 3)
+                cv2.line(self.im_color, (self.roi_x + self.roi_width, self.roi_y),
+                         (self.roi_x + self.roi_width, self.roi_y + self.roi_height),
                          (255, 0, 0), 3)
 
                 self.update_ratio += 1
 
                 if self.update_ratio > 5:
-                    sd = resized_frame[self.roi_y // 2:(self.roi_y // 2 + self.roi_height // 2),
-                                       self.roi_x // 2:(self.roi_x // 2 + self.roi_width // 2)].std()
-                    mn = resized_frame[self.roi_y // 2:(self.roi_y // 2 + self.roi_height // 2),
-                                       self.roi_x // 2:(self.roi_x // 2 + self.roi_width // 2)].mean()
+                    sd = self.frame[self.roi_y:(self.roi_y+self.roi_height),
+                                    self.roi_x:(self.roi_x+self.roi_width)].std()
+                    mn = self.frame[self.roi_y:(self.roi_y+self.roi_height),
+                                    self.roi_x:(self.roi_x+self.roi_width)].mean()
                     self.output_string_1 = "C: " + str(np.round(sd / mn, 3))
                     self.output_string_2 = "M: " + str(np.round(mn, 3))
                     self.update_ratio = 0
 
                 cv2.putText(self.im_color, self.output_string_1,
-                            (self.roi_x // 2 + 5, self.roi_y // 2 - 23),
+                            (self.roi_x+5, self.roi_y-23),
                             self.font, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
                 cv2.putText(self.im_color, self.output_string_2,
-                            (self.roi_x // 2 + 5, self.roi_y // 2 - 9),
+                            (self.roi_x+5, self.roi_y-9),
                             self.font, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
 
-            self.bitmap = wx.Image(self.frame_width // 2, self.frame_height // 2,
+            self.bitmap = wx.Image(self.frame_width, self.frame_height,
                                    self.im_color.tobytes()).ConvertToBitmap()
 
         if (self.selected_mode == 1):
@@ -477,40 +478,40 @@ class BaslerGuiWindow(wx.Frame):
             cv2.cvtColor(src=self.im_color, code=cv2.COLOR_BGR2RGB, dst=self.im_color)
 
             if self.roi_on is True:
-                cv2.line(self.im_color, (self.roi_x // 2, self.roi_y // 2),
-                         (self.roi_x // 2 + self.roi_width // 2, self.roi_y // 2), (255, 0, 0), 3)
-                cv2.line(self.im_color, (self.roi_x // 2, self.roi_y // 2 + self.roi_height // 2),
-                         (self.roi_x // 2 + self.roi_width // 2, self.roi_y // 2 + self.roi_height // 2),
+                cv2.line(self.im_color, (self.roi_x, self.roi_y),
+                         (self.roi_x + self.roi_width, self.roi_y), (255, 0, 0), 3)
+                cv2.line(self.im_color, (self.roi_x, self.roi_y + self.roi_height),
+                         (self.roi_x + self.roi_width, self.roi_y + self.roi_height),
                          (255, 0, 0), 3)
-                cv2.line(self.im_color, (self.roi_x // 2, self.roi_y // 2),
-                         (self.roi_x // 2, self.roi_y // 2 + self.roi_height // 2), (255, 0, 0), 3)
-                cv2.line(self.im_color, (self.roi_x // 2 + self.roi_width // 2, self.roi_y // 2),
-                         (self.roi_x // 2 + self.roi_width // 2, self.roi_y // 2 + self.roi_height // 2),
+                cv2.line(self.im_color, (self.roi_x, self.roi_y),
+                         (self.roi_x, self.roi_y + self.roi_height), (255, 0, 0), 3)
+                cv2.line(self.im_color, (self.roi_x + self.roi_width, self.roi_y),
+                         (self.roi_x + self.roi_width, self.roi_y + self.roi_height),
                          (255, 0, 0), 3)
 
-            self.bitmap = wx.Image(self.frame_width // 2,
-                                   self.frame_height // 2,
+            self.bitmap = wx.Image(self.frame_width,
+                                   self.frame_height,
                                    self.im_color.tobytes()).ConvertToBitmap()
 
         if (self.selected_mode == 2):
 
             if self.roi_on is True:
-                roi_min_row = self.roi_y // 2
-                roi_max_row = self.roi_y // 2 + self.roi_height // 2
-                roi_min_col = self.roi_x // 2
-                roi_max_col = self.roi_x // 2 + self.roi_width // 2
-                self.im_color = self.DrawHistogram(resized_frame[roi_min_row:roi_max_row,
-                                                                 roi_min_col:roi_max_col],
-                                                   (self.frame_width // 2, self.frame_height // 2),
+                roi_min_row = self.roi_y
+                roi_max_row = self.roi_y + self.roi_height
+                roi_min_col = self.roi_x
+                roi_max_col = self.roi_x + self.roi_width
+                self.im_color = self.DrawHistogram(self.frame[roi_min_row:roi_max_row,
+                                                              roi_min_col:roi_max_col],
+                                                   (self.frame_width, self.frame_height),
                                                    (255, 255, 255),
                                                    (250, 155, 0))
             else:
-                self.im_color = self.DrawHistogram(resized_frame,
-                                                   (self.frame_width // 2, self.frame_height // 2),
+                self.im_color = self.DrawHistogram(self.frame,
+                                                   (self.frame_width, self.frame_height),
                                                    (255, 255, 255),
                                                    (250, 155, 0))
 
-            self.bitmap = wx.Image(self.frame_width // 2, self.frame_height // 2,
+            self.bitmap = wx.Image(self.frame_width, self.frame_height,
                                    self.im_color.tobytes()).ConvertToBitmap()
 
         self.Window.update(self.bitmap)
