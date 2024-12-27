@@ -13,26 +13,24 @@ import wx.lib.agw.floatspin as FS
 import csv
 from VideoRecordingSession import VideoRecordingSession
 
-class ImagePanel(wx.ScrolledWindow):
-
-    def __init__(self, parent, frame_height=480, frame_width=640):
-        wx.ScrolledWindow.__init__(self, parent)
-        h, w = frame_height, frame_width
+class ImagePanel(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent)
+        h, w = self.frame_height, self.frame_width
         src = (255 * np.random.rand(h, w)).astype(np.uint8)
         buf = src.repeat(3, 1).tobytes()
         self.bitmap = wx.Image(w, h, buf).ConvertToBitmap()
         self.SetDoubleBuffered(True)
-        self.SetScrollbars(20, 20, w // 20, h // 20)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Size = (self.frame_height, self.frame_width)
+        self.Fit()
 
     def OnPaint(self, evt):
-        dc = wx.BufferedPaintDC(self)
-        self.PrepareDC(dc)
-        dc.DrawBitmap(self.bitmap, 0, 0)
+        wx.BufferedPaintDC(self, self.bitmap)
 
     def update(self, input_image):
         self.bitmap = input_image
-        self.Refresh()
+        wx.BufferedDC(wx.ClientDC(self), self.bitmap)
 
 class BaslerGuiWindow(wx.Frame):
 
@@ -339,8 +337,8 @@ class BaslerGuiWindow(wx.Frame):
 
         self.Window = ImagePanel(panel)
         self.Window.SetSize((640, 480))
-        # self.Window.Fit()
-        sizer.Add(self.Window, pos=(0, 3), span=(15, 4),
+        self.Window.Fit()
+        sizer.Add(self.Window, pos=(0, 3), span=(15, 3),
                   flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
 
         lasca_filter_label = wx.StaticText(panel, label="LASCA filter size:")
