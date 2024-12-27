@@ -42,16 +42,16 @@ class BaslerGuiWindow(wx.Frame):
     font = cv2.FONT_HERSHEY_SIMPLEX
     lock = threading.Lock()
 
-    auto_index_on = False
+    auto_index_on = True
     current_index = 0
-    append_date_flag = False
+    append_date_flag = True
     measurement_interval = 2
     sequence_length = 1
     current_step = 0
     last_capture_time = 0
     frames_to_capture = 360
     selected_mode = 0
-    capture_mode = 0
+    encoding_mode = 0
     time_to_next = 0
 
     selected_camera = 0
@@ -142,13 +142,13 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(self.preview_btn, pos=(2, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
-        capmode_ctrl_label = wx.StaticText(panel, label="Capture mode:")
-        sizer.Add(capmode_ctrl_label, pos=(13, 0), flag=wx.EXPAND | wx.ALL, border=5)
-        modes = ['RAW_VIDEO', 'LASCA_VIDEO', 'DATA_TABLE', 'RAW_IMAGE', 'DATA_&_VIDEO']
-        self.capmode_combo = wx.ComboBox(panel, choices=modes)
-        sizer.Add(self.capmode_combo, pos=(13, 1), flag=wx.ALL, border=5)
-        self.capmode_combo.Bind(wx.EVT_COMBOBOX, self.OnCapModeCombo)
-        self.capmode_combo.SetSelection(self.capture_mode)
+        fourcc_label = wx.StaticText(panel, label="Fourcc Code:")
+        sizer.Add(fourcc_label, pos=(13, 0), flag=wx.EXPAND | wx.ALL, border=5)
+        fourcc_modes = ["DIVX", "XVID", "MJPG"]
+        self.encoding_mode_combo = wx.ComboBox(panel, choices=fourcc_modes)
+        sizer.Add(self.encoding_mode_combo, pos=(13, 1), flag=wx.ALL, border=5)
+        self.encoding_mode_combo.Bind(wx.EVT_COMBOBOX, self.OnCapModeCombo)
+        self.encoding_mode_combo.SetSelection(self.encoding_mode)
 
         interval_ctrl_label = wx.StaticText(panel,
                                             label="Measurement interval (sec):")
@@ -997,7 +997,7 @@ class BaslerGuiWindow(wx.Frame):
         output_path = []
         output_file_name = self.exportfile_ctrl.GetValue()
         if len(output_file_name) <= 1:
-            output_file_name = "output.avi"
+            output_file_name = "output"
             
         output_folder_name = self.exportfolder_ctrl.GetValue()
         if len(output_folder_name) <= 1:
@@ -1022,23 +1022,20 @@ class BaslerGuiWindow(wx.Frame):
             return
 
         if self.append_date_flag is True:
-            if self.capture_mode != 2 and self.capture_mode != 4:
-                output_path = output_path + "_" + time.strftime("%Y%m%d_%H%M%S")
+            output_path = output_path + "_" + time.strftime("%Y%m%d_%H%M%S")
 
         if self.auto_index_on is True:
-            if self.capture_mode != 2 and self.capture_mode != 4:
-                output_path = output_path + "_" + str(self.current_index)
-                self.current_index += 1
+            output_path = output_path + "_" + str(self.current_index)
+            self.current_index += 1
 
         if self.auto_index_on is False and self.append_date_flag is False:
             if sequence_length > 1:
-                if self.capture_mode != 2:
-                    wx.MessageBox('Turn on auto indexing or append date to' +
-                                  ' file name when capturing sequence!',
-                                  'Warning', wx.OK | wx.ICON_WARNING)
-                    self.capture_on = False
-                    self.current_step = sequence_length
-                    return
+                wx.MessageBox('Turn on auto indexing or append date to' +
+                                ' file name when capturing sequence!',
+                                'Warning', wx.OK | wx.ICON_WARNING)
+                self.capture_on = False
+                self.current_step = sequence_length
+                return
 
         if len(output_path) <= 4:
             wx.MessageBox('Invalid name for data output file!',
@@ -1053,6 +1050,7 @@ class BaslerGuiWindow(wx.Frame):
                           'Warning', wx.OK | wx.ICON_WARNING)
             self.capture_on = False
             return
+        
         if sequence_length > 1:
             if(video_length > interval_length):
                 wx.MessageBox('Interval length should be greater than video length',
