@@ -342,11 +342,7 @@ class BaslerGuiWindow(wx.Frame):
         self.Window.SetSize((self.frame_height, self.frame_width))
         self.Window.Fit()
         sizer.Add(self.Window, pos=(0, 3), span=(15, 4),
-                  flag=wx.LEFT | wx.TOP | wx.EXPAND | wx.ALL, border=5)
-                  
-        # Remove growable settings
-        # sizer.AddGrowableCol(3)
-        # sizer.AddGrowableRow(0)
+                  flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
 
         lasca_filter_label = wx.StaticText(panel, label="LASCA filter size:")
         sizer.Add(lasca_filter_label, pos=(16, 5),
