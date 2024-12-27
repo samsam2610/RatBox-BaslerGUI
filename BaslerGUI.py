@@ -961,6 +961,8 @@ class BaslerGuiWindow(wx.Frame):
     def preview_thread(self):
         self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
         self.previous_time = int(round(time.time() * 1000))
+        
+        converter = pylon.ImageFormatConverter()
 
         while self.preview_on is True:
             if self.camera.IsGrabbing():
@@ -970,9 +972,8 @@ class BaslerGuiWindow(wx.Frame):
                     current_time = int(round(time.time() * 1000))
                     if ((current_time - self.previous_time) > 20):
                         self.lock.acquire()
-                        self.frame = grabResult.GetArray()
-                        # Convert to 8-bit grayscale
-                        self.frame = cv2.cvtColor(self.frame, cv2.COLOR_BAYER_BG2GRAY)
+                        image = converter.Convert(grabResult)   
+                        self.frame = image.GetArray()
                         self.lock.release()
                         self.previous_time = current_time
                 else:
