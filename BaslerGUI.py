@@ -257,7 +257,7 @@ class BaslerGuiWindow(wx.Frame):
         roi_y_ctrl_label = wx.StaticText(panel, label="Center Y:")
         sizer.Add(roi_y_ctrl_label, pos=(18, 3), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.roi_y_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=frame_height,
+        self.roi_y_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=self.frame_height,
                                     size=(220, 20),
                                     style=wx.SL_HORIZONTAL | wx.SL_LABELS)
         sizer.Add(self.roi_y_ctrl, pos=(19, 3), span=(1, 1),
@@ -268,7 +268,7 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(roi_width_ctrl_label, pos=(16, 4), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
         self.roi_width_ctrl = wx.Slider(panel, value=10, minValue=10,
-                                        maxValue=frame_width, size=(220, -1),
+                                        maxValue=self.frame_width, size=(220, -1),
                                         style=wx.SL_HORIZONTAL | wx.SL_LABELS)
         sizer.Add(self.roi_width_ctrl, pos=(17, 4), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
@@ -278,7 +278,7 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(roi_height_ctrl_label, pos=(18, 4), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
         self.roi_height_ctrl = wx.Slider(panel, value=10, minValue=10,
-                                         maxValue=frame_height, size=(220, 20),
+                                         maxValue=self.frame_height, size=(220, 20),
                                          style=wx.SL_HORIZONTAL | wx.SL_LABELS)
         sizer.Add(self.roi_height_ctrl, pos=(19, 4), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
@@ -332,14 +332,14 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(self.current_state, pos=(18, 0), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
-        self.frame = np.zeros([frame_height, frame_width, 3], dtype=np.uint8)
+        self.frame = np.zeros([self.frame_height, self.frame_width, 3], dtype=np.uint8)
         self.frame[:] = 255
 
-        self.display_frame = np.zeros([frame_height, frame_width, 3], dtype=np.uint8)
+        self.display_frame = np.zeros([self.frame_height, self.frame_width, 3], dtype=np.uint8)
         self.display_frame[:] = 255
 
         self.Window = ImagePanel(panel)
-        self.Window.SetSize = (frame_height, frame_width)
+        self.Window.SetSize = (self.frame_height, self.frame_width)
         self.Window.Fit()
         sizer.Add(self.Window, pos=(0, 3), span=(15, 4),
                   flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
