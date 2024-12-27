@@ -526,7 +526,7 @@ class BaslerGuiWindow(wx.Frame):
             self.gain_slider.Enable()
             self.exportfile_ctrl.Enable()
             self.cam_combo.Disable()
-            self.capmode_combo.Enable()
+            self.encoding_mode_combo.Enable()
             self.preview_btn.Enable()
             self.set_roi.Enable()
             self.select_folder_btn.Enable()
