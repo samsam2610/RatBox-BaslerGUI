@@ -434,6 +434,9 @@ class BaslerGuiWindow(wx.Frame):
     def Draw(self, evt):
 
         self.lock.acquire()
+        # Resize frame by half
+        self.frame = cv2.resize(self.frame, (self.frame_width/2, self.frame_height/2))
+        
         if (self.selected_mode == 0):
             cv2.cvtColor(src=self.frame, code=cv2.COLOR_GRAY2RGB, dst=self.im_color)
             if self.roi_on is True:
