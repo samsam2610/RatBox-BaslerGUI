@@ -240,7 +240,7 @@ class BaslerGuiWindow(wx.Frame):
 
         self.set_roi = wx.CheckBox(panel, label="Set ROI")
         sizer.Add(self.set_roi, pos=(15, 3), span=(1, 1),
-                  flag=wx.EXPAND | wx.ur(wx.NullColour)
+                  flag=wx.EXPAND | wx.ur(wx.NullColour))
         self.set_roi.Bind(wx.EVT_CHECKBOX, self.OnEnableRoi)
 
         roi_x_ctrl_label = wx.StaticText(panel, label="Center X:")
