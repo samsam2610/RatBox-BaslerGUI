@@ -156,14 +156,13 @@ class BaslerGuiWindow(wx.Frame):
         self.encoding_mode_combo.Bind(wx.EVT_COMBOBOX, self.OnCapModeCombo)
         self.encoding_mode_combo.SetSelection(self.encoding_mode)
 
-        interval_ctrl_label = wx.StaticText(panel,
-                                            label="Measurement interval (sec):")
+        interval_ctrl_label = wx.StaticText(panel, label="Measurement interval (sec):")
         sizer.Add(interval_ctrl_label, pos=(14, 0),
-                  flag=wx.EXPAND | wx.ALL, border=5)
+                  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
         self.interval_ctrl = wx.TextCtrl(panel)
         self.interval_ctrl.SetValue(str(self.measurement_interval))
         sizer.Add(self.interval_ctrl, pos=(14, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
+                  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
 
         sequence_ctrl_label = wx.StaticText(panel, label="Sequence length (num):")
         sizer.Add(sequence_ctrl_label, pos=(15, 0),
