@@ -69,8 +69,8 @@ class BaslerGuiWindow(wx.Frame):
     camera_connected = False
     camera = []
 
-    frame_width = 640 
-    frame_height = 480
+    frame_width = 1440 
+    frame_height = 1088
 
     roi_on = False
     roi_x = 0
