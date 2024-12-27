@@ -434,9 +434,6 @@ class BaslerGuiWindow(wx.Frame):
     def Draw(self, evt):
 
         self.lock.acquire()
-        # Resize frame by half
-        self.frame = cv2.resize(self.frame, (self.frame_width//2, self.frame_height//2))
-        
         if (self.selected_mode == 0):
             cv2.cvtColor(src=self.frame, code=cv2.COLOR_GRAY2RGB, dst=self.im_color)
             if self.roi_on is True:
@@ -962,8 +959,6 @@ class BaslerGuiWindow(wx.Frame):
         self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
         self.previous_time = int(round(time.time() * 1000))
         
-        converter = pylon.ImageFormatConverter()
-
         while self.preview_on is True:
             if self.camera.IsGrabbing():
                 grabResult = self.camera.RetrieveResult(5000,
@@ -972,8 +967,7 @@ class BaslerGuiWindow(wx.Frame):
                     current_time = int(round(time.time() * 1000))
                     if ((current_time - self.previous_time) > 20):
                         self.lock.acquire()
-                        image = converter.Convert(grabResult)   
-                        self.frame = image.GetArray()
+                        self.frame = grabResult.GetArray()
                         self.lock.release()
                         self.previous_time = current_time
                 else:
