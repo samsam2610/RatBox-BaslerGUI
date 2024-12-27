@@ -13,31 +13,27 @@ import wx.lib.agw.floatspin as FS
 import csv
 from VideoRecordingSession import VideoRecordingSession
 
-class ImagePanel(wx.Panel):
+class ImagePanel(wx.ScrolledWindow):
 
     def __init__(self, parent, frame_height=1088, frame_width=1440):
-        wx.Panel.__init__(self, parent)
+        wx.ScrolledWindow.__init__(self, parent)
         h, w = frame_height, frame_width
         src = (255 * np.random.rand(h, w)).astype(np.uint8)
         buf = src.repeat(3, 1).tobytes()
         self.bitmap = wx.Image(w, h, buf).ConvertToBitmap()
         self.SetDoubleBuffered(True)
+        self.SetScrollbars(20, 20, w // 20, h // 20)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Bind(wx.EVT_SIZE, self.OnSize)  # Add size event handler
         self.SetMinSize((480, 640))  # Set minimum size
 
-    def OnSize(self, event):
-        # Handle resize events
-        self.Refresh()
-        event.Skip()
-
     def OnPaint(self, evt):
-        wx.BufferedPaintDC(self, self.bitmap)
+        dc = wx.BufferedPaintDC(self)
+        self.PrepareDC(dc)
+        dc.DrawBitmap(self.bitmap, 0, 0)
 
     def update(self, input_image):
         self.bitmap = input_image
-        wx.BufferedDC(wx.ClientDC(self), self.bitmap)
-
+        self.Refresh()
 
 class BaslerGuiWindow(wx.Frame):
 
@@ -343,14 +339,14 @@ class BaslerGuiWindow(wx.Frame):
         self.display_frame[:] = 255
 
         self.Window = ImagePanel(panel)
-        self.Window.SetSize = (self.frame_height, self.frame_width)
+        self.Window.SetSize((self.frame_height, self.frame_width))
         self.Window.Fit()
         sizer.Add(self.Window, pos=(0, 3), span=(15, 4),
-                  flag=wx.LEFT | wx.TOP | wx.EXPAND | wx.GROW | wx.ALL, border=5)
+                  flag=wx.LEFT | wx.TOP | wx.EXPAND | wx.ALL, border=5)
                   
-        # Make the sizer expandable
-        sizer.AddGrowableCol(3)
-        sizer.AddGrowableRow(0)
+        # Remove growable settings
+        # sizer.AddGrowableCol(3)
+        # sizer.AddGrowableRow(0)
 
         lasca_filter_label = wx.StaticText(panel, label="LASCA filter size:")
         sizer.Add(lasca_filter_label, pos=(16, 5),
