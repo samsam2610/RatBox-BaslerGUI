@@ -570,7 +570,7 @@ class BaslerGuiWindow(wx.Frame):
             self.exposure_slider.Disable()
             self.gain_slider.Disable()
             self.exportfile_ctrl.Disable()
-            self.capmode_combo.Disable()
+            self.encoding_mode_combo.Disable()
             self.preview_btn.Disable()
             self.roi_x_ctrl.Disable()
             self.roi_y_ctrl.Disable()
