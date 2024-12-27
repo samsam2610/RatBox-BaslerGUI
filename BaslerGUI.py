@@ -579,10 +579,10 @@ class BaslerGuiWindow(wx.Frame):
             self.set_roi.Disable()
             self.select_folder_btn.Disable()
             self.capture_btn.Disable()
-            self.append_date.Disable()
+            self.append_date.Enable()
             self.set_auto_gain.Disable()
             self.set_auto_exposure.Disable()
-            self.auto_index.Disable()
+            self.auto_index.Enable()
             self.index_ctrl.Disable()
             return
 
