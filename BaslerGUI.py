@@ -174,7 +174,6 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(self.mode_combo, pos=(3, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.mode_combo.Bind(wx.EVT_COMBOBOX, self.OnModeCombo)
-        self.mode_combo.SetSelection(self.selected_mode)
         self.mode_combo.SetSelection(2)
 
         framescap_ctrl_label = wx.StaticText(panel, label="Video length (sec):")
