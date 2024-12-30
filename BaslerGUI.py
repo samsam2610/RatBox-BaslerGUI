@@ -1122,7 +1122,7 @@ class BaslerGuiWindow(wx.Frame):
 
         current_date_and_time = str(datetime.datetime.now())
         last_display_time = time.time()
-        display_interval = 1/60  # Update display every 1/60 seconds (to match 60Hz refresh rate)
+        display_interval = 1/30  # Update display every 1/60 seconds (to match 60Hz refresh rate)
         
         # Define display dimensions
         display_width = 720  # Half of 1440
