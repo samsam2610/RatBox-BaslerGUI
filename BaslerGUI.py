@@ -1132,25 +1132,24 @@ class BaslerGuiWindow(wx.Frame):
         
         captured_frames = 0
         while self.camera.IsGrabbing() and self.capture_on is True:
-            if int(self.camera.NumQueuedBuffers.Value) > 0:
-                grabResult = self.camera.RetrieveResult(500,
-                                                        pylon.TimeoutHandling_ThrowException)
-                if grabResult.GrabSucceeded():
-                    frame = grabResult.GetArray()
-                    timestamp = time.time()
-                    frame_number = grabResult.BlockID
-                    captured_frames += 1
+            grabResult = self.camera.RetrieveResult(500,
+                                                    pylon.TimeoutHandling_ThrowException)
+            if grabResult.GrabSucceeded():
+                frame = grabResult.GetArray()
+                timestamp = time.time()
+                frame_number = grabResult.BlockID
+                captured_frames += 1
 
-                    self.video_session.acquire_frame(frame, timestamp, frame_number)
-                    
-                    if (timestamp - last_display_time) > display_interval:
-                        imageWindow.SetImage(grabResult)
-                        imageWindow.Show()
-                        last_display_time = time.time()
-                else:
-                    print("Error: ", grabResult.ErrorCode)
+                self.video_session.acquire_frame(frame, timestamp, frame_number)
                 
-                grabResult.Release()
+                if (timestamp - last_display_time) > display_interval:
+                    imageWindow.SetImage(grabResult)
+                    imageWindow.Show()
+                    last_display_time = time.time()
+            else:
+                print("Error: ", grabResult.ErrorCode)
+            
+            grabResult.Release()
 
         self.camera.StopGrabbing()
         imageWindow.Close()
