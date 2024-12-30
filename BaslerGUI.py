@@ -632,13 +632,13 @@ class BaslerGuiWindow(wx.Frame):
                         self.camera.Open()
                          
                         # Configure GPIO Pin 3 (Line3) as Input and Enable Event
-                        # self.camera.LineSelector.Value = "Line3"  # Select GPIO Pin 3
-                        # self.camera.LineMode.Value = "Input"  # Configure as Input
-                        # # self.camera.LineEventSource.Value = "RisingEdge" # Trigger on Rising Edge
-                        # # self.camera.LineEventEnable.Value = True  # Enable event generation
+                        self.camera.LineSelector.Value = "Line3"  # Select GPIO Pin 3
+                        self.camera.LineMode.Value = "Input"  # Configure as Input
+                        # self.camera.LineEventSource.Value = "RisingEdge" # Trigger on Rising Edge
+                        # self.camera.LineEventEnable.Value = True  # Enable event generation
                         
                         # # Register the standard event handler for configuring input detected events.
-                        # self.camera.RegisterConfiguration(ConfigurationEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete)
+                        self.camera.RegisterConfiguration(ConfigurationEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete)
                         
                         self.camera.MaxNumBuffer = 180
                         self.camera.AcquisitionFrameRateEnable.SetValue(True)
@@ -1156,6 +1156,8 @@ class BaslerGuiWindow(wx.Frame):
                 self.video_session.acquire_frame(frame, timestamp, frame_number)
                 
                 if (timestamp - last_display_time) > display_interval:
+                    line_status = self.camera.LineStatus.GetValue()  # Retrieve line status
+                    print(f"Line3 Status: {line_status}")
                     imageWindow.SetImage(grabResult)
                     imageWindow.Show()
                     last_display_time = time.time()
