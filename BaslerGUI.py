@@ -647,6 +647,12 @@ class BaslerGuiWindow(wx.Frame):
                         self.framerate_slider.SetValue(self.camera.AcquisitionFrameRate.Value)
                         self.framerate = self.camera.AcquisitionFrameRate.Value
                         
+                        # Get the current frame width, height and offset
+                        self.frame_width = self.camera.Width.GetValue()
+                        self.frame_height = self.camera.Height.GetValue()
+                        self.offset_x = self.camera.OffsetX.GetValue()
+                        self.offset_y = self.camera.OffsetY.GetValue()
+                        
                         # Set the frame width, height and offset
                         self.width_ctrl.SetMax(self.max_frame_width)
                         self.width_ctrl.SetValue(self.frame_width)
@@ -986,6 +992,7 @@ class BaslerGuiWindow(wx.Frame):
                     print("Error: ", grabResult.ErrorCode)
                 grabResult.Release()
 
+        imageWindow.Close()
         self.camera.StopGrabbing()
 
     def StartCapture(self):
