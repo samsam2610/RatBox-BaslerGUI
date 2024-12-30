@@ -926,7 +926,7 @@ class BaslerGuiWindow(wx.Frame):
         else:
             self.width_ctrl.SetValue(self.frame_width)
 
-    def OnSetHeight(self, event):
+    def OnSetHeight(self, event):  
         new_height = self.height_ctrl.GetValue()
         # Check if the new height is divisible by 2
         if new_height % 2 != 0:
@@ -942,6 +942,7 @@ class BaslerGuiWindow(wx.Frame):
 
     def StartPreview(self):
         self.preview_on = True
+        self.EnableGUI(False)
         self.preview_thread_obj = threading.Thread(target=self.preview_thread)
         self.preview_thread_obj.start()
         self.preview_timer.Start(100, oneShot=True)
