@@ -967,9 +967,17 @@ class BaslerGuiWindow(wx.Frame):
         self.preview_btn.SetLabel("Preview START")
 
     def preview_thread(self):
+        # Create Image Windows to display live video while capturing
+        imageWindow = pylon.PylonImageWindow()
+        imageWindow.Create(1)
+        
         self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
         self.previous_time = int(round(time.time() * 1000))
-        
+       
+        current_date_and_time = str(datetime.datetime.now())
+        last_display_time = time.time()
+        display_interval = 1/30  # Update display every 1/60 seconds (to match 60Hz refresh rate)
+         
         while self.preview_on is True:
             if self.camera.IsGrabbing():
                 grabResult = self.camera.RetrieveResult(5000,
@@ -979,6 +987,13 @@ class BaslerGuiWindow(wx.Frame):
                     if ((current_time - self.previous_time) > 20):
                         self.lock.acquire()
                         self.frame = grabResult.GetArray()
+                        
+                        timestamp = time.time() 
+                        if (timestamp - last_display_time) > display_interval:
+                            imageWindow.SetImage(grabResult)
+                            imageWindow.Show()
+                            last_display_time = time.time()
+                            
                         self.lock.release()
                         self.previous_time = current_time
                 else:
@@ -1124,12 +1139,8 @@ class BaslerGuiWindow(wx.Frame):
         last_display_time = time.time()
         display_interval = 1/30  # Update display every 1/60 seconds (to match 60Hz refresh rate)
         
-        # Define display dimensions
-        display_width = 720  # Half of 1440
-        display_height = 544  # Half of 1088
-
         print(f'Capturing video started at: {current_date_and_time}')
-
+        
         captured_frames = 0
         while self.camera.IsGrabbing() and self.capture_on is True:
             if int(self.camera.NumQueuedBuffers.Value) > 0:
