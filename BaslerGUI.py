@@ -677,7 +677,7 @@ class BaslerGuiWindow(wx.Frame):
                         self.camera.LineSelector.Value = "Line3"  # Select GPIO Pin 3
                         self.camera.LineMode.Value = "Input"  # Configure as Input
                         for feature in self.camera.GetNodeMap().GetNodes():
-                            print(feature.GetName())
+                            print(feature)
                         # self.camera.LineEventSource.Value = "RisingEdge" # Trigger on Rising Edge
                         # self.camera.LineEventEnable.Value = True  # Enable event generation
                         
