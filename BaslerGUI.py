@@ -969,7 +969,7 @@ class BaslerGuiWindow(wx.Frame):
     def preview_thread(self):
         # Create Image Windows to display live video while capturing
         imageWindow = pylon.PylonImageWindow()
-        imageWindow.Create(1, x=0, y=0, width=640, height=480)
+        imageWindow.Create(1, nWidth=640, nHeight=480)
         
         self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
         self.previous_time = int(round(time.time() * 1000))
