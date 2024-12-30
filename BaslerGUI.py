@@ -895,21 +895,29 @@ class BaslerGuiWindow(wx.Frame):
 
     def OnSetWidth(self, event):
         new_width = self.width_ctrl.GetValue()
+        # Check if the new width is divisible by 2
+        if new_width % 2 != 0:
+            new_width -= 1
         if (self.offset_x + new_width) < self.max_frame_width:
             self.frame_width = new_width
             if self.preview_on is True:
                 self.StopPreview()
             self.camera.Width.SetValue(self.frame_width)
+            self.offset_x_ctrl.SetMax(self.max_frame_width - self.frame_width)
         else:
             self.width_ctrl.SetValue(self.frame_width)
 
     def OnSetHeight(self, event):
         new_height = self.height_ctrl.GetValue()
+        # Check if the new height is divisible by 2
+        if new_height % 2 != 0:
+            new_height -= 1
         if (self.offset_y + new_height) < self.max_frame_height:
             self.frame_height = new_height
             if self.preview_on is True:
                 self.StopPreview()
             self.camera.Height.SetValue(self.frame_height)
+            self.offset_y_ctrl.SetMax(self.max_frame_height - self.frame_height)
         else:
             self.height_ctrl.SetValue(self.frame_height)
 
