@@ -460,7 +460,7 @@ class BaslerGuiWindow(wx.Frame):
 
         self.lock.release()
 
-    def EnableGUI(self, value):
+    def EnableGUI(self, value, preview=False):
         if value is True:
             self.interval_ctrl.Enable()
             self.sequence_ctrl.Enable()
@@ -505,6 +505,28 @@ class BaslerGuiWindow(wx.Frame):
                 self.index_ctrl.Enable()
 
             return
+        elif preview is True:
+            self.interval_ctrl.Disable()
+            self.sequence_ctrl.Disable()
+            self.framescap_ctrl.Disable()
+            self.framerate_slider.Disable()
+            self.exposure_slider.Disable()
+            self.gain_slider.Disable()
+            self.exportfile_ctrl.Disable()
+            self.encoding_mode_combo.Disable()
+            self.preview_btn.Enable()
+            self.offset_x_ctrl.Disable()
+            self.offset_y_ctrl.Disable()
+            self.width_ctrl.Disable()
+            self.height_ctrl.Disable()
+            self.set_roi.Disable()
+            self.select_folder_btn.Disable()
+            self.capture_btn.Disable()
+            self.append_date.Enable()
+            self.set_auto_gain.Disable()
+            self.set_auto_exposure.Disable()
+            self.auto_index.Enable()
+            self.index_ctrl.Disable()
         else:
             self.interval_ctrl.Disable()
             self.sequence_ctrl.Disable()
@@ -942,7 +964,7 @@ class BaslerGuiWindow(wx.Frame):
 
     def StartPreview(self):
         self.preview_on = True
-        self.EnableGUI(False)
+        self.EnableGUI(False, preview=True)
         self.preview_thread_obj = threading.Thread(target=self.preview_thread)
         self.preview_thread_obj.start()
         self.preview_timer.Start(100, oneShot=True)
