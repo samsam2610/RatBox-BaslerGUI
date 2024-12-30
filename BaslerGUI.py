@@ -1146,6 +1146,8 @@ class BaslerGuiWindow(wx.Frame):
                     imageWindow.SetImage(grabResult)
                     imageWindow.Show()
                     last_display_time = time.time()
+                
+                time.sleep(0.00001)
             else:
                 print("Error: ", grabResult.ErrorCode)
             
