@@ -972,6 +972,7 @@ class BaslerGuiWindow(wx.Frame):
 
     def StopPreview(self):
         self.preview_on = False
+        self.EnableGUI(True)
         if self.preview_thread_obj.is_alive() is True:
             self.preview_thread_obj.join()
         self.preview_timer.Stop()
