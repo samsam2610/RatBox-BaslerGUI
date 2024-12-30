@@ -898,6 +898,8 @@ class BaslerGuiWindow(wx.Frame):
         # Check if the new width is divisible by 2
         if new_width % 2 != 0:
             new_width -= 1
+            self.width_ctrl.SetValue(new_width)
+            
         if (self.offset_x + new_width) < self.max_frame_width:
             self.frame_width = new_width
             if self.preview_on is True:
@@ -912,6 +914,8 @@ class BaslerGuiWindow(wx.Frame):
         # Check if the new height is divisible by 2
         if new_height % 2 != 0:
             new_height -= 1
+            self.height_ctrl.SetValue(new_height)
+            
         if (self.offset_y + new_height) < self.max_frame_height:
             self.frame_height = new_height
             if self.preview_on is True:
