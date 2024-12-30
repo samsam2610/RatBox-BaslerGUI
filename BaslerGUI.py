@@ -1102,7 +1102,7 @@ class BaslerGuiWindow(wx.Frame):
             video_file=output_path,
             fourcc=fourcc_code,
             fps=200,
-            dim=(1440, 1088)
+            dim=(self.frame_width, self.frame_height)
         )
  
     def StopCapture(self):
