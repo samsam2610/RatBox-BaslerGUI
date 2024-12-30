@@ -595,7 +595,6 @@ class BaslerGuiWindow(wx.Frame):
         return
 
     def OnConnect(self, event):
-
         if self.camera_connected is False:
             tlFactory = pylon.TlFactory.GetInstance()
             devices = tlFactory.EnumerateDevices()
@@ -880,31 +879,39 @@ class BaslerGuiWindow(wx.Frame):
 
     def OnSetOffsetX(self, event):
         new_offset_x = self.offset_x_ctrl.GetValue()
-        if (new_offset_x + self.roi_width) < self.frame_width:
-            self.roi_x = new_offset_x
+        if (new_offset_x + self.frame_width) < self.max_frame_width:
+            self.offset_x = new_offset_x
+            self.camera.OffsetX.SetValue(self.offset_x)
         else:
-            self.offset_x_ctrl.SetValue(self.roi_x)
+            self.offset_x_ctrl.SetValue(self.offset_x)
 
     def OnSetOffsetY(self, event):
         new_offset_y = self.offset_y_ctrl.GetValue()
-        if (new_offset_y + self.roi_height) < self.frame_height:
-            self.roi_y = new_offset_y
+        if (new_offset_y + self.frame_height) < self.max_frame_height:
+            self.offset_y = new_offset_y
+            self.camera.OffsetY.SetValue(self.offset_y)
         else:
             self.offset_y_ctrl.SetValue(self.roi_y)
 
     def OnSetWidth(self, event):
         new_width = self.width_ctrl.GetValue()
-        if (self.roi_x + new_width) < self.frame_width:
-            self.roi_width = new_width
+        if (self.offset_x + new_width) < self.max_frame_width:
+            self.frame_width = new_width
+            if self.preview_on is True:
+                self.StopPreview()
+            self.camera.Width.SetValue(self.frame_width)
         else:
-            self.width_ctrl.SetValue(self.roi_width)
+            self.width_ctrl.SetValue(self.frame_width)
 
     def OnSetHeight(self, event):
         new_height = self.height_ctrl.GetValue()
-        if (self.roi_y + new_height) < self.frame_height:
-            self.roi_height = new_height
+        if (self.offset_y + new_height) < self.max_frame_height:
+            self.frame_height = new_height
+            if self.preview_on is True:
+                self.StopPreview()
+            self.camera.Height.SetValue(self.frame_height)
         else:
-            self.height_ctrl.SetValue(self.roi_height)
+            self.height_ctrl.SetValue(self.frame_height)
 
     def StartPreview(self):
         self.preview_on = True
