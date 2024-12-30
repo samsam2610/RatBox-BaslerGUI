@@ -1131,6 +1131,12 @@ class BaslerGuiWindow(wx.Frame):
         imageWindow = pylon.PylonImageWindow()
         imageWindow.Create(1)
         
+        # Enable chunks in general.
+        self.camera.ChunkModeActive.Value = True
+        
+        # Enable time stamp chunks.
+        self.camera.ChunkSelector.Value = "Timestamp"
+        self.camera.ChunkEnable.Value = True
         # Start the video recording session
         self.video_session.start_recording()
         
@@ -1151,13 +1157,13 @@ class BaslerGuiWindow(wx.Frame):
                 frame = grabResult.GetArray()
                 timestamp = time.time()
                 frame_number = grabResult.BlockID
+                print("TimeStamp (Result): ", grabResult.ChunkTimestamp.Value)
                 captured_frames += 1
 
                 self.video_session.acquire_frame(frame, timestamp, frame_number)
                 
                 if (timestamp - last_display_time) > display_interval:
                     line_status = self.camera.LineStatus.GetValue()  # Retrieve line status
-                    print(f"Line3 Status: {line_status}")
                     imageWindow.SetImage(grabResult)
                     imageWindow.Show()
                     last_display_time = time.time()
