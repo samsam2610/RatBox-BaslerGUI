@@ -678,19 +678,15 @@ class BaslerGuiWindow(wx.Frame):
                         # Set the frame width, height and offset
                         self.width_ctrl.SetMax(self.max_frame_width)
                         self.width_ctrl.SetValue(self.frame_width)
-                        self.camera.Width.SetValue(self.frame_width)
                         
                         self.height_ctrl.SetMax(self.max_frame_height)
                         self.height_ctrl.SetValue(self.frame_height)
-                        self.camera.Height.SetValue(self.frame_height)
                         
                         self.offset_x_ctrl.SetMax(self.max_frame_width - self.frame_width)
                         self.offset_x_ctrl.SetValue(self.offset_x)
-                        self.camera.OffsetX.SetValue(self.offset_x)
                         
                         self.offset_y_ctrl.SetMax(self.max_frame_height - self.frame_height)
                         self.offset_y_ctrl.SetValue(self.offset_y)
-                        self.camera.OffsetY.SetValue(self.offset_y)
                 
                         self.connect_btn.SetLabel("Disconnect")
                         self.refresh_btn.Disable()
