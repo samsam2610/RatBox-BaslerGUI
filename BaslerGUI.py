@@ -1156,8 +1156,8 @@ class BaslerGuiWindow(wx.Frame):
                 self.video_session.acquire_frame(frame, timestamp, frame_number)
                 
                 if (timestamp - last_display_time) > display_interval:
-                    line_status = self.camera.LineStatus.GetValue()  # Retrieve line status
-                    print(f"Line3 Status: {line_status}")
+                    # line_status = self.camera.LineStatus.GetValue()  # Retrieve line status
+                    # print(f"Line3 Status: {line_status}")
                     imageWindow.SetImage(grabResult)
                     imageWindow.Show()
                     last_display_time = time.time()
