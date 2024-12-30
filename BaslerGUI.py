@@ -671,7 +671,8 @@ class BaslerGuiWindow(wx.Frame):
                     if device.GetSerialNumber() == device_serial:
 
                         self.camera = pylon.InstantCamera(tlFactory.CreateDevice(devices[i]))
-                        
+                        self.camera.Open()
+                         
                         # Configure GPIO Pin 3 (Line3) as Input and Enable Event
                         self.camera.LineSelector.Value = "Line3"  # Select GPIO Pin 3
                         self.camera.LineMode.Value = "Input"  # Configure as Input
@@ -681,7 +682,6 @@ class BaslerGuiWindow(wx.Frame):
                         # Register the standard event handler for configuring input detected events.
                         self.camera.RegisterConfiguration(ConfigurationEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete)
                         
-                        self.camera.Open()
                         self.camera.MaxNumBuffer = 180
                         self.camera.AcquisitionFrameRateEnable.SetValue(True)
                         self.camera.AcquisitionFrameRate.SetValue(200.0)
