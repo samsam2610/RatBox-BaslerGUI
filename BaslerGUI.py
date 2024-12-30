@@ -1137,10 +1137,6 @@ class BaslerGuiWindow(wx.Frame):
         # Enable time stamp chunks.
         self.camera.ChunkSelector.Value = "Timestamp"
         self.camera.ChunkEnable.Value = True
-
-        # Enable frame counter chunks.
-        self.camera.ChunkSelector.Value = "Framecounter"
-        self.camera.ChunkEnable.Value = True
         
         # Enable line status chunks.
         self.camera.ChunkSelector.Value = "LineStatusAll"
@@ -1165,12 +1161,11 @@ class BaslerGuiWindow(wx.Frame):
             if grabResult.GrabSucceeded():
                 frame = grabResult.GetArray()
                 timestamp = time.time()
-                frame_number = grabResult.ChunkFramecounter.Value
                 frame_timestamp = grabResult.ChunkTimestamp.Value
                 frame_line_status = grabResult.ChunkLineStatusAll.Value
                 captured_frames += 1
 
-                self.video_session.acquire_frame(frame, frame_timestamp, frame_number, frame_line_status)
+                self.video_session.acquire_frame(frame, frame_timestamp, captured_frames, frame_line_status)
                 
                 if (timestamp - last_display_time) > display_interval:
                     line_status = self.camera.LineStatus.GetValue()  # Retrieve line status
