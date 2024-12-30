@@ -921,8 +921,6 @@ class BaslerGuiWindow(wx.Frame):
             
         if (self.offset_x + new_width) < self.max_frame_width:
             self.frame_width = new_width
-            if self.preview_on is True:
-                self.StopPreview()
             self.camera.Width.SetValue(self.frame_width)
             self.offset_x_ctrl.SetMax(self.max_frame_width - self.frame_width)
         else:
@@ -937,8 +935,6 @@ class BaslerGuiWindow(wx.Frame):
             
         if (self.offset_y + new_height) < self.max_frame_height:
             self.frame_height = new_height
-            if self.preview_on is True:
-                self.StopPreview()
             self.camera.Height.SetValue(self.frame_height)
             self.offset_y_ctrl.SetMax(self.max_frame_height - self.frame_height)
         else:
