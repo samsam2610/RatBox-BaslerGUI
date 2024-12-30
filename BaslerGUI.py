@@ -879,6 +879,12 @@ class BaslerGuiWindow(wx.Frame):
 
     def OnSetOffsetX(self, event):
         new_offset_x = self.offset_x_ctrl.GetValue()
+        # Check if the new offset + width is divisible by 2
+        new_total_width = new_offset_x + self.frame_width
+        if new_total_width % 2 != 0:
+            new_offset_x -= 1
+            self.offset_x_ctrl.SetValue(new_offset_x)
+        
         if (new_offset_x + self.frame_width) < self.max_frame_width:
             self.offset_x = new_offset_x
             self.camera.OffsetX.SetValue(self.offset_x)
@@ -887,6 +893,12 @@ class BaslerGuiWindow(wx.Frame):
 
     def OnSetOffsetY(self, event):
         new_offset_y = self.offset_y_ctrl.GetValue()
+        # Check if the new offset + height is divisible by 2
+        new_total_height = new_offset_y + self.frame_height
+        if new_total_height % 2 != 0:
+            new_offset_y -= 1
+            self.offset_y_ctrl.SetValue(new_offset_y)
+        
         if (new_offset_y + self.frame_height) < self.max_frame_height:
             self.offset_y = new_offset_y
             self.camera.OffsetY.SetValue(self.offset_y)
