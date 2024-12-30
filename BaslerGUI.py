@@ -74,6 +74,9 @@ class BaslerGuiWindow(wx.Frame):
     frame_height = 1088
     offset_x = 16
     offset_y = 0
+    
+    max_frame_width = 1456
+    max_frame_height = 1088
 
     roi_on = False
     roi_x = 0
@@ -479,11 +482,10 @@ class BaslerGuiWindow(wx.Frame):
             self.auto_index.Enable()
             self.index_ctrl.Enable()
 
-            if self.roi_on is True:
-                self.offset_x_ctrl.Enable()
-                self.offset_y_ctrl.Enable()
-                self.width_ctrl.Enable()
-                self.height_ctrl.Enable()
+            self.offset_x_ctrl.Enable()
+            self.offset_y_ctrl.Enable()
+            self.width_ctrl.Enable()
+            self.height_ctrl.Enable()
 
             if self.auto_exposure_on is True:
                 self.set_auto_exposure.Enable()
@@ -649,6 +651,12 @@ class BaslerGuiWindow(wx.Frame):
                         
                         self.camera.OffsetX.SetValue(self.offset_x)
                         self.camera.OffsetY.SetValue(self.offset_y)
+                        
+                        self.width_ctrl.SetMax(self.max_frame_width)
+                        self.width_ctrl.SetValue(self.frame_width)
+                        
+                        self.height_ctrl.SetMax(self.max_frame_height)
+                        self.height_ctrl.SetValue(self.frame_height)
 
                         self.connect_btn.SetLabel("Disconnect")
                         self.refresh_btn.Disable()
