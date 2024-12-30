@@ -908,59 +908,54 @@ class BaslerGuiWindow(wx.Frame):
     def OnSetOffsetX(self, event):
         new_offset_x = self.offset_x_ctrl.GetValue()
         # Check if the new offset + width is divisible by 2
-        new_total_width = new_offset_x + self.frame_width
-        while new_total_width % 4 != 0:
-            new_offset_x -= 1
-            self.offset_x_ctrl.SetValue(new_offset_x)
-            new_total_width = new_offset_x + self.frame_width
+        new_width = new_offset_x + self.frame_width
+        new_width = int(16 * round(new_width / 16)) if new_width % 16 != 0 else new_width
+        
+        new_offset_x = new_width - self.frame_width
         
         if (new_offset_x + self.frame_width) < self.max_frame_width:
             self.offset_x = new_offset_x
             self.camera.OffsetX.SetValue(self.offset_x)
-        else:
-            self.offset_x_ctrl.SetValue(self.offset_x)
+        
+        self.offset_x_ctrl.SetValue(self.offset_x)
 
     def OnSetOffsetY(self, event):
         new_offset_y = self.offset_y_ctrl.GetValue()
         # Check if the new offset + height is divisible by 2
-        new_total_height = new_offset_y + self.frame_height
-        if new_total_height % 2 != 0:
-            new_offset_y -= 1
-            self.offset_y_ctrl.SetValue(new_offset_y)
+        new_height = new_offset_y + self.frame_height
+        new_height = int(4 * round(new_height / 4)) if new_height % 4 != 0 else new_height
+        
+        new_offset_y = new_height - self.frame_height
         
         if (new_offset_y + self.frame_height) < self.max_frame_height:
             self.offset_y = new_offset_y
             self.camera.OffsetY.SetValue(self.offset_y)
-        else:
-            self.offset_y_ctrl.SetValue(self.roi_y)
+        
+        self.offset_y_ctrl.SetValue(self.offset_y)
 
     def OnSetWidth(self, event):
         new_width = self.width_ctrl.GetValue()
         # Check if the new width is divisible by 2
-        while new_width % 4 != 0:
-            new_width -= 1
-            self.width_ctrl.SetValue(new_width)
+        new_width = int(16 * round(new_width / 16)) if new_width % 16 != 0 else new_width
             
         if (self.offset_x + new_width) < self.max_frame_width:
             self.frame_width = new_width
             self.camera.Width.SetValue(self.frame_width)
             self.offset_x_ctrl.SetMax(self.max_frame_width - self.frame_width)
-        else:
-            self.width_ctrl.SetValue(self.frame_width)
+        
+        self.width_ctrl.SetValue(self.frame_width)
 
     def OnSetHeight(self, event):  
         new_height = self.height_ctrl.GetValue()
         # Check if the new height is divisible by 2
-        if new_height % 2 != 0:
-            new_height -= 1
-            self.height_ctrl.SetValue(new_height)
+        new_height = int(4 * round(new_height / 4)) if new_height % 4 != 0 else new_height
             
         if (self.offset_y + new_height) < self.max_frame_height:
             self.frame_height = new_height
             self.camera.Height.SetValue(self.frame_height)
             self.offset_y_ctrl.SetMax(self.max_frame_height - self.frame_height)
-        else:
-            self.height_ctrl.SetValue(self.frame_height)
+        
+        self.height_ctrl.SetValue(self.frame_height)
 
     def StartPreview(self):
         self.preview_on = True
