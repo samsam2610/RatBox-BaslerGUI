@@ -404,8 +404,7 @@ class BaslerGuiWindow(wx.Frame):
     def AllocateMemory(self):
         self.frame_width = 1440
         self.frame_height = 1088
-        self.camera.Width.SetValue(self.frame_width)
-        self.camera.Height.SetValue(self.frame_height)
+
         self.gray = np.zeros((self.frame_height, self.frame_width), np.uint8)
         self.mean_img_sq = np.zeros((self.frame_height, self.frame_width), np.float32)
         self.sq = np.zeros((self.frame_height, self.frame_width), np.float32)
@@ -649,15 +648,23 @@ class BaslerGuiWindow(wx.Frame):
                         self.framerate_slider.SetValue(self.camera.AcquisitionFrameRate.Value)
                         self.framerate = self.camera.AcquisitionFrameRate.Value
                         
-                        self.camera.OffsetX.SetValue(self.offset_x)
-                        self.camera.OffsetY.SetValue(self.offset_y)
-                        
+                        # Set the frame width, height and offset
                         self.width_ctrl.SetMax(self.max_frame_width)
                         self.width_ctrl.SetValue(self.frame_width)
+                        self.camera.Width.SetValue(self.frame_width)
                         
                         self.height_ctrl.SetMax(self.max_frame_height)
                         self.height_ctrl.SetValue(self.frame_height)
-
+                        self.camera.Height.SetValue(self.frame_height)
+                        
+                        self.offset_x_ctrl.SetMax(self.max_frame_width - self.frame_width)
+                        self.offset_x_ctrl.SetValue(self.offset_x)
+                        self.camera.OffsetX.SetValue(self.offset_x)
+                        
+                        self.offset_y_ctrl.SetMax(self.max_frame_height - self.frame_height)
+                        self.offset_y_ctrl.SetValue(self.offset_y)
+                        self.camera.OffsetY.SetValue(self.offset_y)
+                
                         self.connect_btn.SetLabel("Disconnect")
                         self.refresh_btn.Disable()
                         self.cam_combo.Disable()
