@@ -72,6 +72,8 @@ class BaslerGuiWindow(wx.Frame):
 
     frame_width = 1440 
     frame_height = 1088
+    offset_x = 16
+    offset_y = 0
 
     roi_on = False
     roi_x = 0
@@ -244,50 +246,50 @@ class BaslerGuiWindow(wx.Frame):
         self.set_roi.SetBackgroundColour(wx.NullColour)
         self.set_roi.Bind(wx.EVT_CHECKBOX, self.OnEnableRoi)
 
-        roi_x_ctrl_label = wx.StaticText(panel, label="Center X:")
-        sizer.Add(roi_x_ctrl_label, pos=(16, 3), span=(1, 1),
+        offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
+        sizer.Add(offset_x_ctrl_label, pos=(16, 3), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.roi_x_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=self.frame_width,
+        self.offset_x_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=self.frame_width,
                                     size=(220, -1),
                                     style=wx.SL_HORIZONTAL | wx.SL_LABELS)
-        sizer.Add(self.roi_x_ctrl, pos=(17, 3), span=(1, 1),
+        sizer.Add(self.offset_x_ctrl, pos=(17, 3), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.roi_x_ctrl.Bind(wx.EVT_SCROLL, self.OnSetRoiX)
+        self.offset_x_ctrl.Bind(wx.EVT_SCROLL, self.OnSetOffsetX)
 
-        roi_y_ctrl_label = wx.StaticText(panel, label="Center Y:")
-        sizer.Add(roi_y_ctrl_label, pos=(18, 3), span=(1, 1),
+        offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
+        sizer.Add(offset_y_ctrl_label, pos=(18, 3), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.roi_y_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=self.frame_height,
+        self.offset_y_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=self.frame_height,
                                     size=(220, 20),
                                     style=wx.SL_HORIZONTAL | wx.SL_LABELS)
-        sizer.Add(self.roi_y_ctrl, pos=(19, 3), span=(1, 1),
+        sizer.Add(self.offset_y_ctrl, pos=(19, 3), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.roi_y_ctrl.Bind(wx.EVT_SCROLL, self.OnSetRoiY)
+        self.offset_y_ctrl.Bind(wx.EVT_SCROLL, self.OnSetOffsetY)
 
-        roi_width_ctrl_label = wx.StaticText(panel, label="Width:")
-        sizer.Add(roi_width_ctrl_label, pos=(16, 4), span=(1, 1),
+        width_ctrl_label = wx.StaticText(panel, label="Width:")
+        sizer.Add(width_ctrl_label, pos=(16, 4), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.roi_width_ctrl = wx.Slider(panel, value=10, minValue=10,
+        self.width_ctrl = wx.Slider(panel, value=10, minValue=10,
                                         maxValue=self.frame_width, size=(220, -1),
                                         style=wx.SL_HORIZONTAL | wx.SL_LABELS)
-        sizer.Add(self.roi_width_ctrl, pos=(17, 4), span=(1, 1),
+        sizer.Add(self.width_ctrl, pos=(17, 4), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.roi_width_ctrl.Bind(wx.EVT_SCROLL, self.OnSetRoiWidth)
+        self.width_ctrl.Bind(wx.EVT_SCROLL, self.OnSetWidth)
 
-        roi_height_ctrl_label = wx.StaticText(panel, label="Height:")
-        sizer.Add(roi_height_ctrl_label, pos=(18, 4), span=(1, 1),
+        height_ctrl_label = wx.StaticText(panel, label="Height:")
+        sizer.Add(height_ctrl_label, pos=(18, 4), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.roi_height_ctrl = wx.Slider(panel, value=10, minValue=10,
+        self.height_ctrl = wx.Slider(panel, value=10, minValue=10,
                                          maxValue=self.frame_height, size=(220, 20),
                                          style=wx.SL_HORIZONTAL | wx.SL_LABELS)
-        sizer.Add(self.roi_height_ctrl, pos=(19, 4), span=(1, 1),
+        sizer.Add(self.height_ctrl, pos=(19, 4), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.roi_height_ctrl.Bind(wx.EVT_SCROLL, self.OnSetRoiHeight)
+        self.height_ctrl.Bind(wx.EVT_SCROLL, self.OnSetHeight)
 
-        self.roi_x_ctrl.Disable()
-        self.roi_y_ctrl.Disable()
-        self.roi_width_ctrl.Disable()
-        self.roi_height_ctrl.Disable()
+        self.offset_x_ctrl.Disable()
+        self.offset_y_ctrl.Disable()
+        self.width_ctrl.Disable()
+        self.height_ctrl.Disable()
 
         exportfile_ctrl_label = wx.StaticText(panel, label="Export file name:")
         sizer.Add(exportfile_ctrl_label, pos=(8, 0), span=(1, 1),
@@ -436,75 +438,12 @@ class BaslerGuiWindow(wx.Frame):
 
         self.lock.acquire()
         if (self.selected_mode == 0):
-            cv2.cvtColor(src=self.frame, code=cv2.COLOR_GRAY2RGB, dst=self.im_color)
-            if self.roi_on is True:
-                cv2.line(self.im_color, (self.roi_x, self.roi_y),
-                         (self.roi_x + self.roi_width, self.roi_y), (255, 0, 0), 3)
-                cv2.line(self.im_color, (self.roi_x, self.roi_y + self.roi_height),
-                         (self.roi_x + self.roi_width, self.roi_y + self.roi_height),
-                         (255, 0, 0), 3)
-                cv2.line(self.im_color, (self.roi_x, self.roi_y),
-                         (self.roi_x, self.roi_y + self.roi_height), (255, 0, 0), 3)
-                cv2.line(self.im_color, (self.roi_x + self.roi_width, self.roi_y),
-                         (self.roi_x + self.roi_width, self.roi_y + self.roi_height),
-                         (255, 0, 0), 3)
-
-                self.update_ratio += 1
-
-                if self.update_ratio > 5:
-                    sd = self.frame[self.roi_y:(self.roi_y+self.roi_height),
-                                    self.roi_x:(self.roi_x+self.roi_width)].std()
-                    mn = self.frame[self.roi_y:(self.roi_y+self.roi_height),
-                                    self.roi_x:(self.roi_x+self.roi_width)].mean()
-                    self.output_string_1 = "C: " + str(np.round(sd / mn, 3))
-                    self.output_string_2 = "M: " + str(np.round(mn, 3))
-                    self.update_ratio = 0
-
-                cv2.putText(self.im_color, self.output_string_1,
-                            (self.roi_x+5, self.roi_y-23),
-                            self.font, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
-                cv2.putText(self.im_color, self.output_string_2,
-                            (self.roi_x+5, self.roi_y-9),
-                            self.font, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
-
-            self.bitmap = wx.Image(self.frame_width, self.frame_height,
-                                   self.im_color.tobytes()).ConvertToBitmap()
-
+            print("RAW")
         if (self.selected_mode == 1):
-            self.CalculateLASCA()
-            cv2.applyColorMap(self.LASCA, dst=self.im_color, colormap=cv2.COLORMAP_JET)
-            cv2.cvtColor(src=self.im_color, code=cv2.COLOR_BGR2RGB, dst=self.im_color)
-
-            if self.roi_on is True:
-                cv2.line(self.im_color, (self.roi_x, self.roi_y),
-                         (self.roi_x + self.roi_width, self.roi_y), (255, 0, 0), 3)
-                cv2.line(self.im_color, (self.roi_x, self.roi_y + self.roi_height),
-                         (self.roi_x + self.roi_width, self.roi_y + self.roi_height),
-                         (255, 0, 0), 3)
-                cv2.line(self.im_color, (self.roi_x, self.roi_y),
-                         (self.roi_x, self.roi_y + self.roi_height), (255, 0, 0), 3)
-                cv2.line(self.im_color, (self.roi_x + self.roi_width, self.roi_y),
-                         (self.roi_x + self.roi_width, self.roi_y + self.roi_height),
-                         (255, 0, 0), 3)
-
-            self.bitmap = wx.Image(self.frame_width,
-                                   self.frame_height,
-                                   self.im_color.tobytes()).ConvertToBitmap()
+            print("LASCA")
 
         if (self.selected_mode == 2):
-
-            if self.roi_on is True:
-                roi_min_row = self.roi_y
-                roi_max_row = self.roi_y + self.roi_height
-                roi_min_col = self.roi_x
-                roi_max_col = self.roi_x + self.roi_width
-                self.im_color = self.DrawHistogram(self.frame[roi_min_row:roi_max_row,
-                                                              roi_min_col:roi_max_col],
-                                                   (640, 480),
-                                                   (255, 255, 255),
-                                                   (250, 155, 0))
-            else:
-                self.im_color = self.DrawHistogram(self.frame,
+            self.im_color = self.DrawHistogram(self.frame,
                                                    (640, 480),
                                                    (255, 255, 255),
                                                    (250, 155, 0))
@@ -541,10 +480,10 @@ class BaslerGuiWindow(wx.Frame):
             self.index_ctrl.Enable()
 
             if self.roi_on is True:
-                self.roi_x_ctrl.Enable()
-                self.roi_y_ctrl.Enable()
-                self.roi_width_ctrl.Enable()
-                self.roi_height_ctrl.Enable()
+                self.offset_x_ctrl.Enable()
+                self.offset_y_ctrl.Enable()
+                self.width_ctrl.Enable()
+                self.height_ctrl.Enable()
 
             if self.auto_exposure_on is True:
                 self.set_auto_exposure.Enable()
@@ -575,10 +514,10 @@ class BaslerGuiWindow(wx.Frame):
             self.exportfile_ctrl.Disable()
             self.encoding_mode_combo.Disable()
             self.preview_btn.Disable()
-            self.roi_x_ctrl.Disable()
-            self.roi_y_ctrl.Disable()
-            self.roi_width_ctrl.Disable()
-            self.roi_height_ctrl.Disable()
+            self.offset_x_ctrl.Disable()
+            self.offset_y_ctrl.Disable()
+            self.width_ctrl.Disable()
+            self.height_ctrl.Disable()
             self.set_roi.Disable()
             self.select_folder_btn.Disable()
             self.capture_btn.Disable()
@@ -605,10 +544,10 @@ class BaslerGuiWindow(wx.Frame):
             self.connect_btn.Enable()
 
             if self.roi_on is True:
-                self.roi_x_ctrl.Enable()
-                self.roi_y_ctrl.Enable()
-                self.roi_width_ctrl.Enable()
-                self.roi_height_ctrl.Enable()
+                self.offset_x_ctrl.Enable()
+                self.offset_y_ctrl.Enable()
+                self.width_ctrl.Enable()
+                self.height_ctrl.Enable()
 
             if self.auto_exposure_on is True:
                 self.set_auto_exposure.Enable()
@@ -640,10 +579,10 @@ class BaslerGuiWindow(wx.Frame):
             self.mode_combo.Disable()
             self.capmode_combo.Disable()
             self.preview_btn.Disable()
-            self.roi_x_ctrl.Disable()
-            self.roi_y_ctrl.Disable()
-            self.roi_width_ctrl.Disable()
-            self.roi_height_ctrl.Disable()
+            self.offset_x_ctrl.Disable()
+            self.offset_y_ctrl.Disable()
+            self.width_ctrl.Disable()
+            self.height_ctrl.Disable()
             self.set_roi.Disable()
             self.select_folder_btn.Disable()
             self.append_date.Disable()
@@ -708,8 +647,8 @@ class BaslerGuiWindow(wx.Frame):
                         self.framerate_slider.SetValue(self.camera.AcquisitionFrameRate.Value)
                         self.framerate = self.camera.AcquisitionFrameRate.Value
                         
-                        self.camera.OffsetX.SetValue(16)
-                        self.camera.OffsetY.SetValue(0)
+                        self.camera.OffsetX.SetValue(self.offset_x)
+                        self.camera.OffsetY.SetValue(self.offset_y)
 
                         self.connect_btn.SetLabel("Disconnect")
                         self.refresh_btn.Disable()
@@ -914,43 +853,43 @@ class BaslerGuiWindow(wx.Frame):
     def OnEnableRoi(self, event):
         self.roi_on = self.set_roi.GetValue()
         if self.roi_on is True:
-            self.roi_x_ctrl.Enable()
-            self.roi_y_ctrl.Enable()
-            self.roi_width_ctrl.Enable()
-            self.roi_height_ctrl.Enable()
+            self.offset_x_ctrl.Enable()
+            self.offset_y_ctrl.Enable()
+            self.width_ctrl.Enable()
+            self.height_ctrl.Enable()
         else:
-            self.roi_x_ctrl.Disable()
-            self.roi_y_ctrl.Disable()
-            self.roi_width_ctrl.Disable()
-            self.roi_height_ctrl.Disable()
+            self.offset_x_ctrl.Disable()
+            self.offset_y_ctrl.Disable()
+            self.width_ctrl.Disable()
+            self.height_ctrl.Disable()
 
-    def OnSetRoiX(self, event):
-        new_roi_x = self.roi_x_ctrl.GetValue()
-        if (new_roi_x + self.roi_width) < self.frame_width:
-            self.roi_x = new_roi_x
+    def OnSetOffsetX(self, event):
+        new_offset_x = self.offset_x_ctrl.GetValue()
+        if (new_offset_x + self.roi_width) < self.frame_width:
+            self.roi_x = new_offset_x
         else:
-            self.roi_x_ctrl.SetValue(self.roi_x)
+            self.offset_x_ctrl.SetValue(self.roi_x)
 
-    def OnSetRoiY(self, event):
-        new_roi_y = self.roi_y_ctrl.GetValue()
-        if (new_roi_y + self.roi_height) < self.frame_height:
-            self.roi_y = new_roi_y
+    def OnSetOffsetY(self, event):
+        new_offset_y = self.offset_y_ctrl.GetValue()
+        if (new_offset_y + self.roi_height) < self.frame_height:
+            self.roi_y = new_offset_y
         else:
-            self.roi_y_ctrl.SetValue(self.roi_y)
+            self.offset_y_ctrl.SetValue(self.roi_y)
 
-    def OnSetRoiWidth(self, event):
-        new_roi_width = self.roi_width_ctrl.GetValue()
-        if (self.roi_x + new_roi_width) < self.frame_width:
-            self.roi_width = new_roi_width
+    def OnSetWidth(self, event):
+        new_width = self.width_ctrl.GetValue()
+        if (self.roi_x + new_width) < self.frame_width:
+            self.roi_width = new_width
         else:
-            self.roi_width_ctrl.SetValue(self.roi_width)
+            self.width_ctrl.SetValue(self.roi_width)
 
-    def OnSetRoiHeight(self, event):
-        new_roi_height = self.roi_height_ctrl.GetValue()
-        if (self.roi_y + new_roi_height) < self.frame_height:
-            self.roi_height = new_roi_height
+    def OnSetHeight(self, event):
+        new_height = self.height_ctrl.GetValue()
+        if (self.roi_y + new_height) < self.frame_height:
+            self.roi_height = new_height
         else:
-            self.roi_height_ctrl.SetValue(self.roi_height)
+            self.height_ctrl.SetValue(self.roi_height)
 
     def StartPreview(self):
         self.preview_on = True
