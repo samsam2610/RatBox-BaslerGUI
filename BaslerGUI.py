@@ -1151,9 +1151,6 @@ class BaslerGuiWindow(wx.Frame):
                     print("Error: ", grabResult.ErrorCode)
                 
                 grabResult.Release()
-            else:
-                print("Camera Buffer is empty")
-                time.sleep(0.00001)
 
         self.camera.StopGrabbing()
         imageWindow.Close()
