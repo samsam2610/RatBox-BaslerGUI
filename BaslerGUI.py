@@ -1116,6 +1116,7 @@ class BaslerGuiWindow(wx.Frame):
         # Configure session
         # Prepare data output file and buffer
         self.video_session = VideoRecordingSession(cam_num=0)
+        print(f"Frame width: {self.frame_width}, Frame height: {self.frame_height}")
         
         # TODO: add more options for output file
         self.video_session.set_params(
