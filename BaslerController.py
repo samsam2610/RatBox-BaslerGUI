@@ -7,7 +7,7 @@ from BaslerView import BaslerGuiWindow
 
 class BaslerController:
     def __init__(self, *args, **kwargs):
-        super(BaslerGuiWindow, self).__init__(*args, **kwargs)
+        super(BaslerController, self).__init__(*args, **kwargs)
         self.model = BaslerModel()
         self.view = BaslerGuiWindow(self, None)
         self.selected_camera = 0
