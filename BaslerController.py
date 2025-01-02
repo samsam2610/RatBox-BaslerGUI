@@ -22,6 +22,9 @@ class BaslerController:
             self.cameras_list.append({"name": device.GetModelName(), "serial": device.GetSerialNumber()})
         return cameras
 
+    def OnCamCombo(self, event):
+        self.selected_camera = self.view.cam_combo.GetSelection()
+
     def OnConnect(self, event):
         if self.model.connect_camera(self.selected_camera, self.cameras_list):
             self.view.connect_btn.SetLabel("Disconnect")
