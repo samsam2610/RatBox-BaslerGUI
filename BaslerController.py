@@ -1,6 +1,7 @@
 import threading
 import time
 import datetime
+from pypylon import pylon
 from BaslerModel import BaslerModel
 from BaslerView import BaslerGuiWindow
 

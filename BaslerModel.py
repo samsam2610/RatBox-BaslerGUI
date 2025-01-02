@@ -23,18 +23,6 @@ class BaslerModel:
         self.capture_on = False
         self.video_session = VideoRecordingSession(cam_num=0)
         self.current_frame = np.zeros((self.frame_height, self.frame_width, 1), np.float32)
-        self.gray = np.zeros((self.frame_height, self.frame_width, 1), np.uint8)
-        self.mean_img_sq = np.zeros((self.frame_height, self.frame_width, 1), np.float32)
-        self.sq = np.zeros((self.frame_height, self.frame_width, 1), np.float32)
-        self.img = np.zeros((self.frame_height, self.frame_width, 1), np.float32)
-        self.mean_img = np.zeros((self.frame_height, self.frame_width, 1), np.float32)
-        self.sq_img_mean = np.zeros((self.frame_height, self.frame_width, 1), np.float32)
-        self.std = np.zeros((self.frame_height, self.frame_width, 1), np.float32)
-        self.LASCA = np.zeros((self.frame_height, self.frame_width, 1), np.uint8)
-        self.im_color = np.zeros((self.frame_height, self.frame_width, 3), np.uint8)
-        self.mask = np.zeros((self.frame_height, self.frame_width, 1), bool)
-        self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)).astype(np.float32)
-        self.kernel /= np.sum(self.kernel)
 
     def connect_camera(self, selected_camera, cameras_list):
         if not self.camera_connected:
