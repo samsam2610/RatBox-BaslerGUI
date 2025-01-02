@@ -16,6 +16,7 @@ class BaslerController:
     def get_camera_list(self):
         devices = pylon.TlFactory.GetInstance().EnumerateDevices()
         cameras = []
+        self.cameras_list = []
         for device in devices:
             cameras.append(device.GetModelName() + "_" + device.GetSerialNumber())
             self.cameras_list.append({"name": device.GetModelName(), "serial": device.GetSerialNumber()})
