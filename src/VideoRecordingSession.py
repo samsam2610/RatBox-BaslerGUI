@@ -5,7 +5,7 @@ from collections import deque
 from pypylon import pylon
 import datetime
 import csv
-import keyboard
+# import keyboard
 
 
 class VideoRecordingSession:
@@ -44,15 +44,15 @@ class VideoRecordingSession:
     def acquire_frame(self, frame, timestamp, frame_number, frame_line_status):
         if self.recording_status:
             with self.buffer_lock:
-                # Check if any key input is available
-                input_key_code = None
-                if keyboard.is_pressed('x'):
-                    input_key_code = 0
-                elif keyboard.is_pressed('v'):
-                    input_key_code = 1
-                elif keyboard.is_pressed('f'):
-                    input_key_code = 2
-                self.frame_buffer.append((frame, timestamp, frame_number, frame_line_status, input_key_code))
+                # # Check if any key input is available
+                # input_key_code = None
+                # if keyboard.is_pressed('x'):
+                #     input_key_code = 0
+                # elif keyboard.is_pressed('v'):
+                #     input_key_code = 1
+                # elif keyboard.is_pressed('f'):
+                #     input_key_code = 2
+                self.frame_buffer.append((frame, timestamp, frame_number, frame_line_status))
 
     def start_recording(self):
         self.recording_status = True
