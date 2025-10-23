@@ -1,0 +1,49 @@
+Metadata-Version: 2.4
+Name: BaslerGUI
+Version: 1.0.0
+Summary: Basler camera control and image acquisition GUI using wxPython and pypylon.
+Author: Sam Tran
+Author-email: sam@example.com
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Science/Research
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Scientific/Engineering :: Image Processing
+Classifier: Topic :: Software Development :: User Interfaces
+Requires-Python: >=3.8,<3.11
+Description-Content-Type: text/markdown
+Requires-Dist: wxPython>=4.2.1
+Requires-Dist: pypylon
+Requires-Dist: numpy>=1.23
+Requires-Dist: opencv-python-headless>=4.8
+Requires-Dist: scikit-image>=0.21
+Requires-Dist: matplotlib>=3.7
+Requires-Dist: pillow>=10.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# BaslerGUI
+
+Repository contains a window application for operating Basler brand cameras, especially those equipped with the PYTHON 300 monochrome matrix, or similar. 
+Communication with the cameras is done using pypylon, the official python wrapper for the Basler pylon Camera Software Suite. Please see:
+https://github.com/basler/pypylon
+
+Software features:
+* establishing connection with camera
+* camera acquisition control
+* capturing raw video
+* capturing with ROI
+* recording of several video sequences at intervals
+* auto file indexing
+* calculating and displaying the histogram
+
+Software was developed for laser speckle imaging. It has built-in functions such as calculating spatial contrast, or calculating parameters of speckle pattern variation.
+
+Software manual will be prepared soon
+  
