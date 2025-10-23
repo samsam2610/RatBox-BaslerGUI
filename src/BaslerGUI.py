@@ -1,7 +1,8 @@
 # import pandas as pd
 
 import wx
-import os, Path
+import os
+from pathlib import Path
 from skimage.feature import graycomatrix, graycoprops
 from scipy.optimize import curve_fit
 import numpy as np
