@@ -617,10 +617,10 @@ class BaslerGuiWindow(wx.Frame):
 
     def OnConnect(self, event):
         if self.camera_connected is False:
-            # Load json for camera settings
-            path = Path(os.path.realpath(__file__))
-            # Navigate to the outer parent directory and join the filename
-            dets_file = os.path.normpath(str(path.parents[2] / 'config-files' / 'camera_details.json'))
+            # # Load json for camera settings
+            # path = Path(os.path.realpath(__file__))
+            # # Navigate to the outer parent directory and join the filename
+            # dets_file = os.path.normpath(str(path.parents[2] / 'config-files' / 'camera_details.json'))
 
             with open(dets_file) as f:
                 self.cam_details = json.load(f)
