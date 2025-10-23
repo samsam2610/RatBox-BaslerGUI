@@ -2,12 +2,19 @@ import threading
 import time
 import datetime
 from pypylon import pylon
-from BaslerModel import BaslerModel
+from development.CameraModel import BaslerModel
 from BaslerView import BaslerGuiWindow
 
 class BaslerController:
     def __init__(self, *args, **kwargs):
         super(BaslerController, self).__init__(*args, **kwargs)
+
+        for name, value in kwargs.items():
+            setattr(self, name, value)
+        
+        if self.num_cameras is None:
+            self.num_cameras = 1
+        
         self.model = BaslerModel()
         self.view = BaslerGuiWindow(self, None)
         self.selected_camera = 0

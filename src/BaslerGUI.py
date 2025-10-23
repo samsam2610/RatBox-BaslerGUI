@@ -1,6 +1,7 @@
 # import pandas as pd
 
 import wx
+import os, Path
 from skimage.feature import graycomatrix, graycoprops
 from scipy.optimize import curve_fit
 import numpy as np
@@ -615,6 +616,13 @@ class BaslerGuiWindow(wx.Frame):
 
     def OnConnect(self, event):
         if self.camera_connected is False:
+            # Load json for camera settings
+            path = Path(os.path.realpath(__file__))
+            # Navigate to the outer parent directory and join the filename
+            dets_file = os.path.normpath(str(path.parents[2] / 'config-files' / 'camera_details.json'))
+
+            with open(dets_file) as f:
+                self.cam_details = json.load(f)
             tlFactory = pylon.TlFactory.GetInstance()
             devices = tlFactory.EnumerateDevices()
             if len(devices) == 0:
