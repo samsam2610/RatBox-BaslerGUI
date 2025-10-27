@@ -919,7 +919,8 @@ class BaslerGuiWindow(wx.Frame):
         histogram_image[:, :, 2] = R
 
         for column in range(0, len(histogram_data)):
-            column_height = int(np.floor((histogram_data[column]/100)*256))
+            column_height = int(np.floor(float(np.ravel(histogram_data[column])[0]) * 2.56))
+
             if column_height > 1:
                 R, G, B = bin_color
                 color = (B, G, R)
