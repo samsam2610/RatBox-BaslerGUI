@@ -18,16 +18,17 @@ from VideoRecordingSession import VideoRecordingSession
 from InputEventHandler import ConfigurationEventPrinter
 
 class ImagePanel(wx.Panel):
-
-    def __init__(self, parent, frame_height=480, frame_width=640):
-        wx.Panel.__init__(self, parent)
-        h, w = frame_height, frame_width
-        src = (255 * np.random.rand(h, w)).astype(np.uint8)
-        buf = src.repeat(3, 1).tobytes()
-        self.bitmap = wx.Image(w, h, buf).ConvertToBitmap()
+    def __init__(self, parent, min_w=640, min_h=480):
+        super().__init__(parent)
+        self.bitmap = wx.Bitmap(min_w, min_h)   # placeholder
+        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)  # proper buffered painting
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Size = (frame_height, frame_width)
+        self.Bind(wx.EVT_SIZE, self._on_size)
+        # Optional baseline so sizers give it room:
+        # self.SetMinSize((min_w, min_h))
+
+    def _on_size(self, evt):
         self.Fit()
 
     def OnPaint(self, evt):
@@ -929,7 +930,7 @@ class BaslerGuiWindow(wx.Frame):
                 r, g, b = bin_color
                 color = (b, g, r)  # BGR for OpenCV drawing
                 cv2.line(histogram_image, (column, 255),
-                        (column, 255 - column_heigh), (b, g, r), 1)
+                        (column, 255 - column_height), (b, g, r), 1)
 
         # resize to requested panel size
         w, h = size
