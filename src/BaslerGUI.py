@@ -293,37 +293,37 @@ class BaslerGuiWindow(wx.Frame):
                                           size=(140, -1), increment=0.1, value=0.1, digits=0,
                                           agwStyle=FS.FS_LEFT)
         sizer.Add(self.offset_x_ctrl, pos=(8, 1), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=0)
         self.offset_x_ctrl.Bind(wx.EVT_SCROLL, self.OnSetOffsetX)
 
         offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
         sizer.Add(offset_y_ctrl_label, pos=(9, 0), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=0)
         self.offset_y_ctrl = FS.FloatSpin(panel, -1,  min_val=0, max_val=self.frame_height,
                                     size=(140, -1), increment=0.1, value=0.1, digits=0,
                                     agwStyle=FS.FS_LEFT)
         sizer.Add(self.offset_y_ctrl, pos=(9, 1), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=0)
         self.offset_y_ctrl.Bind(wx.EVT_SCROLL, self.OnSetOffsetY)
 
         width_ctrl_label = wx.StaticText(panel, label="Width:")
         sizer.Add(width_ctrl_label, pos=(10, 0), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=0)
         self.width_ctrl = FS.FloatSpin(panel, -1,  min_val=512, max_val=self.frame_width,
                                         size=(140, -1), increment=4, value=10, digits=0,
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.width_ctrl, pos=(10, 1), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=0)
         self.width_ctrl.Bind(wx.EVT_SCROLL, self.OnSetWidth)
 
         height_ctrl_label = wx.StaticText(panel, label="Height:")
         sizer.Add(height_ctrl_label, pos=(11, 0), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=0)
         self.height_ctrl = FS.FloatSpin(panel, -1,  min_val=512, max_val=self.frame_height,
                                         size=(140, -1), increment=4, value=10, digits=0,
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.height_ctrl, pos=(11, 1), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=0)
         self.height_ctrl.Bind(wx.EVT_SCROLL, self.OnSetHeight)
 
         self.current_state = wx.StaticText(panel, label="Current state: idle")
@@ -338,7 +338,7 @@ class BaslerGuiWindow(wx.Frame):
         # Text field to enter the queue
         self.note_label = wx.StaticText(panel, label="Notes (Press Enter to send):")
         sizer.Add(self.note_label, pos=(23, 0), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
+                  flag=wx.EXPAND | wx.ALL, border=0)
         self.note_ctrl = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
         sizer.Add(self.note_ctrl, pos=(23, 1), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
