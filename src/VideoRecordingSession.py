@@ -5,6 +5,7 @@ from collections import deque
 from pypylon import pylon
 import datetime
 import csv
+import typing
 # import keyboard
 
 
@@ -41,7 +42,7 @@ class VideoRecordingSession:
         self.csv_writer.writerow(['timestamp', 'frame_number', 'frame_line_status', 'note'])
         print(f"Cam {self.cam_num}: CSV writer initialized with {self.csv_file}")
 
-    def acquire_frame(self, frame, timestamp, frame_number, frame_line_status, note: str | None = None):
+    def acquire_frame(self, frame, timestamp, frame_number, frame_line_status, note: typing.Optional[str]=None):
         if self.recording_status:
             with self.buffer_lock:
                 self.frame_buffer.append((frame, timestamp, frame_number, frame_line_status, note))
