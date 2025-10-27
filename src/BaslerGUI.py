@@ -112,7 +112,6 @@ class BaslerGuiWindow(wx.Frame):
 
     def __init__(self, *args, **kwargs):
         super(BaslerGuiWindow, self).__init__(*args, **kwargs)
-        # self.AllocateMemory()
         self.InitUI()
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.Centre()
@@ -338,7 +337,7 @@ class BaslerGuiWindow(wx.Frame):
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.next_note_q = queue.Queue(maxsize=1)
-        self.note_ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnNodeEnter)
+        self.note_ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnNoteEnter)
 
         self.frame = np.zeros([self.frame_height, self.frame_width, 3], dtype=np.uint8)
         self.frame[:] = 255
@@ -363,16 +362,6 @@ class BaslerGuiWindow(wx.Frame):
         self.preview_thread_obj = threading.Thread(target=self.preview_thread)
         self.capture_thread_obj = threading.Thread(target=self.capture_thread)
         self.EnableGUI(False)
-
-    # def AllocateMemory(self, height=None, width=None):
-    #     self._allocate_processing_buffers(height=height, width=width)
-
-    # def _allocate_processing_buffers(self, height=None, width=None):
-    #     h = height if height is not None else self.frame_height
-    #     w = width if width is not None else self.frame_width
-    #     for name, dtype, channels in self.BUFFER_SPECS:
-    #         shape = (h, w) if channels is None else (h, w, channels)
-    #         setattr(self, name, np.zeros(shape, dtype=dtype))
 
     def Draw(self, evt):
 
@@ -631,7 +620,6 @@ class BaslerGuiWindow(wx.Frame):
                         self.cam_combo.Disable()
                         self.camera_connected = True
 
-                        # self.AllocateMemory()
                         self.EnableGUI(True)
                         return
 
@@ -773,7 +761,7 @@ class BaslerGuiWindow(wx.Frame):
         if self.camera_connected is True:
             self.camera.Gain.SetValue(self.gain)
 
-    def OnNodeEnter(self, event):
+    def OnNoteEnter(self, event):
         text = self.note_ctrl.GetValue().strip()
         if not text:
             return
@@ -789,7 +777,7 @@ class BaslerGuiWindow(wx.Frame):
 
         self.note_ctrl.Clear()
         # (optional) give quick UI feedback
-        wx.LogMessage(f"Queued note for next frame: {text!r}")
+        # wx.LogMessage(f"Queued note for next frame: {text!r}")
         
     def OnCamCombo(self, event):
         self.selected_camera = self.cam_combo.GetSelection()
@@ -838,19 +826,6 @@ class BaslerGuiWindow(wx.Frame):
 
     def OnAppendDate(self, event):
         self.append_date_flag = self.append_date.GetValue()
-
-    # def OnEnableRoi(self, event):
-    #     self.roi_on = self.set_roi.GetValue()
-    #     if self.roi_on is True:
-    #         self.offset_x_ctrl.Enable()
-    #         self.offset_y_ctrl.Enable()
-    #         self.width_ctrl.Enable()
-    #         self.height_ctrl.Enable()
-    #     else:
-    #         self.offset_x_ctrl.Disable()
-    #         self.offset_y_ctrl.Disable()
-    #         self.width_ctrl.Disable()
-    #         self.height_ctrl.Disable()
 
     def OnSetOffsetX(self, event):
         new_offset_x = self.offset_x_ctrl.GetValue()
