@@ -358,10 +358,10 @@ class BaslerGuiWindow(wx.Frame):
         self.display_frame[:] = 255
 
         self.Window = ImagePanel(panel)
-        self.Window.SetMinSize((640, 480))
+        self.Window.SetSize((640, 480))
         self.Window.Fit()
         sizer.Add(self.Window, pos=(0, 3), span=(3, 3),
-                  flag=wx.LEFT | wx.TOP | wx.FIXED_MINSIZE, border=5)
+                  flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
 
         lasca_filter_label = wx.StaticText(panel, label="LASCA filter size:")
         sizer.Add(lasca_filter_label, pos=(16, 5),
@@ -462,12 +462,14 @@ class BaslerGuiWindow(wx.Frame):
             print("LASCA")
 
         if (self.selected_mode == 2):
+            w, h = self.Window.GetClientSize()
+            w = max(1, w); h = max(1, h)
             self.im_color = self.DrawHistogram(self.frame,
-                                                   (640, 480),
+                                                   (w, h),
                                                    (255, 255, 255),
                                                    (250, 155, 0))
 
-            self.bitmap = wx.Image(640, 480,
+            self.bitmap = wx.Image(w, h,
                                    self.im_color.tobytes()).ConvertToBitmap()
 
         self.Window.update(self.bitmap)
