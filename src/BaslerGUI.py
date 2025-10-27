@@ -912,23 +912,34 @@ class BaslerGuiWindow(wx.Frame):
 
     def DrawHistogram(self, image, size, bcg_color, bin_color):
         histogram_data = self.GetHistogram(image)
-        histogram_image = np.ones((256, 256, 3), np.uint8)*240
+
+        # base canvas at 256×256, draw bars
+        histogram_image = np.ones((256, 256, 3), np.uint8) * 240
         R, G, B = bcg_color
         histogram_image[:, :, 0] = B
         histogram_image[:, :, 1] = G
         histogram_image[:, :, 2] = R
 
-        for column in range(0, len(histogram_data)):
-            column_height = int(np.floor(float(np.ravel(histogram_data[column])[0]) * 2.56))
+        for column in range(256):
+            # make sure it's a scalar and clamp to [0, 255]
+            col_pct = float(np.ravel(histogram_data[column])[0])
+            column_height = int(np.floor(col_pct * 2.56))
+            column_height = max(0, min(column_height, 255))  # avoid -1 / out-of-bounds
 
             if column_height > 1:
-                R, G, B = bin_color
-                color = (B, G, R)
+                r, g, b = bin_color
+                color = (b, g, r)  # BGR for OpenCV drawing
                 cv2.line(histogram_image, (column, 255),
-                         (column, 255-column_height), color, 1)
+                        (column, 255 - column_height), color, 1)
 
-        resized = cv2.resize(histogram_image, size, interpolation=cv2.INTER_AREA)
-        return resized
+        # resize to requested panel size
+        w, h = size
+        resized_bgr = cv2.resize(histogram_image, (w, h), interpolation=cv2.INTER_AREA)
+
+        # wx expects RGB
+        resized_rgb = cv2.cvtColor(resized_bgr, cv2.COLOR_BGR2RGB)
+        return resized_rgb
+
 
     def OnAppendDate(self, event):
         self.append_date_flag = self.append_date.GetValue()
