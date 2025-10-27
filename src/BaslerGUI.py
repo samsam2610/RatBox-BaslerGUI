@@ -155,7 +155,7 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(fourcc_label, pos=(18, 0), flag=wx.EXPAND | wx.ALL, border=5)
         fourcc_modes = ["MJPG", "DIVX", "XVID"]
         self.encoding_mode_combo = wx.ComboBox(panel, choices=fourcc_modes)
-        sizer.Add(self.encoding_mode_combo, pos=(17, 1), flag=wx.ALL, border=5)
+        sizer.Add(self.encoding_mode_combo, pos=(18, 1), flag=wx.ALL, border=5)
         self.encoding_mode_combo.Bind(wx.EVT_COMBOBOX, self.OnCapModeCombo)
         self.encoding_mode_combo.SetSelection(self.encoding_mode)
 
