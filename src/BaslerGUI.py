@@ -469,8 +469,7 @@ class BaslerGuiWindow(wx.Frame):
                                                    (255, 255, 255),
                                                    (250, 155, 0))
 
-            self.bitmap = wx.Image(w, h,
-                                   self.im_color.tobytes()).Scale(w, h, wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()
+            self.bitmap = wx.Bitmap.FromBuffer(w, h, self.im_color)
 
         self.Window.update(self.bitmap)
 
