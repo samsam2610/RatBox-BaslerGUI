@@ -173,27 +173,27 @@ class BaslerGuiWindow(wx.Frame):
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         fourcc_label = wx.StaticText(panel, label="Fourcc Code:")
-        sizer.Add(fourcc_label, pos=(17, 0), flag=wx.EXPAND | wx.ALL, border=5)
+        sizer.Add(fourcc_label, pos=(21, 0), flag=wx.EXPAND | wx.ALL, border=5)
         fourcc_modes = ["MJPG", "DIVX", "XVID"]
         self.encoding_mode_combo = wx.ComboBox(panel, choices=fourcc_modes)
-        sizer.Add(self.encoding_mode_combo, pos=(17, 1), flag=wx.ALL, border=5)
+        sizer.Add(self.encoding_mode_combo, pos=(21, 1), flag=wx.ALL, border=5)
         self.encoding_mode_combo.Bind(wx.EVT_COMBOBOX, self.OnCapModeCombo)
         self.encoding_mode_combo.SetSelection(self.encoding_mode)
 
         interval_ctrl_label = wx.StaticText(panel, label="Measurement interval (sec):")
-        sizer.Add(interval_ctrl_label, pos=(18, 0),
+        sizer.Add(interval_ctrl_label, pos=(22, 0),
                   flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
         self.interval_ctrl = wx.TextCtrl(panel)
         self.interval_ctrl.SetValue(str(self.measurement_interval))
-        sizer.Add(self.interval_ctrl, pos=(18, 1),
+        sizer.Add(self.interval_ctrl, pos=(22, 1),
                   flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
 
         sequence_ctrl_label = wx.StaticText(panel, label="Sequence length (num):")
-        sizer.Add(sequence_ctrl_label, pos=(19, 0),
+        sizer.Add(sequence_ctrl_label, pos=(23, 0),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.sequence_ctrl = wx.TextCtrl(panel)
         self.sequence_ctrl.SetValue(str(self.sequence_length))
-        sizer.Add(self.sequence_ctrl, pos=(19, 1),
+        sizer.Add(self.sequence_ctrl, pos=(23, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.Window = ImagePanel(panel)
@@ -212,16 +212,16 @@ class BaslerGuiWindow(wx.Frame):
         # self.mode_combo.SetSelection(2)
 
         framescap_ctrl_label = wx.StaticText(panel, label="Video length (sec):")
-        sizer.Add(framescap_ctrl_label, pos=(20, 0),
+        sizer.Add(framescap_ctrl_label, pos=(24, 0),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.framescap_ctrl = wx.TextCtrl(panel)
         self.framescap_ctrl.SetValue(str(self.frames_to_capture))
-        sizer.Add(self.framescap_ctrl, pos=(20, 1),
+        sizer.Add(self.framescap_ctrl, pos=(24, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.capture_btn = wx.Button(panel, label="Capture START")
         self.capture_btn.Bind(wx.EVT_BUTTON, self.OnCapture)
-        sizer.Add(self.capture_btn, pos=(21, 0), span=(1, 2),
+        sizer.Add(self.capture_btn, pos=(25, 0), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.framerate_ctrl_label = wx.StaticText(panel, label="Framerate (Hz):")
