@@ -658,7 +658,7 @@ class BaslerGuiWindow(wx.Frame):
                         self.camera.MaxNumBuffer = 180
                         self.camera.AcquisitionFrameRateEnable.SetValue(True)
                         self.camera.AcquisitionFrameRate.SetValue(200.0)
-                        resulting_framerate = self.camera.ResultingFrameRateAbs.GetValue()
+                        resulting_framerate = self.camera.ResultingFrameRate.GetValue()
                         if (resulting_framerate != self.framerate):
                             self.framerate = resulting_framerate
                             self.framerate_slider.SetValue(self.framerate)
