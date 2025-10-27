@@ -160,19 +160,19 @@ class BaslerGuiWindow(wx.Frame):
         self.encoding_mode_combo.SetSelection(self.encoding_mode)
 
         interval_ctrl_label = wx.StaticText(panel, label="Measurement interval (sec):")
-        sizer.Add(interval_ctrl_label, pos=(18, 0),
+        sizer.Add(interval_ctrl_label, pos=(19, 0),
                   flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
         self.interval_ctrl = wx.TextCtrl(panel)
         self.interval_ctrl.SetValue(str(self.measurement_interval))
-        sizer.Add(self.interval_ctrl, pos=(18, 1),
+        sizer.Add(self.interval_ctrl, pos=(19, 1),
                   flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
 
         sequence_ctrl_label = wx.StaticText(panel, label="Sequence length (num):")
-        sizer.Add(sequence_ctrl_label, pos=(19, 0),
+        sizer.Add(sequence_ctrl_label, pos=(20, 0),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.sequence_ctrl = wx.TextCtrl(panel)
         self.sequence_ctrl.SetValue(str(self.sequence_length))
-        sizer.Add(self.sequence_ctrl, pos=(19, 1),
+        sizer.Add(self.sequence_ctrl, pos=(20, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         mode_ctrl_label = wx.StaticText(panel, label="Preview mode:")
