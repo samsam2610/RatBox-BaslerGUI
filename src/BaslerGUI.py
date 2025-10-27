@@ -152,7 +152,7 @@ class BaslerGuiWindow(wx.Frame):
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         fourcc_label = wx.StaticText(panel, label="Fourcc Code:")
-        sizer.Add(fourcc_label, pos=(17, 0), flag=wx.EXPAND | wx.ALL, border=5)
+        sizer.Add(fourcc_label, pos=(18, 0), flag=wx.EXPAND | wx.ALL, border=5)
         fourcc_modes = ["MJPG", "DIVX", "XVID"]
         self.encoding_mode_combo = wx.ComboBox(panel, choices=fourcc_modes)
         sizer.Add(self.encoding_mode_combo, pos=(17, 1), flag=wx.ALL, border=5)
@@ -334,7 +334,7 @@ class BaslerGuiWindow(wx.Frame):
         self.height_ctrl.Bind(wx.EVT_SCROLL, self.OnSetHeight)
 
         self.current_state = wx.StaticText(panel, label="Current state: idle")
-        sizer.Add(self.current_state, pos=(18, 0), span=(1, 2),
+        sizer.Add(self.current_state, pos=(19, 0), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.offset_x_ctrl.Disable()
