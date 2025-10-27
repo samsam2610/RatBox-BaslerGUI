@@ -29,14 +29,29 @@ class ImagePanel(wx.Panel):
         # self.SetMinSize((min_w, min_h))
 
     def _on_size(self, evt):
-        self.Fit()
+        self.Refresh(False)    # schedule repaint with new size
+        evt.Skip()
 
     def OnPaint(self, evt):
-        wx.BufferedPaintDC(self, self.bitmap)
+        dc = wx.AutoBufferedPaintDCFactory(self)  # buffered DC
+        dc.Clear()
+        if not self.bitmap.IsOk():
+            return
+        pw, ph = self.GetClientSize()
+        if pw <= 0 or ph <= 0:
+            return
 
-    def update(self, input_image):
-        self.bitmap = input_image
-        wx.BufferedDC(wx.ClientDC(self), self.bitmap)
+        bw, bh = self.bitmap.GetWidth(), self.bitmap.GetHeight()
+        if bw != pw or bh != ph:
+            bmp = wx.Bitmap(self.bitmap.ConvertToImage().Scale(pw, ph, wx.IMAGE_QUALITY_HIGH))
+        else:
+            bmp = self.bitmap
+        dc.DrawBitmap(bmp, 0, 0, True)
+
+    def update_bitmap(self, bmp: wx.Bitmap):
+        self.bitmap = bmp
+        self.Refresh(False)
+
 
 
 class BaslerGuiWindow(wx.Frame):
@@ -465,14 +480,13 @@ class BaslerGuiWindow(wx.Frame):
         if (self.selected_mode == 2):
             w, h = self.Window.GetClientSize()
             w = max(1, w); h = max(1, h)
-            self.im_color = self.DrawHistogram(self.frame,
-                                                   (w, h),
-                                                   (255, 255, 255),
-                                                   (250, 155, 0))
+            rgb = self.DrawHistogram(self.frame, (w, h),
+                                     (255, 255, 255), (250, 155, 0))
+            # Fast, correct width/height order (w = cols, h = rows):
+            self.bitmap = wx.Bitmap.FromBuffer(w, h, np.ascontiguousarray(rgb))
+            self.Window.update_bitmap(self.bitmap)
 
-            self.bitmap = wx.Bitmap.FromBuffer(w, h, self.im_color)
-
-        self.Window.update(self.bitmap)
+        # self.Window.update(self.bitmap)
 
         if self.preview_on is True:
             self.preview_timer.Start(50, oneShot=True)
@@ -913,33 +927,23 @@ class BaslerGuiWindow(wx.Frame):
     def DrawHistogram(self, image, size, bcg_color, bin_color):
         histogram_data = self.GetHistogram(image)
 
-        # base canvas at 256×256, draw bars
-        histogram_image = np.ones((256, 256, 3), np.uint8) * 240
+        # draw base 256x256 histogram (OpenCV draws in BGR)
+        hist = np.full((256, 256, 3), 240, np.uint8)
         R, G, B = bcg_color
-        histogram_image[:, :, 0] = B
-        histogram_image[:, :, 1] = G
-        histogram_image[:, :, 2] = R
+        hist[:, :, 0] = B; hist[:, :, 1] = G; hist[:, :, 2] = R
 
-        for column in range(256):
-            # make sure it's a scalar and clamp to [0, 255]
-            col_pct = float(np.ravel(histogram_data[column])[0])
-            column_height = int(np.floor(col_pct * 2.56))
-            column_height = max(0, min(column_height, 255))  # avoid -1 / out-of-bounds
-
-            if column_height > 1:
+        for x in range(256):
+            col_pct = float(np.ravel(histogram_data[x])[0])
+            h = int(np.floor(col_pct * 2.56))
+            h = 0 if h < 0 else (255 if h > 255 else h)
+            if h > 1:
                 r, g, b = bin_color
-                color = (b, g, r)  # BGR for OpenCV drawing
-                cv2.line(histogram_image, (column, 255),
-                        (column, 255 - column_height), (b, g, r), 1)
+                cv2.line(hist, (x, 255), (x, 255 - h), (b, g, r), 1)
 
-        # resize to requested panel size
-        w, h = size
-        resized_bgr = cv2.resize(histogram_image, (w, h), interpolation=cv2.INTER_AREA)
-
-        # wx expects RGB
-        resized_rgb = cv2.cvtColor(resized_bgr, cv2.COLOR_BGR2RGB)
-        return resized_rgb
-
+        w, h = size  # NOTE: OpenCV wants (width, height)
+        hist = cv2.resize(hist, (w, h), interpolation=cv2.INTER_AREA)
+        rgb = cv2.cvtColor(hist, cv2.COLOR_BGR2RGB)
+        return rgb
 
     def OnAppendDate(self, event):
         self.append_date_flag = self.append_date.GetValue()
