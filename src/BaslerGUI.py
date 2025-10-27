@@ -282,7 +282,7 @@ class BaslerGuiWindow(wx.Frame):
 
         self.index_ctrl = wx.TextCtrl(panel)
         self.index_ctrl.SetValue(str(1))
-        sizer.Add(self.index_ctrl, pos=(12, 1), flag=wx.EXPAND | wx.ALL, border=5)
+        sizer.Add(self.index_ctrl, pos=(16, 1), flag=wx.EXPAND | wx.ALL, border=5)
         
         self.set_roi = wx.CheckBox(panel, label="Set ROI")
         sizer.Add(self.set_roi, pos=(15, 3), span=(1, 1),
