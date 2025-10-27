@@ -295,7 +295,7 @@ class BaslerGuiWindow(wx.Frame):
                                           agwStyle=FS.FS_LEFT)
         sizer.Add(self.offset_x_ctrl, pos=(8, 1), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=0)
-        self.offset_x_ctrl.Bind(FS.FloatSpin, self.OnSetOffsetX)
+        self.offset_x_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetOffsetX)
 
         offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
         sizer.Add(offset_y_ctrl_label, pos=(9, 0), span=(1, 1),
@@ -305,7 +305,7 @@ class BaslerGuiWindow(wx.Frame):
                                     agwStyle=FS.FS_LEFT)
         sizer.Add(self.offset_y_ctrl, pos=(9, 1), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=0)
-        self.offset_y_ctrl.Bind(FS.FloatSpin, self.OnSetOffsetY)
+        self.offset_y_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetOffsetY)
 
         width_ctrl_label = wx.StaticText(panel, label="Width:")
         sizer.Add(width_ctrl_label, pos=(10, 0), span=(1, 1),
@@ -315,7 +315,7 @@ class BaslerGuiWindow(wx.Frame):
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.width_ctrl, pos=(10, 1), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=0)
-        self.width_ctrl.Bind(FS.FloatSpin, self.OnSetWidth)
+        self.width_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetWidth)
 
         height_ctrl_label = wx.StaticText(panel, label="Height:")
         sizer.Add(height_ctrl_label, pos=(11, 0), span=(1, 1),
@@ -325,7 +325,7 @@ class BaslerGuiWindow(wx.Frame):
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.height_ctrl, pos=(11, 1), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=0)
-        self.height_ctrl.Bind(FS.FloatSpin, self.OnSetHeight)
+        self.height_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetHeight)
 
         self.current_state = wx.StaticText(panel, label="Current state: idle")
         sizer.Add(self.current_state, pos=(22, 0), span=(1, 2),
