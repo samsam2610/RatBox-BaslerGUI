@@ -374,7 +374,7 @@ class BaslerGuiWindow(wx.Frame):
         self.display_frame[:] = 255
 
         self.Window = ImagePanel(panel)
-        self.Window.SetSize((640, 480))
+        self.Window.SetSize((480, 360))
         self.Window.Fit()
         sizer.Add(self.Window, pos=(0, 3), span=(3, 3),
                   flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
