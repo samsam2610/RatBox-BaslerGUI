@@ -201,7 +201,7 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(self.framerate_ctrl_label, pos=(4, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.framerate_slider = FS.FloatSpin(panel, -1,  min_val=100, max_val=500,
-                                             size=(140, -1), increment=1.0,
+                                             size=(140, -1), increment=1.0, digits=0,
                                              value=0.1, agwStyle=FS.FS_LEFT)
         self.framerate_slider.SetFormat("%f")
         self.framerate_slider.SetDigits(2)
@@ -213,7 +213,7 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(self.exposure_ctrl_label, pos=(5, 0),  span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.exposure_slider = FS.FloatSpin(panel, -1,  min_val=1000, max_val=5000,
-                                            size=(140, -1), increment=100,
+                                            size=(140, -1), increment=100, digits=0,
                                             value=1000, agwStyle=FS.FS_LEFT)
         self.exposure_slider.SetFormat("%f")
         self.exposure_slider.SetDigits(2)
@@ -225,7 +225,7 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(self.gain_ctrl_label, pos=(6, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.gain_slider = FS.FloatSpin(panel, -1,  min_val=0, max_val=1,
-                                        size=(140, -1), increment=0.01, value=0.1,
+                                        size=(140, -1), increment=0.01, value=0.1, digits=0,
                                         agwStyle=FS.FS_LEFT)
         self.gain_slider.Bind(FS.EVT_FLOATSPIN, self.GainSliderScroll)
         self.gain_slider.SetFormat("%f")
@@ -293,8 +293,9 @@ class BaslerGuiWindow(wx.Frame):
         offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
         sizer.Add(offset_x_ctrl_label, pos=(8, 0), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.offset_x_ctrl = FS.FloatSpin(panel, -1,  min_val=0,
-                                          max_val=self.frame_width, size=(140, -1), increment=0.1, value=0.1, agwStyle=FS.FS_LEFT)
+        self.offset_x_ctrl = FS.FloatSpin(panel, -1,  min_val=0, max_val=self.frame_width,
+                                          size=(140, -1), increment=0.1, value=0.1, digits=0,
+                                          agwStyle=FS.FS_LEFT)
         sizer.Add(self.offset_x_ctrl, pos=(8, 1), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
         self.offset_x_ctrl.Bind(wx.EVT_SCROLL, self.OnSetOffsetX)
@@ -303,7 +304,7 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(offset_y_ctrl_label, pos=(9, 0), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
         self.offset_y_ctrl = FS.FloatSpin(panel, -1,  min_val=0, max_val=self.frame_height,
-                                    size=(140, -1), increment=0.1, value=0.1,
+                                    size=(140, -1), increment=0.1, value=0.1, digits=0,
                                     agwStyle=FS.FS_LEFT)
         sizer.Add(self.offset_y_ctrl, pos=(9, 1), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
@@ -313,7 +314,7 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(width_ctrl_label, pos=(10, 0), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
         self.width_ctrl = FS.FloatSpin(panel, -1,  min_val=512, max_val=self.frame_width,
-                                        size=(140, -1), increment=4, value=10,
+                                        size=(140, -1), increment=4, value=10, digits=0,
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.width_ctrl, pos=(10, 1), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
@@ -323,7 +324,7 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(height_ctrl_label, pos=(11, 0), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
         self.height_ctrl = FS.FloatSpin(panel, -1,  min_val=512, max_val=self.frame_height,
-                                        size=(140, -1), increment=4, value=10,
+                                        size=(140, -1), increment=4, value=10, digits=0,
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.height_ctrl, pos=(11, 1), span=(1, 1),
                   flag=wx.ALL | wx.ALIGN_CENTER, border=0)
