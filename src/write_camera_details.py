@@ -21,30 +21,26 @@ out = os.path.normpath(str(path.parents[2] / 'config-files' / 'camera_details.js
 # Crop, rotation, and exposure are default parameters. Can be changed in the GUI.
 
 cam_0 = {'name': 'cam1',
-         'crop': {'top': 0, 'left': 0, 'width': 1376, 'height': 960},
+         'crop': {'offset_X': 0, 'offset_Y': 0, 'width': 1376, 'height': 960},
          'rotate': 0,
-         'exposure': 0.0001,
-         'gain': 100,
+         'exposure': 1500, # in microseconds
+         'gain': 30, # in db
          'offset': {'x': 0, 'y': 100},
          'output_dir': 'C:\\Data folder'}
 
 cam_1 = {'name': 'cam2',
-         'crop': {'top': 130, 'left': 92, 'height': 400, 'width': 704},
+         'crop': {'offset_X': 130, 'offset_Y': 92, 'height': 400, 'width': 704},
          'rotate': 0,
-         'exposure': 0.0001,
-         'gain': 100,
+         'exposure': 1500, # in microseconds
+         'gain': 30, # in db
          'offset': {'x': 366, 'y': 300},
          'output_dir': 'C:\\Data folder'}
 
 subs = ['MAP1', 'test2', 'test3']  # optional, can manually enter subject for each session.
-
-labview = ['Dev1/port0/line0']  # optional, can manually enter for each session
-
 details = {'cams': 2,
            '0': cam_0,
            '1': cam_1,
-           'subjects': subs,
-           'labview': labview}
+           'subjects': subs}
 
 with open(out, 'w') as handle:
     json.dump(details, handle)

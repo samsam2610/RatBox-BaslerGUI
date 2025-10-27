@@ -1087,7 +1087,7 @@ class BaslerGuiWindow(wx.Frame):
             grabResult = self.camera.RetrieveResult(500,
                                                     pylon.TimeoutHandling_ThrowException)
             if grabResult.GrabSucceeded():
-                frame = grabResult.GetArray()
+                # frame = grabResult.GetArray()
                 timestamp = time.time()
                 frame_timestamp = grabResult.ChunkTimestamp.Value
                 frame_line_status = grabResult.ChunkLineStatusAll.Value
@@ -1100,7 +1100,7 @@ class BaslerGuiWindow(wx.Frame):
                 except queue.Empty:
                     pass
 
-                self.video_session.acquire_frame(frame, frame_timestamp, captured_frames, frame_line_status, note)
+                self.video_session.acquire_frame(grabResult.GetArrayZeroCopy(), frame_timestamp, captured_frames, frame_line_status, note)
                 
                 if (timestamp - last_display_time) > display_interval:
                     line_status = self.camera.LineStatus.GetValue()  # Retrieve line status
