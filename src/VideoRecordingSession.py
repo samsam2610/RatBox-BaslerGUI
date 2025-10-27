@@ -38,21 +38,13 @@ class VideoRecordingSession:
         self.csv_file = video_file.replace('.avi', '.csv')
         self.csv_file_handle = open(self.csv_file, mode='w', newline='')
         self.csv_writer = csv.writer(self.csv_file_handle)
-        self.csv_writer.writerow(['timestamp', 'frame_number', 'frame_line_status', 'key_input'])
+        self.csv_writer.writerow(['timestamp', 'frame_number', 'frame_line_status', 'note'])
         print(f"Cam {self.cam_num}: CSV writer initialized with {self.csv_file}")
 
-    def acquire_frame(self, frame, timestamp, frame_number, frame_line_status):
+    def acquire_frame(self, frame, timestamp, frame_number, frame_line_status, note: str | None = None):
         if self.recording_status:
             with self.buffer_lock:
-                # # Check if any key input is available
-                # input_key_code = None
-                # if keyboard.is_pressed('x'):
-                #     input_key_code = 0
-                # elif keyboard.is_pressed('v'):
-                #     input_key_code = 1
-                # elif keyboard.is_pressed('f'):
-                #     input_key_code = 2
-                self.frame_buffer.append((frame, timestamp, frame_number, frame_line_status))
+                self.frame_buffer.append((frame, timestamp, frame_number, frame_line_status, note))
 
     def start_recording(self):
         self.recording_status = True
@@ -95,12 +87,12 @@ class VideoRecordingSession:
         print(f"Cam {self.cam_num}: Frame processing stopped")
     
     def _write_frame(self):
-        frame, timestamp, frame_number, frame_line_status, input_key_code = self.frame_buffer.popleft()    
+        frame, timestamp, frame_number, frame_line_status, note = self.frame_buffer.popleft()    
         self.vid_out.write(frame)
         self.frame_count += 1
         
         # Write to CSV
-        self.csv_writer.writerow([timestamp, frame_number, frame_line_status, input_key_code])
+        self.csv_writer.writerow([timestamp, frame_number, frame_line_status, note])
         
         if self.frame_count % 1000 == 0:
             print(f"Cam {self.cam_num}: Recorded {self.frame_count} frames. Remaining: {len(self.frame_buffer)}")

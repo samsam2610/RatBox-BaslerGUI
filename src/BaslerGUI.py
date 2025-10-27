@@ -1,5 +1,6 @@
 # import pandas as pd
 
+import queue
 import wx
 import os
 from pathlib import Path
@@ -343,6 +344,8 @@ class BaslerGuiWindow(wx.Frame):
         sizer.Add(self.note_ctrl, pos=(23, 1), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
+        self.next_note_q = queue.Queue(maxsize=1)
+        self.note_ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnNodeEnter)
 
         self.frame = np.zeros([self.frame_height, self.frame_width, 3], dtype=np.uint8)
         self.frame[:] = 255
@@ -844,6 +847,24 @@ class BaslerGuiWindow(wx.Frame):
         if self.camera_connected is True:
             self.camera.Gain.SetValue(self.gain)
 
+    def OnNodeEnter(self, event):
+        text = self.note_ctrl.GetValue().strip()
+        if not text:
+            return
+        # Keep only the most recent pending note
+        try:
+            self.next_note_q.put_nowait(text)
+        except queue.Full:
+            try:
+                _ = self.next_note_q.get_nowait()
+            except queue.Empty:
+                pass
+            self.next_note_q.put_nowait(text)
+
+        self.note_ctrl.Clear()
+        # (optional) give quick UI feedback
+        wx.LogMessage(f"Queued note for next frame: {text!r}")
+        
     def OnLascaCombo(self, event):
         current_selection = self.lasca_combo.GetSelection()
         filter_size = int(2*(current_selection+2) - 1)
@@ -1176,7 +1197,14 @@ class BaslerGuiWindow(wx.Frame):
                 frame_line_status = grabResult.ChunkLineStatusAll.Value
                 captured_frames += 1
 
-                self.video_session.acquire_frame(frame, frame_timestamp, captured_frames, frame_line_status)
+                # Pull one pending note if any (non-blocking, single-shot)
+                note = None
+                try:
+                    note = self.next_note_q.get_nowait()
+                except queue.Empty:
+                    pass
+
+                self.video_session.acquire_frame(frame, frame_timestamp, captured_frames, frame_line_status, note)
                 
                 if (timestamp - last_display_time) > display_interval:
                     line_status = self.camera.LineStatus.GetValue()  # Retrieve line status
