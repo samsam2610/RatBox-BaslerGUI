@@ -226,7 +226,7 @@ class BaslerGuiWindow(wx.Frame):
         self.gain_slider.SetFormat("%f")
         self.gain_slider.SetDigits(3)
         sizer.Add(self.gain_slider, pos=(10, 1), span=(1, 1),
-                  flag=wx.ALL, border=5)
+                  flag=wx.EXPAND | wx.ALL, border=5)
 
         self.set_auto_exposure = wx.CheckBox(panel, label="Auto Exposure")
         sizer.Add(self.set_auto_exposure, pos=(11, 0), span=(1, 1),
@@ -286,37 +286,37 @@ class BaslerGuiWindow(wx.Frame):
                                           size=(140, -1), increment=0.1, value=0.1, digits=0,
                                           agwStyle=FS.FS_LEFT)
         sizer.Add(self.offset_x_ctrl, pos=(12, 1), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=5)
         self.offset_x_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetOffsetX)
 
         offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
         sizer.Add(offset_y_ctrl_label, pos=(13, 0), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=5)
         self.offset_y_ctrl = FS.FloatSpin(panel, -1,  min_val=0, max_val=self.frame_height,
                                     size=(140, -1), increment=0.1, value=0.1, digits=0,
                                     agwStyle=FS.FS_LEFT)
         sizer.Add(self.offset_y_ctrl, pos=(13, 1), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=5)
         self.offset_y_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetOffsetY)
 
         width_ctrl_label = wx.StaticText(panel, label="Width:")
         sizer.Add(width_ctrl_label, pos=(14, 0), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=5)
         self.width_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_width,
                                         size=(140, -1), increment=4, value=128, digits=0,
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.width_ctrl, pos=(14, 1), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=5)
         self.width_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetWidth)
 
         height_ctrl_label = wx.StaticText(panel, label="Height:")
         sizer.Add(height_ctrl_label, pos=(15, 0), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=5)
         self.height_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_height,
                                         size=(140, -1), increment=4, value=128, digits=0,
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.height_ctrl, pos=(15, 1), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=5)
         self.height_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetHeight)
 
         self.current_state = wx.StaticText(panel, label="Current state: idle")
@@ -331,7 +331,7 @@ class BaslerGuiWindow(wx.Frame):
         # Text field to enter the queue
         self.note_label = wx.StaticText(panel, label="Notes (Press Enter to send):")
         sizer.Add(self.note_label, pos=(27, 0), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=5)
         self.note_ctrl = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
         sizer.Add(self.note_ctrl, pos=(27, 1), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
@@ -838,6 +838,7 @@ class BaslerGuiWindow(wx.Frame):
         if (new_offset_x + self.frame_width) < self.max_frame_width:
             self.offset_x = int(new_offset_x)
             self.camera.OffsetX.SetValue(self.offset_x)
+            self.offset_x_ctrl_label = wx.StaticText(self, label="Offset X (max {}):".format(self.max_frame_width - self.frame_width))
         
         self.offset_x_ctrl.SetValue(self.offset_x)
 
@@ -852,7 +853,8 @@ class BaslerGuiWindow(wx.Frame):
         if (new_offset_y + self.frame_height) < self.max_frame_height:
             self.offset_y = int(new_offset_y)
             self.camera.OffsetY.SetValue(self.offset_y)
-        
+            self.offset_y_ctrl_label = wx.StaticText(self, label="Offset Y (max {}):".format(self.max_frame_height - self.frame_height))
+
         self.offset_y_ctrl.SetValue(self.offset_y)
 
     def OnSetWidth(self, event):
@@ -864,6 +866,7 @@ class BaslerGuiWindow(wx.Frame):
             self.frame_width = int(new_width)
             self.camera.Width.SetValue(self.frame_width)
             self.offset_x_ctrl.SetMax(self.max_frame_width - self.frame_width)
+            self.offset_x_ctrl_label = wx.StaticText(self, label="Offset X (max {}):".format(self.max_frame_width - self.frame_width))
         
         self.width_ctrl.SetValue(self.frame_width)
 
@@ -876,6 +879,7 @@ class BaslerGuiWindow(wx.Frame):
             self.frame_height = int(new_height)
             self.camera.Height.SetValue(self.frame_height)
             self.offset_y_ctrl.SetMax(self.max_frame_height - self.frame_height)
+            
         
         self.height_ctrl.SetValue(self.frame_height)
 
@@ -1087,7 +1091,7 @@ class BaslerGuiWindow(wx.Frame):
             grabResult = self.camera.RetrieveResult(500,
                                                     pylon.TimeoutHandling_ThrowException)
             if grabResult.GrabSucceeded():
-                # frame = grabResult.GetArray()
+                frame = grabResult.GetArray()
                 timestamp = time.time()
                 frame_timestamp = grabResult.ChunkTimestamp.Value
                 frame_line_status = grabResult.ChunkLineStatusAll.Value
@@ -1100,7 +1104,7 @@ class BaslerGuiWindow(wx.Frame):
                 except queue.Empty:
                     pass
 
-                self.video_session.acquire_frame(grabResult.GetArrayZeroCopy(), frame_timestamp, captured_frames, frame_line_status, note)
+                self.video_session.acquire_frame(frame, frame_timestamp, captured_frames, frame_line_status, note)
                 
                 if (timestamp - last_display_time) > display_interval:
                     line_status = self.camera.LineStatus.GetValue()  # Retrieve line status
