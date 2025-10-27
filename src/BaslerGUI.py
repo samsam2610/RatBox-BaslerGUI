@@ -307,12 +307,6 @@ class BaslerGuiWindow(wx.Frame):
         self.index_ctrl.SetValue(str(1))
         sizer.Add(self.index_ctrl, pos=(20, 1), flag=wx.EXPAND | wx.ALL, border=5)
         
-        # self.set_roi = wx.CheckBox(panel, label="Set ROI")
-        # sizer.Add(self.set_roi, pos=(19, 3), span=(1, 1),
-        #           flag=wx.EXPAND | wx.ALL, border=5)
-        # self.set_roi.SetBackgroundColour(wx.NullColour)
-        # self.set_roi.Bind(wx.EVT_CHECKBOX, self.OnEnableRoi)
-
         offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
         sizer.Add(offset_x_ctrl_label, pos=(12, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=0)
@@ -378,41 +372,6 @@ class BaslerGuiWindow(wx.Frame):
 
         self.display_frame = np.zeros([self.frame_height, self.frame_width, 3], dtype=np.uint8)
         self.display_frame[:] = 255
-
-
-        # lasca_filter_label = wx.StaticText(panel, label="LASCA filter size:")
-        # sizer.Add(lasca_filter_label, pos=(16, 5),
-        #           flag=wx.EXPAND | wx.ALL, border=5)
-        # modes = ['3x3', '5x5', '7x7', '9x9', '11x11']
-        # self.lasca_combo = wx.ComboBox(panel, choices=modes)
-        # sizer.Add(self.lasca_combo, pos=(17, 5), flag=wx.ALL, border=5)
-        # self.lasca_combo.Bind(wx.EVT_COMBOBOX, self.OnLascaCombo)
-        # self.lasca_combo.SetSelection(2)
-
-        # self.max_contrast_label = wx.StaticText(panel, label="Max contrast:")
-        # sizer.Add(self.max_contrast_label, pos=(18, 5),  span=(1, 1),
-        #           flag=wx.EXPAND | wx.ALL, border=5)
-        # self.contrast_slider = FS.FloatSpin(panel, -1,  min_val=0.01,
-        #                                     max_val=1, size=(140, -1),
-        #                                     increment=0.01, value=0.8,
-        #                                     agwStyle=FS.FS_LEFT)
-        # self.contrast_slider.SetFormat("%f")
-        # self.contrast_slider.SetDigits(2)
-        # self.contrast_slider.Bind(FS.EVT_FLOATSPIN, self.ContrastSliderScroll)
-        # sizer.Add(self.contrast_slider, pos=(19, 5), span=(1, 1),
-        #           flag=wx.ALL, border=5)
-
-        # self.min_gray_label = wx.StaticText(panel, label="Min gray:")
-        # sizer.Add(self.min_gray_label, pos=(16, 6),  span=(1, 1),
-        #           flag=wx.EXPAND | wx.ALL, border=5)
-        # self.gray_slider = FS.FloatSpin(panel, -1,  min_val=0,
-        #                                 max_val=255, size=(140, -1),
-        #                                 increment=1, value=5,
-        #                                 agwStyle=FS.FS_LEFT)
-        # self.gray_slider.SetFormat("%f")
-        # self.gray_slider.SetDigits(2)
-        # self.gray_slider.Bind(FS.EVT_FLOATSPIN, self.GraySliderScroll)
-        # sizer.Add(self.gray_slider, pos=(17, 6), span=(1, 1), flag=wx.ALL,  border=5)
 
         self.preview_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.Draw, self.preview_timer)
