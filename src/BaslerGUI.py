@@ -92,25 +92,29 @@ class BaslerGuiWindow(wx.Frame):
     process_thread_obj = None
     max_contrast = 0.8
 
-    # TODO: reorganize these variables to make it customizable
-    current_frame = np.zeros((frame_height, frame_width, 1), np.float32)
-    gray = np.zeros((frame_height, frame_width, 1), np.uint8)
-    mean_img_sq = np.zeros((frame_height, frame_width, 1), np.float32)
-    sq = np.zeros((frame_height, frame_width, 1), np.float32)
-    img = np.zeros((frame_height, frame_width, 1), np.float32)
-    mean_img = np.zeros((frame_height, frame_width, 1), np.float32)
-    sq_img_mean = np.zeros((frame_height, frame_width, 1), np.float32)
-    std = np.zeros((frame_height, frame_width, 1), np.float32)
-    LASCA = np.zeros((frame_height, frame_width, 1), np.uint8)
-    im_color = np.zeros((frame_height, frame_width, 3), np.uint8)
-    mask = np.zeros((frame_height, frame_width, 1), bool)
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)).astype(np.float32)
-    kernel /= np.sum(kernel)
+    LASCA_KERNEL_SIZES = [3, 5, 7, 9, 11]
+    BUFFER_SPECS = (
+        ("current_frame", np.float32, 1),
+        ("gray", np.uint8, None),
+        ("mean_img_sq", np.float32, None),
+        ("sq", np.float32, None),
+        ("img", np.float32, None),
+        ("mean_img", np.float32, None),
+        ("sq_img_mean", np.float32, None),
+        ("std", np.float32, None),
+        ("LASCA", np.uint8, None),
+        ("im_color", np.uint8, 3),
+        ("mask", bool, None),
+    )
     
     video_session = VideoRecordingSession(cam_num=0)
 
     def __init__(self, *args, **kwargs):
         super(BaslerGuiWindow, self).__init__(*args, **kwargs)
+        default_kernel_index = 2 if len(self.LASCA_KERNEL_SIZES) > 2 else 0
+        self.lasca_kernel_size = self.LASCA_KERNEL_SIZES[default_kernel_index]
+        self.kernel = self._build_kernel(self.lasca_kernel_size)
+        self.AllocateMemory()
         self.InitUI()
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.Centre()
@@ -356,7 +360,7 @@ class BaslerGuiWindow(wx.Frame):
         self.Window = ImagePanel(panel)
         self.Window.SetSize((640, 480))
         self.Window.Fit()
-        sizer.Add(self.Window, pos=(0, 3), span=(15, 3),
+        sizer.Add(self.Window, pos=(0, 3), span=(3, 3),
                   flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
 
         lasca_filter_label = wx.StaticText(panel, label="LASCA filter size:")
@@ -411,17 +415,23 @@ class BaslerGuiWindow(wx.Frame):
         self.capture_thread_obj = threading.Thread(target=self.capture_thread)
         self.EnableGUI(False)
 
-    def AllocateMemory(self):
-        self.gray = np.zeros((self.frame_height, self.frame_width), np.uint8)
-        self.mean_img_sq = np.zeros((self.frame_height, self.frame_width), np.float32)
-        self.sq = np.zeros((self.frame_height, self.frame_width), np.float32)
-        self.img = np.zeros((self.frame_height, self.frame_width), np.float32)
-        self.mean_img = np.zeros((self.frame_height, self.frame_width), np.float32)
-        self.sq_img_mean = np.zeros((self.frame_height, self.frame_width), np.float32)
-        self.std = np.zeros((self.frame_height, self.frame_width), np.float32)
-        self.LASCA = np.zeros((self.frame_height, self.frame_width), np.uint8)
-        self.im_color = np.zeros((self.frame_height, self.frame_width, 3), np.uint8)
-        self.mask = np.zeros((self.frame_height, self.frame_width), bool)
+    def AllocateMemory(self, height=None, width=None):
+        self._allocate_processing_buffers(height=height, width=width)
+
+    def _allocate_processing_buffers(self, height=None, width=None):
+        h = height if height is not None else self.frame_height
+        w = width if width is not None else self.frame_width
+        for name, dtype, channels in self.BUFFER_SPECS:
+            shape = (h, w) if channels is None else (h, w, channels)
+            setattr(self, name, np.zeros(shape, dtype=dtype))
+
+    def _build_kernel(self, filter_size):
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,
+                                           (filter_size, filter_size)).astype(np.float32)
+        kernel_sum = kernel.sum()
+        if kernel_sum:
+            kernel /= kernel_sum
+        return kernel
 
     def CalculateLASCA(self):
         self.img = self.frame.astype(np.float32, copy=False)
@@ -867,10 +877,12 @@ class BaslerGuiWindow(wx.Frame):
         
     def OnLascaCombo(self, event):
         current_selection = self.lasca_combo.GetSelection()
-        filter_size = int(2*(current_selection+2) - 1)
-        self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,
-                                                (filter_size, filter_size)).astype(np.float32)
-        self.kernel /= np.sum(self.kernel)
+        if 0 <= current_selection < len(self.LASCA_KERNEL_SIZES):
+            filter_size = self.LASCA_KERNEL_SIZES[current_selection]
+        else:
+            filter_size = self.lasca_kernel_size
+        self.lasca_kernel_size = filter_size
+        self.kernel = self._build_kernel(filter_size)
 
     def OnCamCombo(self, event):
         self.selected_camera = self.cam_combo.GetSelection()
