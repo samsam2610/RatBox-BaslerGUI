@@ -112,7 +112,7 @@ class BaslerGuiWindow(wx.Frame):
 
     def __init__(self, *args, **kwargs):
         super(BaslerGuiWindow, self).__init__(*args, **kwargs)
-        self.AllocateMemory()
+        # self.AllocateMemory()
         self.InitUI()
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.Centre()
@@ -364,15 +364,15 @@ class BaslerGuiWindow(wx.Frame):
         self.capture_thread_obj = threading.Thread(target=self.capture_thread)
         self.EnableGUI(False)
 
-    def AllocateMemory(self, height=None, width=None):
-        self._allocate_processing_buffers(height=height, width=width)
+    # def AllocateMemory(self, height=None, width=None):
+    #     self._allocate_processing_buffers(height=height, width=width)
 
-    def _allocate_processing_buffers(self, height=None, width=None):
-        h = height if height is not None else self.frame_height
-        w = width if width is not None else self.frame_width
-        for name, dtype, channels in self.BUFFER_SPECS:
-            shape = (h, w) if channels is None else (h, w, channels)
-            setattr(self, name, np.zeros(shape, dtype=dtype))
+    # def _allocate_processing_buffers(self, height=None, width=None):
+    #     h = height if height is not None else self.frame_height
+    #     w = width if width is not None else self.frame_width
+    #     for name, dtype, channels in self.BUFFER_SPECS:
+    #         shape = (h, w) if channels is None else (h, w, channels)
+    #         setattr(self, name, np.zeros(shape, dtype=dtype))
 
     def Draw(self, evt):
 
@@ -631,7 +631,7 @@ class BaslerGuiWindow(wx.Frame):
                         self.cam_combo.Disable()
                         self.camera_connected = True
 
-                        self.AllocateMemory()
+                        # self.AllocateMemory()
                         self.EnableGUI(True)
                         return
 
