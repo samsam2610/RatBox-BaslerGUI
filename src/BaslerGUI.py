@@ -281,7 +281,7 @@ class BaslerGuiWindow(wx.Frame):
         
         offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
         sizer.Add(offset_x_ctrl_label, pos=(12, 0), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=0)
+                  flag=wx.EXPAND | wx.ALL, border=5)
         self.offset_x_ctrl = FS.FloatSpin(panel, -1,  min_val=0, max_val=self.frame_width,
                                           size=(140, -1), increment=0.1, value=0.1, digits=0,
                                           agwStyle=FS.FS_LEFT)
