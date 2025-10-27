@@ -107,29 +107,11 @@ class BaslerGuiWindow(wx.Frame):
     capture_thread_obj = None
     process_thread_obj = None
     max_contrast = 0.8
-
-    LASCA_KERNEL_SIZES = [3, 5, 7, 9, 11]
-    BUFFER_SPECS = (
-        ("current_frame", np.float32, 1),
-        ("gray", np.uint8, None),
-        ("mean_img_sq", np.float32, None),
-        ("sq", np.float32, None),
-        ("img", np.float32, None),
-        ("mean_img", np.float32, None),
-        ("sq_img_mean", np.float32, None),
-        ("std", np.float32, None),
-        ("LASCA", np.uint8, None),
-        ("im_color", np.uint8, 3),
-        ("mask", bool, None),
-    )
     
     video_session = VideoRecordingSession(cam_num=0)
 
     def __init__(self, *args, **kwargs):
         super(BaslerGuiWindow, self).__init__(*args, **kwargs)
-        default_kernel_index = 2 if len(self.LASCA_KERNEL_SIZES) > 2 else 0
-        self.lasca_kernel_size = self.LASCA_KERNEL_SIZES[default_kernel_index]
-        self.kernel = self._build_kernel(self.lasca_kernel_size)
         self.AllocateMemory()
         self.InitUI()
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
@@ -201,15 +183,6 @@ class BaslerGuiWindow(wx.Frame):
         # self.Window.Fit()
         sizer.Add(self.Window, pos=(3, 0), span=(4, 3),
                   flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
-
-        # mode_ctrl_label = wx.StaticText(panel, label="Preview mode:")
-        # sizer.Add(mode_ctrl_label, pos=(3, 0), flag=wx.EXPAND | wx.ALL, border=5)
-        # modes = ['RAW', 'LASCA', 'HISTOGRAM']
-        # self.mode_combo = wx.ComboBox(panel, choices=modes)
-        # sizer.Add(self.mode_combo, pos=(3, 1),
-        #           flag=wx.EXPAND | wx.ALL, border=5)
-        # self.mode_combo.Bind(wx.EVT_COMBOBOX, self.OnModeCombo)
-        # self.mode_combo.SetSelection(2)
 
         framescap_ctrl_label = wx.StaticText(panel, label="Video length (sec):")
         sizer.Add(framescap_ctrl_label, pos=(24, 0),
@@ -400,34 +373,6 @@ class BaslerGuiWindow(wx.Frame):
         for name, dtype, channels in self.BUFFER_SPECS:
             shape = (h, w) if channels is None else (h, w, channels)
             setattr(self, name, np.zeros(shape, dtype=dtype))
-
-    def _build_kernel(self, filter_size):
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,
-                                           (filter_size, filter_size)).astype(np.float32)
-        kernel_sum = kernel.sum()
-        if kernel_sum:
-            kernel /= kernel_sum
-        return kernel
-
-    def CalculateLASCA(self):
-        self.img = self.frame.astype(np.float32, copy=False)
-        cv2.filter2D(self.img, dst=self.mean_img, ddepth=cv2.CV_32F,
-                     kernel=self.kernel)
-        np.multiply(self.mean_img, self.mean_img, out=self.mean_img_sq)
-        np.multiply(self.img, self.img, out=self.sq)
-        cv2.filter2D(self.sq, dst=self.sq_img_mean, ddepth=cv2.CV_32F,
-                     kernel=self.kernel)
-        cv2.subtract(self.sq_img_mean, self.mean_img_sq, dst=self.std)
-        cv2.sqrt(self.std, dst=self.std)
-        self.mask = self.mean_img < self.min_gray_val
-        cv2.pow(self.mean_img, power=-1.0, dst=self.mean_img)
-        cv2.multiply(self.std, self.mean_img, dst=self.mean_img,
-                     scale=255.0/self.max_contrast, dtype=cv2.CV_32F)
-        self.mean_img[self.mean_img > 255.0] = 255.0
-        self.LASCA = self.mean_img.astype(np.uint8)
-        self.LASCA = 255 - self.LASCA
-        self.LASCA[self.mask] = 0
-        cv2.filter2D(self.LASCA, dst=self.LASCA, ddepth=cv2.CV_8U, kernel=self.kernel)
 
     def Draw(self, evt):
 
@@ -846,15 +791,6 @@ class BaslerGuiWindow(wx.Frame):
         # (optional) give quick UI feedback
         wx.LogMessage(f"Queued note for next frame: {text!r}")
         
-    def OnLascaCombo(self, event):
-        current_selection = self.lasca_combo.GetSelection()
-        if 0 <= current_selection < len(self.LASCA_KERNEL_SIZES):
-            filter_size = self.LASCA_KERNEL_SIZES[current_selection]
-        else:
-            filter_size = self.lasca_kernel_size
-        self.lasca_kernel_size = filter_size
-        self.kernel = self._build_kernel(filter_size)
-
     def OnCamCombo(self, event):
         self.selected_camera = self.cam_combo.GetSelection()
 
