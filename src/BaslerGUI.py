@@ -203,8 +203,6 @@ class BaslerGuiWindow(wx.Frame):
         self.framerate_slider = FS.FloatSpin(panel, -1,  min_val=100, max_val=500,
                                              size=(140, -1), increment=1.0, digits=0,
                                              value=0.1, agwStyle=FS.FS_LEFT)
-        self.framerate_slider.SetFormat("%f")
-        self.framerate_slider.SetDigits(2)
         self.framerate_slider.Bind(FS.EVT_FLOATSPIN, self.FramerteSliderScroll)
         sizer.Add(self.framerate_slider, pos=(4, 1), span=(1, 1),
                   flag=wx.ALL, border=5)
@@ -215,8 +213,6 @@ class BaslerGuiWindow(wx.Frame):
         self.exposure_slider = FS.FloatSpin(panel, -1,  min_val=1000, max_val=5000,
                                             size=(140, -1), increment=100, digits=0,
                                             value=1000, agwStyle=FS.FS_LEFT)
-        self.exposure_slider.SetFormat("%f")
-        self.exposure_slider.SetDigits(2)
         self.exposure_slider.Bind(FS.EVT_FLOATSPIN, self.ExposureSliderScroll)
         sizer.Add(self.exposure_slider, pos=(5, 1), span=(1, 1),
                   flag=wx.ALL, border=5)
