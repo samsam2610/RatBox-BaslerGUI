@@ -307,11 +307,11 @@ class BaslerGuiWindow(wx.Frame):
         self.index_ctrl.SetValue(str(1))
         sizer.Add(self.index_ctrl, pos=(20, 1), flag=wx.EXPAND | wx.ALL, border=5)
         
-        self.set_roi = wx.CheckBox(panel, label="Set ROI")
-        sizer.Add(self.set_roi, pos=(19, 3), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.set_roi.SetBackgroundColour(wx.NullColour)
-        self.set_roi.Bind(wx.EVT_CHECKBOX, self.OnEnableRoi)
+        # self.set_roi = wx.CheckBox(panel, label="Set ROI")
+        # sizer.Add(self.set_roi, pos=(19, 3), span=(1, 1),
+        #           flag=wx.EXPAND | wx.ALL, border=5)
+        # self.set_roi.SetBackgroundColour(wx.NullColour)
+        # self.set_roi.Bind(wx.EVT_CHECKBOX, self.OnEnableRoi)
 
         offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
         sizer.Add(offset_x_ctrl_label, pos=(12, 0), span=(1, 1),
