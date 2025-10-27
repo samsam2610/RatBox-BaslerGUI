@@ -918,10 +918,10 @@ class BaslerGuiWindow(wx.Frame):
     def GetHistogram(self, image):
         hist_full = cv2.calcHist([image], [0], None, [256], [0, 256])
         max_val = np.max(hist_full)
-        # if max_val > 0:
-        #     hist_full = (hist_full / np.max(hist_full))*100
-        # else:
-        #     hist_full = np.zeros((256, 1))
+        if max_val > 0:
+            hist_full = (hist_full / np.max(hist_full))*100
+        else:
+            hist_full = np.zeros((256, 1))
         return hist_full
 
     def DrawHistogram(self, image, size, bcg_color, bin_color):
