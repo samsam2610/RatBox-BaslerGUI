@@ -200,7 +200,7 @@ class BaslerGuiWindow(wx.Frame):
         self.framerate_ctrl_label = wx.StaticText(panel, label="Framerate (Hz):")
         sizer.Add(self.framerate_ctrl_label, pos=(4, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.framerate_slider = FS.FloatSpin(panel, -1,  min_val=0, max_val=1,
+        self.framerate_slider = FS.FloatSpin(panel, -1,  min_val=100, max_val=500,
                                              size=(140, -1), increment=1.0,
                                              value=0.1, agwStyle=FS.FS_LEFT)
         self.framerate_slider.SetFormat("%f")
@@ -212,9 +212,9 @@ class BaslerGuiWindow(wx.Frame):
         self.exposure_ctrl_label = wx.StaticText(panel, label="Exposure (us):")
         sizer.Add(self.exposure_ctrl_label, pos=(5, 0),  span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.exposure_slider = FS.FloatSpin(panel, -1,  min_val=0, max_val=1,
-                                            size=(140, -1), increment=1.0,
-                                            value=0.1, agwStyle=FS.FS_LEFT)
+        self.exposure_slider = FS.FloatSpin(panel, -1,  min_val=1000, max_val=5000,
+                                            size=(140, -1), increment=100,
+                                            value=1000, agwStyle=FS.FS_LEFT)
         self.exposure_slider.SetFormat("%f")
         self.exposure_slider.SetDigits(2)
         self.exposure_slider.Bind(FS.EVT_FLOATSPIN, self.ExposureSliderScroll)
@@ -245,87 +245,36 @@ class BaslerGuiWindow(wx.Frame):
         self.set_auto_gain.SetBackgroundColour(wx.NullColour)
         self.set_auto_gain.Bind(wx.EVT_CHECKBOX, self.OnEnableAutoGain)
 
-        self.set_roi = wx.CheckBox(panel, label="Set ROI")
-        sizer.Add(self.set_roi, pos=(15, 3), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.set_roi.SetBackgroundColour(wx.NullColour)
-        self.set_roi.Bind(wx.EVT_CHECKBOX, self.OnEnableRoi)
-
-        offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
-        sizer.Add(offset_x_ctrl_label, pos=(16, 3), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.offset_x_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=self.frame_width,
-                                    size=(220, -1),
-                                    style=wx.SL_HORIZONTAL | wx.SL_LABELS)
-        sizer.Add(self.offset_x_ctrl, pos=(17, 3), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.offset_x_ctrl.Bind(wx.EVT_SCROLL, self.OnSetOffsetX)
-
-        offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
-        sizer.Add(offset_y_ctrl_label, pos=(18, 3), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.offset_y_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=self.frame_height,
-                                    size=(220, 20),
-                                    style=wx.SL_HORIZONTAL | wx.SL_LABELS)
-        sizer.Add(self.offset_y_ctrl, pos=(19, 3), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.offset_y_ctrl.Bind(wx.EVT_SCROLL, self.OnSetOffsetY)
-
-        width_ctrl_label = wx.StaticText(panel, label="Width:")
-        sizer.Add(width_ctrl_label, pos=(16, 4), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.width_ctrl = wx.Slider(panel, value=10, minValue=10,
-                                        maxValue=self.frame_width, size=(220, -1),
-                                        style=wx.SL_HORIZONTAL | wx.SL_LABELS)
-        sizer.Add(self.width_ctrl, pos=(17, 4), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.width_ctrl.Bind(wx.EVT_SCROLL, self.OnSetWidth)
-
-        height_ctrl_label = wx.StaticText(panel, label="Height:")
-        sizer.Add(height_ctrl_label, pos=(18, 4), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.height_ctrl = wx.Slider(panel, value=10, minValue=10,
-                                         maxValue=self.frame_height, size=(220, 20),
-                                         style=wx.SL_HORIZONTAL | wx.SL_LABELS)
-        sizer.Add(self.height_ctrl, pos=(19, 4), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.height_ctrl.Bind(wx.EVT_SCROLL, self.OnSetHeight)
-
-        self.offset_x_ctrl.Disable()
-        self.offset_y_ctrl.Disable()
-        self.width_ctrl.Disable()
-        self.height_ctrl.Disable()
-
         exportfile_ctrl_label = wx.StaticText(panel, label="Export file name:")
-        sizer.Add(exportfile_ctrl_label, pos=(8, 0), span=(1, 1),
+        sizer.Add(exportfile_ctrl_label, pos=(12, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.exportfile_ctrl = wx.TextCtrl(panel)
-        sizer.Add(self.exportfile_ctrl, pos=(8, 1), span=(1, 1),
+        sizer.Add(self.exportfile_ctrl, pos=(12, 1), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         exportfolder_ctrl_label = wx.StaticText(panel, label="Export directory:")
-        sizer.Add(exportfolder_ctrl_label, pos=(9, 0), span=(1, 1),
+        sizer.Add(exportfolder_ctrl_label, pos=(13, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.select_folder_btn = wx.Button(panel, label="Select folder")
         self.select_folder_btn.Bind(wx.EVT_BUTTON, self.OnSelectFolder)
-        sizer.Add(self.select_folder_btn, pos=(9, 1),
+        sizer.Add(self.select_folder_btn, pos=(13, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.exportfolder_ctrl = wx.TextCtrl(panel)
-        sizer.Add(self.exportfolder_ctrl, pos=(10, 0), span=(1, 2),
+        sizer.Add(self.exportfolder_ctrl, pos=(14, 0), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.exportfolder_ctrl.Disable()
 
         self.append_date = wx.CheckBox(panel, label="Append date and time")
-        sizer.Add(self.append_date, pos=(11, 0), span=(1, 1),
+        sizer.Add(self.append_date, pos=(15, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.append_date.SetBackgroundColour(wx.NullColour)
         self.append_date.Bind(wx.EVT_CHECKBOX, self.OnAppendDate)
         self.append_date.SetValue(True)  
 
         self.auto_index = wx.CheckBox(panel, label="Auto index")
-        sizer.Add(self.auto_index, pos=(12, 0), span=(1, 1),
+        sizer.Add(self.auto_index, pos=(16, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.auto_index.SetBackgroundColour(wx.NullColour)
         self.auto_index.Bind(wx.EVT_CHECKBOX, self.OnAutoIndex)
@@ -334,10 +283,64 @@ class BaslerGuiWindow(wx.Frame):
         self.index_ctrl = wx.TextCtrl(panel)
         self.index_ctrl.SetValue(str(1))
         sizer.Add(self.index_ctrl, pos=(12, 1), flag=wx.EXPAND | wx.ALL, border=5)
+        
+        self.set_roi = wx.CheckBox(panel, label="Set ROI")
+        sizer.Add(self.set_roi, pos=(15, 3), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.set_roi.SetBackgroundColour(wx.NullColour)
+        self.set_roi.Bind(wx.EVT_CHECKBOX, self.OnEnableRoi)
 
-        self.current_state = wx.StaticText(panel, label="Cuttent state: idle")
+        offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
+        sizer.Add(offset_x_ctrl_label, pos=(8, 0), span=(1, 1),
+                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+        self.offset_x_ctrl = wx.FloatSpin(panel, -1,  min_val=0, max_val=self.frame_width,
+                                    size=(140, -1), increment=0.1, value=0.1,
+                                    agwStyle=FS.FS_LEFT)
+                                    #         self.gain_slider = FS.FloatSpin(panel, -1,  min_val=0, max_val=1,
+                                        # size=(140, -1), increment=0.01, value=0.1,
+                                        # agwStyle=FS.FS_LEFT)
+        sizer.Add(self.offset_x_ctrl, pos=(8, 1), span=(1, 1),
+                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+        self.offset_x_ctrl.Bind(wx.EVT_SCROLL, self.OnSetOffsetX)
+
+        offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
+        sizer.Add(offset_y_ctrl_label, pos=(9, 0), span=(1, 1),
+                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+        self.offset_y_ctrl = wx.FloatSpin(panel, -1,  min_val=0, max_val=self.frame_height,
+                                    size=(140, -1), increment=0.1, value=0.1,
+                                    agwStyle=FS.FS_LEFT)
+        sizer.Add(self.offset_y_ctrl, pos=(9, 1), span=(1, 1),
+                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+        self.offset_y_ctrl.Bind(wx.EVT_SCROLL, self.OnSetOffsetY)
+
+        width_ctrl_label = wx.StaticText(panel, label="Width:")
+        sizer.Add(width_ctrl_label, pos=(10, 0), span=(1, 1),
+                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+        self.width_ctrl = wx.FloatSpin(panel, -1,  min_val=512, max_val=self.frame_width,
+                                        size=(140, -1), increment=4, value=10,
+                                        agwStyle=FS.FS_LEFT)
+        sizer.Add(self.width_ctrl, pos=(10, 1), span=(1, 1),
+                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+        self.width_ctrl.Bind(wx.EVT_SCROLL, self.OnSetWidth)
+
+        height_ctrl_label = wx.StaticText(panel, label="Height:")
+        sizer.Add(height_ctrl_label, pos=(11, 0), span=(1, 1),
+                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+        self.height_ctrl = wx.FloatSpin(panel, -1,  min_val=512, max_val=self.frame_height,
+                                        size=(140, -1), increment=4, value=10,
+                                        agwStyle=FS.FS_LEFT)
+        sizer.Add(self.height_ctrl, pos=(11, 1), span=(1, 1),
+                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
+        self.height_ctrl.Bind(wx.EVT_SCROLL, self.OnSetHeight)
+
+        self.current_state = wx.StaticText(panel, label="Current state: idle")
         sizer.Add(self.current_state, pos=(18, 0), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
+
+        self.offset_x_ctrl.Disable()
+        self.offset_y_ctrl.Disable()
+        self.width_ctrl.Disable()
+        self.height_ctrl.Disable()
 
         self.frame = np.zeros([self.frame_height, self.frame_width, 3], dtype=np.uint8)
         self.frame[:] = 255
