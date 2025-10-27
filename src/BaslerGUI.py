@@ -310,8 +310,8 @@ class BaslerGuiWindow(wx.Frame):
         width_ctrl_label = wx.StaticText(panel, label="Width:")
         sizer.Add(width_ctrl_label, pos=(10, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=0)
-        self.width_ctrl = FS.FloatSpin(panel, -1,  min_val=512, max_val=self.frame_width,
-                                        size=(140, -1), increment=4, value=10, digits=0,
+        self.width_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_width,
+                                        size=(140, -1), increment=4, value=128, digits=0,
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.width_ctrl, pos=(10, 1), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=0)
@@ -320,8 +320,8 @@ class BaslerGuiWindow(wx.Frame):
         height_ctrl_label = wx.StaticText(panel, label="Height:")
         sizer.Add(height_ctrl_label, pos=(11, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=0)
-        self.height_ctrl = FS.FloatSpin(panel, -1,  min_val=512, max_val=self.frame_height,
-                                        size=(140, -1), increment=4, value=10, digits=0,
+        self.height_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_height,
+                                        size=(140, -1), increment=4, value=128, digits=0,
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.height_ctrl, pos=(11, 1), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=0)
@@ -807,7 +807,7 @@ class BaslerGuiWindow(wx.Frame):
             self.camera.AcquisitionFrameRate.SetValue(self.framerate)
             resulting_framerate = self.camera.ResultingFrameRate.GetValue()
             if (resulting_framerate != self.framerate):
-                self.framerate = resulting_framerate
+                self.framerate = int(resulting_framerate)
                 self.framerate_slider.SetValue(self.framerate)
 
     def ExposureSliderScroll(self, event):
@@ -818,7 +818,7 @@ class BaslerGuiWindow(wx.Frame):
             self.camera.ExposureTime.SetValue(self.exposure)
             resulting_framerate = self.camera.ResultingFrameRate.GetValue()
             if (resulting_framerate != self.framerate):
-                self.framerate = resulting_framerate
+                self.framerate = int(resulting_framerate)
                 self.framerate_slider.SetValue(self.framerate)
 
     def OnAutoIndex(self, event):
@@ -940,7 +940,7 @@ class BaslerGuiWindow(wx.Frame):
         new_offset_x = new_width - self.frame_width
         
         if (new_offset_x + self.frame_width) < self.max_frame_width:
-            self.offset_x = new_offset_x
+            self.offset_x = int(new_offset_x)
             self.camera.OffsetX.SetValue(self.offset_x)
         
         self.offset_x_ctrl.SetValue(self.offset_x)
@@ -954,7 +954,7 @@ class BaslerGuiWindow(wx.Frame):
         new_offset_y = new_height - self.frame_height
         
         if (new_offset_y + self.frame_height) < self.max_frame_height:
-            self.offset_y = new_offset_y
+            self.offset_y = int(new_offset_y)
             self.camera.OffsetY.SetValue(self.offset_y)
         
         self.offset_y_ctrl.SetValue(self.offset_y)
@@ -965,7 +965,7 @@ class BaslerGuiWindow(wx.Frame):
         new_width = int(16 * round(new_width / 16)) if new_width % 16 != 0 else new_width
             
         if (self.offset_x + new_width) < self.max_frame_width:
-            self.frame_width = new_width
+            self.frame_width = int(new_width)
             self.camera.Width.SetValue(self.frame_width)
             self.offset_x_ctrl.SetMax(self.max_frame_width - self.frame_width)
         
@@ -977,7 +977,7 @@ class BaslerGuiWindow(wx.Frame):
         new_height = int(4 * round(new_height / 4)) if new_height % 4 != 0 else new_height
             
         if (self.offset_y + new_height) < self.max_frame_height:
-            self.frame_height = new_height
+            self.frame_height = int(new_height)
             self.camera.Height.SetValue(self.frame_height)
             self.offset_y_ctrl.SetMax(self.max_frame_height - self.frame_height)
         
