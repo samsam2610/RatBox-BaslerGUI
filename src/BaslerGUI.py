@@ -376,7 +376,7 @@ class BaslerGuiWindow(wx.Frame):
         self.Window = ImagePanel(panel)
         # self.Window.SetSize((480, 360))
         # self.Window.Fit()
-        sizer.Add(self.Window, pos=(0, 3), span=(8, 6),
+        sizer.Add(self.Window, pos=(0, 3), span=(4, 3),
                   flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
 
         lasca_filter_label = wx.StaticText(panel, label="LASCA filter size:")
