@@ -152,27 +152,27 @@ class BaslerGuiWindow(wx.Frame):
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         fourcc_label = wx.StaticText(panel, label="Fourcc Code:")
-        sizer.Add(fourcc_label, pos=(13, 0), flag=wx.EXPAND | wx.ALL, border=5)
+        sizer.Add(fourcc_label, pos=(17, 0), flag=wx.EXPAND | wx.ALL, border=5)
         fourcc_modes = ["MJPG", "DIVX", "XVID"]
         self.encoding_mode_combo = wx.ComboBox(panel, choices=fourcc_modes)
-        sizer.Add(self.encoding_mode_combo, pos=(13, 1), flag=wx.ALL, border=5)
+        sizer.Add(self.encoding_mode_combo, pos=(17, 1), flag=wx.ALL, border=5)
         self.encoding_mode_combo.Bind(wx.EVT_COMBOBOX, self.OnCapModeCombo)
         self.encoding_mode_combo.SetSelection(self.encoding_mode)
 
         interval_ctrl_label = wx.StaticText(panel, label="Measurement interval (sec):")
-        sizer.Add(interval_ctrl_label, pos=(14, 0),
+        sizer.Add(interval_ctrl_label, pos=(18, 0),
                   flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
         self.interval_ctrl = wx.TextCtrl(panel)
         self.interval_ctrl.SetValue(str(self.measurement_interval))
-        sizer.Add(self.interval_ctrl, pos=(14, 1),
+        sizer.Add(self.interval_ctrl, pos=(18, 1),
                   flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
 
         sequence_ctrl_label = wx.StaticText(panel, label="Sequence length (num):")
-        sizer.Add(sequence_ctrl_label, pos=(15, 0),
+        sizer.Add(sequence_ctrl_label, pos=(19, 0),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.sequence_ctrl = wx.TextCtrl(panel)
         self.sequence_ctrl.SetValue(str(self.sequence_length))
-        sizer.Add(self.sequence_ctrl, pos=(15, 1),
+        sizer.Add(self.sequence_ctrl, pos=(19, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         mode_ctrl_label = wx.StaticText(panel, label="Preview mode:")
