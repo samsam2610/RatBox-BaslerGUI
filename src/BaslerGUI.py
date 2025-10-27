@@ -334,6 +334,15 @@ class BaslerGuiWindow(wx.Frame):
         self.offset_y_ctrl.Disable()
         self.width_ctrl.Disable()
         self.height_ctrl.Disable()
+        
+        # Text field to enter the queue
+        self.note_label = wx.StaticText(panel, label="Notes (Press Enter to send):")
+        sizer.Add(self.note_label, pos=(23, 0), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.note_ctrl = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
+        sizer.Add(self.note_ctrl, pos=(23, 1), span=(1, 2),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+
 
         self.frame = np.zeros([self.frame_height, self.frame_width, 3], dtype=np.uint8)
         self.frame[:] = 255
