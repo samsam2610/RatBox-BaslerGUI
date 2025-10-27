@@ -933,7 +933,7 @@ class BaslerGuiWindow(wx.Frame):
 
         # resize to requested panel size
         w, h = size
-        resized_bgr = cv2.resize(histogram_image, (w, h), interpolation=cv2.INTER_AREA)
+        resized_bgr = cv2.resize(histogram_image, (480, 360), interpolation=cv2.INTER_AREA)
 
         # wx expects RGB
         resized_rgb = cv2.cvtColor(resized_bgr, cv2.COLOR_BGR2RGB)
