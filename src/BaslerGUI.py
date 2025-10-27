@@ -18,39 +18,24 @@ from VideoRecordingSession import VideoRecordingSession
 from InputEventHandler import ConfigurationEventPrinter
 
 class ImagePanel(wx.Panel):
-    def __init__(self, parent, width=640, height=480):
-        super().__init__(parent)
-        self.bitmap = wx.Bitmap(width, height)  # placeholder
+
+    def __init__(self, parent, frame_height=480, frame_width=640):
+        wx.Panel.__init__(self, parent)
+        h, w = frame_height, frame_width
+        src = (255 * np.random.rand(h, w)).astype(np.uint8)
+        buf = src.repeat(3, 1).tobytes()
+        self.bitmap = wx.Image(w, h, buf).ConvertToBitmap()
         self.SetDoubleBuffered(True)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Bind(wx.EVT_SIZE, lambda e: (self.Refresh(False), e.Skip()))
-        # If you want a baseline size but still allow expand:
-        # self.SetMinSize((width, height))
+        self.Size = (frame_height, frame_width)
+        self.Fit()
 
     def OnPaint(self, evt):
-        dc = wx.BufferedPaintDC(self)
-        dc.Clear()
+        wx.BufferedPaintDC(self, self.bitmap)
 
-        if not self.bitmap.IsOk():
-            return
-
-        # Scale to fit the panel
-        pw, ph = self.GetClientSize()
-        bw, bh = self.bitmap.GetWidth(), self.bitmap.GetHeight()
-
-        if pw > 0 and ph > 0 and (pw != bw or ph != bh):
-            img = self.bitmap.ConvertToImage().Scale(pw, ph, wx.IMAGE_QUALITY_HIGH)
-            bmp = wx.Bitmap(img)
-        else:
-            bmp = self.bitmap
-
-        dc.DrawBitmap(bmp, 0, 0, True)
-
-    def update(self, bmp: wx.Bitmap):
-        """Set a new wx.Bitmap and trigger repaint."""
-        self.bitmap = bmp
-        self.Refresh(False)
-
+    def update(self, input_image):
+        self.bitmap = input_image
+        wx.BufferedDC(wx.ClientDC(self), self.bitmap)
 
 
 class BaslerGuiWindow(wx.Frame):
@@ -944,7 +929,7 @@ class BaslerGuiWindow(wx.Frame):
                 r, g, b = bin_color
                 color = (b, g, r)  # BGR for OpenCV drawing
                 cv2.line(histogram_image, (column, 255),
-                        (column, 255 - column_height), color, 1)
+                        (column, 255 - column_heigh), (b, g, r), 1)
 
         # resize to requested panel size
         w, h = size
