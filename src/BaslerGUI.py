@@ -916,13 +916,38 @@ class BaslerGuiWindow(wx.Frame):
         self.exportfolder_ctrl.SetValue(dlg.GetPath())
 
     def GetHistogram(self, image):
-        hist_full = cv2.calcHist([image], [0], None, [256], [0, 256])
-        max_val = np.max(hist_full)
-        if max_val > 0:
-            hist_full = (hist_full / np.max(hist_full))*100
+        # Ensure grayscale
+        if image.ndim == 3 and image.shape[2] == 3:
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         else:
-            hist_full = np.zeros((256, 1))
-        return hist_full
+            gray = image
+
+        # Raw counts per bin
+        hist = cv2.calcHist([gray], [0], None, [256], [0, 256]).astype(np.float64).ravel()
+        total = gray.size
+
+        if total == 0:
+            self.hist_stats = {"mean": 0.0, "median_bin": 0, "black_pct": 0.0, "white_pct": 0.0}
+            return np.zeros((256, 1), np.float32)
+
+        # Absolute scale: percentage of pixels per bin (0..100)
+        hist_pct = (hist / total) * 100.0
+
+        # Optional useful stats (for on-screen debug/overlay)
+        cdf = hist.cumsum()
+        median_bin = int(np.searchsorted(cdf, 0.5 * total))
+        mean_val = float(gray.mean())
+        black_pct = float(hist[:5].sum() / total * 100.0)     # bins 0..4
+        white_pct = float(hist[251:].sum() / total * 100.0)   # bins 251..255
+        self.hist_stats = {
+            "mean": mean_val,
+            "median_bin": median_bin,
+            "black_pct": black_pct,
+            "white_pct": white_pct,
+        }
+
+        return hist_pct.reshape(-1, 1).astype(np.float32)
+
 
     def DrawHistogram(self, image, size, bcg_color, bin_color):
         histogram_data = self.GetHistogram(image)
