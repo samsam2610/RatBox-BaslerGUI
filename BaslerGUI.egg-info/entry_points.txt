@@ -1,2 +1,3 @@
 [gui_scripts]
 basler-gui = BaslerGUI.baslerGUI:main
+

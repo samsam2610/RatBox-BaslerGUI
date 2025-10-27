@@ -622,24 +622,22 @@ class BaslerGuiWindow(wx.Frame):
             # # Navigate to the outer parent directory and join the filename
             # dets_file = os.path.normpath(str(path.parents[2] / 'config-files' / 'camera_details.json'))
 
-            with open(dets_file) as f:
-                self.cam_details = json.load(f)
+            # with open(dets_file) as f:
+            #     self.cam_details = json.load(f)
             tlFactory = pylon.TlFactory.GetInstance()
             devices = tlFactory.EnumerateDevices()
-            if len(devices) == 0:
-                raise pylon.RuntimeException("No camera present.")
 
             device_name = self.cameras_list[self.selected_camera]["name"]
             device_serial = self.cameras_list[self.selected_camera]["serial"]
-
             for i, device in enumerate(devices):
 
                 if device.GetModelName() == device_name:
                     if device.GetSerialNumber() == device_serial:
 
+
                         self.camera = pylon.InstantCamera(tlFactory.CreateDevice(devices[i]))
                         self.camera.Open()
-                         
+                    
                         # Configure GPIO Pin 3 (Line3) as Input and Enable Event
                         self.camera.LineSelector.Value = "Line3"  # Select GPIO Pin 3
                         self.camera.LineMode.Value = "Input"  # Configure as Input
@@ -652,7 +650,7 @@ class BaslerGuiWindow(wx.Frame):
                         self.camera.MaxNumBuffer = 180
                         self.camera.AcquisitionFrameRateEnable.SetValue(True)
                         self.camera.AcquisitionFrameRate.SetValue(200.0)
-                        resulting_framerate = self.camera.ResultingFrameRate.GetValue()
+                        resulting_framerate = self.camera.ResultingFrameRateAbs.GetValue()
                         if (resulting_framerate != self.framerate):
                             self.framerate = resulting_framerate
                             self.framerate_slider.SetValue(self.framerate)
