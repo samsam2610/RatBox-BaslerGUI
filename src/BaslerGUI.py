@@ -506,7 +506,6 @@ class BaslerGuiWindow(wx.Frame):
             self.cam_combo.Disable()
             self.encoding_mode_combo.Enable()
             self.preview_btn.Enable()
-            self.set_roi.Enable()
             self.select_folder_btn.Enable()
             self.capture_btn.Enable()
             self.append_date.Enable()
@@ -553,7 +552,6 @@ class BaslerGuiWindow(wx.Frame):
             self.offset_y_ctrl.Disable()
             self.width_ctrl.Disable()
             self.height_ctrl.Disable()
-            self.set_roi.Disable()
             self.select_folder_btn.Disable()
             self.capture_btn.Disable()
             self.append_date.Enable()
@@ -575,7 +573,6 @@ class BaslerGuiWindow(wx.Frame):
             self.offset_y_ctrl.Disable()
             self.width_ctrl.Disable()
             self.height_ctrl.Disable()
-            self.set_roi.Disable()
             self.select_folder_btn.Disable()
             self.capture_btn.Disable()
             self.append_date.Enable()
@@ -595,7 +592,6 @@ class BaslerGuiWindow(wx.Frame):
             self.mode_combo.Enable()
             self.capmode_combo.Enable()
             self.preview_btn.Enable()
-            self.set_roi.Enable()
             self.select_folder_btn.Enable()
             self.append_date.Enable()
             self.connect_btn.Enable()
@@ -640,7 +636,6 @@ class BaslerGuiWindow(wx.Frame):
             self.offset_y_ctrl.Disable()
             self.width_ctrl.Disable()
             self.height_ctrl.Disable()
-            self.set_roi.Disable()
             self.select_folder_btn.Disable()
             self.append_date.Disable()
             self.connect_btn.Disable()
@@ -949,18 +944,18 @@ class BaslerGuiWindow(wx.Frame):
     def OnAppendDate(self, event):
         self.append_date_flag = self.append_date.GetValue()
 
-    def OnEnableRoi(self, event):
-        self.roi_on = self.set_roi.GetValue()
-        if self.roi_on is True:
-            self.offset_x_ctrl.Enable()
-            self.offset_y_ctrl.Enable()
-            self.width_ctrl.Enable()
-            self.height_ctrl.Enable()
-        else:
-            self.offset_x_ctrl.Disable()
-            self.offset_y_ctrl.Disable()
-            self.width_ctrl.Disable()
-            self.height_ctrl.Disable()
+    # def OnEnableRoi(self, event):
+    #     self.roi_on = self.set_roi.GetValue()
+    #     if self.roi_on is True:
+    #         self.offset_x_ctrl.Enable()
+    #         self.offset_y_ctrl.Enable()
+    #         self.width_ctrl.Enable()
+    #         self.height_ctrl.Enable()
+    #     else:
+    #         self.offset_x_ctrl.Disable()
+    #         self.offset_y_ctrl.Disable()
+    #         self.width_ctrl.Disable()
+    #         self.height_ctrl.Disable()
 
     def OnSetOffsetX(self, event):
         new_offset_x = self.offset_x_ctrl.GetValue()
