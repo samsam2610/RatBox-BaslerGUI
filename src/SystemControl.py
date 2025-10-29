@@ -28,7 +28,7 @@ class SystemControl(wx.Frame):
             
         # Initialize UI
         self.InitSystemUI()
-        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
+        # self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.Centre()
         self.Show()
  
