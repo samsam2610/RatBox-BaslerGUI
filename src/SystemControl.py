@@ -20,15 +20,18 @@ from CameraController import CameraController
 class SystemControl(wx.Panel):
     def __init__(self, parent, number_of_cameras=2, *args, **kwargs):
         super(SystemControl, self).__init__(*args, **kwargs)
-        self.InitSystemUI()
-        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
-        self.Centre()
-        self.Show()
         self.number_of_cameras = number_of_cameras
         if self.number_of_cameras > 1:
             self.is_multi_cam = True
         else:
             self.is_multi_cam = False
+            
+        # Initialize UI
+        self.InitSystemUI()
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
+        self.Centre()
+        self.Show()
+ 
         
     def InitSystemUI(self):
         if self.is_multi_cam is False:
