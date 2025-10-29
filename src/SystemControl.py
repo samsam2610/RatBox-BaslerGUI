@@ -19,7 +19,7 @@ from CameraController import CameraController
 
 class SystemControl(wx.Frame):
     def __init__(self, number_of_cameras=2, *args, **kwargs):
-        super(SystemControl, self).__init__(*args, **kwargs)
+        super(SystemControl, self).__init__(None, *args, **kwargs)
         self.number_of_cameras = number_of_cameras
         if self.number_of_cameras > 1:
             print("Multi-camera mode activated.")
