@@ -1,0 +1,36 @@
+import queue
+import wx
+import os
+from pathlib import Path
+from skimage.feature import graycomatrix, graycoprops
+from scipy.optimize import curve_fit
+import numpy as np
+import cv2
+import datetime
+import time
+import threading
+from pypylon import pylon
+import wx.lib.agw.floatspin as FS
+import csv
+from VideoRecordingSession import VideoRecordingSession
+from InputEventHandler import ConfigurationEventPrinter
+from ImagePanel import ImagePanel
+from CameraController import CameraController
+
+class SystemControl(wx.Panel):
+    def __init__(self, parent, number_of_cameras=2):
+        super(SystemControl, self).__init__(parent)
+        self.InitSystemUI()
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
+        self.Centre()
+        self.Show()
+        self.number_of_cameras = number_of_cameras
+        if self.number_of_cameras > 1:
+            self.is_multi_cam = True
+        else:
+            self.is_multi_cam = False
+        
+    def InitSystemUI(self):
+        if self.is_multi_cam is False:
+            self.camera1 = CameraController(self, cam_index=0, cam_details="Camera 1", multi_cam=False, column_pos=0, row_pos=0)
+            self.camera1.InitUI()

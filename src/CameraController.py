@@ -1,5 +1,3 @@
-# import pandas as pd
-
 import queue
 import wx
 import os
@@ -16,70 +14,32 @@ import wx.lib.agw.floatspin as FS
 import csv
 from VideoRecordingSession import VideoRecordingSession
 from InputEventHandler import ConfigurationEventPrinter
+from typing import Callable, Optional, List, Dict
 from ImagePanel import ImagePanel
 
-class BaslerGuiWindow(wx.Frame):
+from dataclasses import dataclass
 
-    output_string_1 = ""
-    output_string_2 = ""
-    update_ratio = 0
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    lock = threading.Lock()
-
-    auto_index_on = True
-    current_index = 0
-    append_date_flag = True
-    measurement_interval = 2
-    sequence_length = 1
-    current_step = 0
-    last_capture_time = 0
-    frames_to_capture = 360
-    selected_mode = 2
-    encoding_mode = 0
-    time_to_next = 0
-
-    selected_camera = 0
-    auto_exposure_on = False
-    auto_gain_on = False
-    preview_on = False
-    capture_on = False
-    framerate = 120
-    exposure = 7
+@dataclass
+class CameraSettings:
+    serial: str
+    # core
+    target_fps: Optional[float] = 200.0
+    exposure_us: Optional[float] = None      # ExposureTime is in microseconds on most Baslers
+    gain: Optional[float] = None
+    # ROI
+    width: Optional[int] = None
+    height: Optional[int] = None
+    offset_x: Optional[int] = None
+    offset_y: Optional[int] = None
+    # GPIO
+    configure_line3_as_input: bool = True
     
-    gain = 0
-    cameras_list = []
-    capture_sequence_timer = None
-    capture_status_timer = None
-    camera_connected = False
-    camera = []
-
-    frame_width = 1440 
-    frame_height = 1088
-    offset_x = 16
-    offset_y = 0
     
-    max_frame_width = 1456
-    max_frame_height = 1088
-
-    roi_on = False
-    roi_x = 0
-    roi_y = 0
-    roi_width = 10
-    roi_height = 10
-    min_gray_val = 5
-    preview_thread_obj = None
-    capture_thread_obj = None
-    process_thread_obj = None
-    max_contrast = 0.8
-    
-    video_session = VideoRecordingSession(cam_num=0)
-
-    def __init__(self, *args, **kwargs):
-        super(BaslerGuiWindow, self).__init__(*args, **kwargs)
-        self.InitUI()
-        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
-        self.Centre()
-        self.Show()
+class CameraController(wx.Panel):
+    def __init__(self, parent, cam_index, cam_details, multi_cam=False, column_pos=0, row_pos=0):
+        self.column_pos = column_pos
+        self.row_pos = row_pos
+        self.is_multi_cam = multi_cam
 
     def InitUI(self):
         devices = pylon.TlFactory.GetInstance().EnumerateDevices()
@@ -94,94 +54,66 @@ class BaslerGuiWindow(wx.Frame):
         sizer = wx.GridBagSizer(0, 0)
 
         selected_ctrl_label = wx.StaticText(panel, label="Selected camera:")
-        sizer.Add(selected_ctrl_label, pos=(0, 0),
+        sizer.Add(selected_ctrl_label, pos=(self.row_pos, self.column_pos),
                   flag=wx.EXPAND | wx.ALL, border=5)
+        self.row_pos += 1 # Current row position = 1
+        
         self.cam_combo = wx.ComboBox(panel, choices=cameras)
-        sizer.Add(self.cam_combo, pos=(1, 0),
+        sizer.Add(self.cam_combo, pos=(self.row_pos, self.column_pos),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.cam_combo.Bind(wx.EVT_COMBOBOX, self.OnCamCombo)
         self.cam_combo.SetSelection(self.selected_camera)
 
         self.connect_btn = wx.Button(panel, label="Connect")
         self.connect_btn.Bind(wx.EVT_BUTTON, self.OnConnect)
-        sizer.Add(self.connect_btn, pos=(1, 1),
+        sizer.Add(self.connect_btn, pos=(self.row_pos, self.column_pos + 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
+        self.row_pos += 1 # Current row position = 2
 
         self.refresh_btn = wx.Button(panel, label="Refresh list")
         self.refresh_btn.Bind(wx.EVT_BUTTON, self.OnRefreshList)
-        sizer.Add(self.refresh_btn, pos=(2, 0),
+        sizer.Add(self.refresh_btn, pos=(self.row_pos, self.column_pos),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.preview_btn = wx.Button(panel, label="Preview START")
         self.preview_btn.Bind(wx.EVT_BUTTON, self.OnPreview)
-        sizer.Add(self.preview_btn, pos=(2, 1),
+        sizer.Add(self.preview_btn, pos=(self.row_pos, self.column_pos + 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-
-        fourcc_label = wx.StaticText(panel, label="Fourcc Code:")
-        sizer.Add(fourcc_label, pos=(21, 0), flag=wx.EXPAND | wx.ALL, border=5)
-        fourcc_modes = ["MJPG", "DIVX", "XVID"]
-        self.encoding_mode_combo = wx.ComboBox(panel, choices=fourcc_modes)
-        sizer.Add(self.encoding_mode_combo, pos=(21, 1), flag=wx.ALL, border=5)
-        self.encoding_mode_combo.Bind(wx.EVT_COMBOBOX, self.OnCapModeCombo)
-        self.encoding_mode_combo.SetSelection(self.encoding_mode)
-
-        interval_ctrl_label = wx.StaticText(panel, label="Measurement interval (sec):")
-        sizer.Add(interval_ctrl_label, pos=(22, 0),
-                  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
-        self.interval_ctrl = wx.TextCtrl(panel)
-        self.interval_ctrl.SetValue(str(self.measurement_interval))
-        sizer.Add(self.interval_ctrl, pos=(22, 1),
-                  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
-
-        sequence_ctrl_label = wx.StaticText(panel, label="Sequence length (num):")
-        sizer.Add(sequence_ctrl_label, pos=(23, 0),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.sequence_ctrl = wx.TextCtrl(panel)
-        self.sequence_ctrl.SetValue(str(self.sequence_length))
-        sizer.Add(self.sequence_ctrl, pos=(23, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.row_pos += 1 # Current row position = 3
 
         self.Window = ImagePanel(panel)
         # self.Window.SetSize((480, 360))
         # self.Window.Fit()
-        sizer.Add(self.Window, pos=(3, 0), span=(4, 3),
+        row_span = 4
+        sizer.Add(self.Window, pos=(self.row_pos, self.column_pos), span=(row_span, 3),
                   flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
-
-        framescap_ctrl_label = wx.StaticText(panel, label="Video length (sec):")
-        sizer.Add(framescap_ctrl_label, pos=(24, 0),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.framescap_ctrl = wx.TextCtrl(panel)
-        self.framescap_ctrl.SetValue(str(self.frames_to_capture))
-        sizer.Add(self.framescap_ctrl, pos=(24, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-
-        self.capture_btn = wx.Button(panel, label="Capture START")
-        self.capture_btn.Bind(wx.EVT_BUTTON, self.OnCapture)
-        sizer.Add(self.capture_btn, pos=(25, 0), span=(1, 2),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-
+        self.row_pos += (row_span+1)  # Current row position = 8
+        
+        
         self.framerate_ctrl_label = wx.StaticText(panel, label="Framerate (Hz):")
-        sizer.Add(self.framerate_ctrl_label, pos=(8, 0), span=(1, 1),
+        sizer.Add(self.framerate_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.framerate_slider = FS.FloatSpin(panel, -1,  min_val=100, max_val=500,
                                              size=(140, -1), increment=1.0, digits=0,
                                              value=0.1, agwStyle=FS.FS_LEFT)
         self.framerate_slider.Bind(FS.EVT_FLOATSPIN, self.FramerteSliderScroll)
-        sizer.Add(self.framerate_slider, pos=(8, 1), span=(1, 1),
+        sizer.Add(self.framerate_slider, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
                   flag=wx.ALL, border=5)
+        self.row_pos += 1 # Current row position = 9
 
         self.exposure_ctrl_label = wx.StaticText(panel, label="Exposure (us):")
-        sizer.Add(self.exposure_ctrl_label, pos=(9, 0),  span=(1, 1),
+        sizer.Add(self.exposure_ctrl_label, pos=(self.row_pos, self.column_pos),  span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.exposure_slider = FS.FloatSpin(panel, -1,  min_val=1000, max_val=5000,
                                             size=(140, -1), increment=100, digits=0,
                                             value=1000, agwStyle=FS.FS_LEFT)
         self.exposure_slider.Bind(FS.EVT_FLOATSPIN, self.ExposureSliderScroll)
-        sizer.Add(self.exposure_slider, pos=(9, 1), span=(1, 1),
+        sizer.Add(self.exposure_slider, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
                   flag=wx.ALL, border=5)
+        self.row_pos += 1 # Current row position = 10
 
         self.gain_ctrl_label = wx.StaticText(panel, label="Gain (dB):")
-        sizer.Add(self.gain_ctrl_label, pos=(10, 0), span=(1, 1),
+        sizer.Add(self.gain_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.gain_slider = FS.FloatSpin(panel, -1,  min_val=0, max_val=1,
                                         size=(140, -1), increment=0.01, value=0.1, digits=0,
@@ -189,51 +121,103 @@ class BaslerGuiWindow(wx.Frame):
         self.gain_slider.Bind(FS.EVT_FLOATSPIN, self.GainSliderScroll)
         self.gain_slider.SetFormat("%f")
         self.gain_slider.SetDigits(3)
-        sizer.Add(self.gain_slider, pos=(10, 1), span=(1, 1),
+        sizer.Add(self.gain_slider, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
+        self.row_pos += 1 # Current row position = 11
 
         self.set_auto_exposure = wx.CheckBox(panel, label="Auto Exposure")
-        sizer.Add(self.set_auto_exposure, pos=(11, 0), span=(1, 1),
+        sizer.Add(self.set_auto_exposure, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.set_auto_exposure.SetBackgroundColour(wx.NullColour)
         self.set_auto_exposure.Bind(wx.EVT_CHECKBOX, self.OnEnableAutoExposure)
 
         self.set_auto_gain = wx.CheckBox(panel, label="Auto Gain")
-        sizer.Add(self.set_auto_gain, pos=(11, 1), span=(1, 1),
+        sizer.Add(self.set_auto_gain, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.set_auto_gain.SetBackgroundColour(wx.NullColour)
         self.set_auto_gain.Bind(wx.EVT_CHECKBOX, self.OnEnableAutoGain)
+        self.row_pos += 1 # Current row position = 12
 
+        
+        
+        offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
+        sizer.Add(offset_x_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.offset_x_ctrl = FS.FloatSpin(panel, -1,  min_val=0, max_val=self.frame_width,
+                                          size=(140, -1), increment=0.1, value=0.1, digits=0,
+                                          agwStyle=FS.FS_LEFT)
+        sizer.Add(self.offset_x_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.offset_x_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetOffsetX)
+        self.row_pos += 1 # Current row position = 13
+
+        offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
+        sizer.Add(offset_y_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.offset_y_ctrl = FS.FloatSpin(panel, -1,  min_val=0, max_val=self.frame_height,
+                                    size=(140, -1), increment=0.1, value=0.1, digits=0,
+                                    agwStyle=FS.FS_LEFT)
+        sizer.Add(self.offset_y_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.offset_y_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetOffsetY)
+        self.row_pos += 1 # Current row position = 14
+
+        width_ctrl_label = wx.StaticText(panel, label="Width:")
+        sizer.Add(width_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.width_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_width,
+                                        size=(140, -1), increment=4, value=128, digits=0,
+                                        agwStyle=FS.FS_LEFT)
+        sizer.Add(self.width_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.width_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetWidth)
+        self.row_pos += 1 # Current row position = 15
+
+        height_ctrl_label = wx.StaticText(panel, label="Height:")
+        sizer.Add(height_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.height_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_height,
+                                        size=(140, -1), increment=4, value=128, digits=0,
+                                        agwStyle=FS.FS_LEFT)
+        sizer.Add(self.height_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.height_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetHeight)
+        self.row_pos += 1 # Current row position = 16
+        
         exportfile_ctrl_label = wx.StaticText(panel, label="Export file name:")
-        sizer.Add(exportfile_ctrl_label, pos=(16, 0), span=(1, 1),
+        sizer.Add(exportfile_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.exportfile_ctrl = wx.TextCtrl(panel)
-        sizer.Add(self.exportfile_ctrl, pos=(16, 1), span=(1, 1),
+        sizer.Add(self.exportfile_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
+        self.row_pos += 1 # Current row position = 17
 
         exportfolder_ctrl_label = wx.StaticText(panel, label="Export directory:")
-        sizer.Add(exportfolder_ctrl_label, pos=(17, 0), span=(1, 1),
+        sizer.Add(exportfolder_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.select_folder_btn = wx.Button(panel, label="Select folder")
         self.select_folder_btn.Bind(wx.EVT_BUTTON, self.OnSelectFolder)
-        sizer.Add(self.select_folder_btn, pos=(17, 1),
+        sizer.Add(self.select_folder_btn, pos=(self.row_pos, self.column_pos + 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
+        self.row_pos += 1 # Current row position = 18
 
         self.exportfolder_ctrl = wx.TextCtrl(panel)
-        sizer.Add(self.exportfolder_ctrl, pos=(18, 0), span=(1, 2),
+        sizer.Add(self.exportfolder_ctrl, pos=(self.row_pos, self.column_pos), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.exportfolder_ctrl.Disable()
+        self.row_pos += 1 # Current row position = 19   
 
         self.append_date = wx.CheckBox(panel, label="Append date and time")
-        sizer.Add(self.append_date, pos=(19, 0), span=(1, 1),
+        sizer.Add(self.append_date, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.append_date.SetBackgroundColour(wx.NullColour)
         self.append_date.Bind(wx.EVT_CHECKBOX, self.OnAppendDate)
         self.append_date.SetValue(True)  
+        self.row_pos += 1 # Current row position = 20
 
         self.auto_index = wx.CheckBox(panel, label="Auto index")
-        sizer.Add(self.auto_index, pos=(20, 0), span=(1, 1),
+        sizer.Add(self.auto_index, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.auto_index.SetBackgroundColour(wx.NullColour)
         self.auto_index.Bind(wx.EVT_CHECKBOX, self.OnAutoIndex)
@@ -241,50 +225,53 @@ class BaslerGuiWindow(wx.Frame):
 
         self.index_ctrl = wx.TextCtrl(panel)
         self.index_ctrl.SetValue(str(1))
-        sizer.Add(self.index_ctrl, pos=(20, 1), flag=wx.EXPAND | wx.ALL, border=5)
+        sizer.Add(self.index_ctrl, pos=(20, self.column_pos + 1), flag=wx.EXPAND | wx.ALL, border=5)
+        self.row_pos += 1 # Current row position = 21
         
-        offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
-        sizer.Add(offset_x_ctrl_label, pos=(12, 0), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.offset_x_ctrl = FS.FloatSpin(panel, -1,  min_val=0, max_val=self.frame_width,
-                                          size=(140, -1), increment=0.1, value=0.1, digits=0,
-                                          agwStyle=FS.FS_LEFT)
-        sizer.Add(self.offset_x_ctrl, pos=(12, 1), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.offset_x_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetOffsetX)
+        fourcc_label = wx.StaticText(panel, label="Fourcc Code:")
+        sizer.Add(fourcc_label, pos=(self.row_pos, self.column_pos), flag=wx.EXPAND | wx.ALL, border=5)
+        fourcc_modes = ["MJPG", "DIVX", "XVID"]
+        self.encoding_mode_combo = wx.ComboBox(panel, choices=fourcc_modes)
+        sizer.Add(self.encoding_mode_combo, pos=(self.row_pos, self.column_pos + 1), flag=wx.ALL, border=5)
+        self.encoding_mode_combo.Bind(wx.EVT_COMBOBOX, self.OnCapModeCombo)
+        self.encoding_mode_combo.SetSelection(self.encoding_mode)
+        self.row_pos += 1 # Current row position = 22   
 
-        offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
-        sizer.Add(offset_y_ctrl_label, pos=(13, 0), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.offset_y_ctrl = FS.FloatSpin(panel, -1,  min_val=0, max_val=self.frame_height,
-                                    size=(140, -1), increment=0.1, value=0.1, digits=0,
-                                    agwStyle=FS.FS_LEFT)
-        sizer.Add(self.offset_y_ctrl, pos=(13, 1), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.offset_y_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetOffsetY)
+        interval_ctrl_label = wx.StaticText(panel, label="Measurement interval (sec):")
+        sizer.Add(interval_ctrl_label, pos=(self.row_pos, self.column_pos),
+                  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+        self.interval_ctrl = wx.TextCtrl(panel)
+        self.interval_ctrl.SetValue(str(self.measurement_interval))
+        sizer.Add(self.interval_ctrl, pos=(self.row_pos, self.column_pos + 1),
+                  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+        self.row_pos += 1 # Current row position = 23
 
-        width_ctrl_label = wx.StaticText(panel, label="Width:")
-        sizer.Add(width_ctrl_label, pos=(14, 0), span=(1, 1),
+        sequence_ctrl_label = wx.StaticText(panel, label="Sequence length (num):")
+        sizer.Add(sequence_ctrl_label, pos=(self.row_pos, self.column_pos),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.width_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_width,
-                                        size=(140, -1), increment=4, value=128, digits=0,
-                                        agwStyle=FS.FS_LEFT)
-        sizer.Add(self.width_ctrl, pos=(14, 1), span=(1, 1),
+        self.sequence_ctrl = wx.TextCtrl(panel)
+        self.sequence_ctrl.SetValue(str(self.sequence_length))
+        sizer.Add(self.sequence_ctrl, pos=(self.row_pos, self.column_pos + 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.width_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetWidth)
+        self.row_pos += 1 # Current row position = 24
+        
+        framescap_ctrl_label = wx.StaticText(panel, label="Video length (sec):")
+        sizer.Add(framescap_ctrl_label, pos=(self.row_pos, self.column_pos),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.framescap_ctrl = wx.TextCtrl(panel)
+        self.framescap_ctrl.SetValue(str(self.frames_to_capture))
+        sizer.Add(self.framescap_ctrl, pos=(self.row_pos, self.column_pos + 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.row_pos += 1 # Current row position = 25
 
-        height_ctrl_label = wx.StaticText(panel, label="Height:")
-        sizer.Add(height_ctrl_label, pos=(15, 0), span=(1, 1),
+        self.capture_btn = wx.Button(panel, label="Capture START")
+        self.capture_btn.Bind(wx.EVT_BUTTON, self.OnCapture)
+        sizer.Add(self.capture_btn, pos=(self.row_pos, self.column_pos), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.height_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_height,
-                                        size=(140, -1), increment=4, value=128, digits=0,
-                                        agwStyle=FS.FS_LEFT)
-        sizer.Add(self.height_ctrl, pos=(15, 1), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.height_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetHeight)
+        self.row_pos += 1 # Current row position = 26
 
         self.current_state = wx.StaticText(panel, label="Current state: idle")
-        sizer.Add(self.current_state, pos=(26, 0), span=(1, 2),
+        sizer.Add(self.current_state, pos=(self.row_pos, self.column_pos), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.offset_x_ctrl.Disable()
@@ -294,10 +281,10 @@ class BaslerGuiWindow(wx.Frame):
         
         # Text field to enter the queue
         self.note_label = wx.StaticText(panel, label="Notes (Press Enter to send):")
-        sizer.Add(self.note_label, pos=(27, 0), span=(1, 1),
+        sizer.Add(self.note_label, pos=(27, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.note_ctrl = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
-        sizer.Add(self.note_ctrl, pos=(27, 1), span=(1, 2),
+        sizer.Add(self.note_ctrl, pos=(27, self.column_pos + 1), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.next_note_q = queue.Queue(maxsize=1)
@@ -1160,9 +1147,5 @@ class BaslerGuiWindow(wx.Frame):
         start_time = time.perf_counter()
         while (time.perf_counter() - start_time) < duration:
             pass  # Busy-waiting until the time has elapsed
-
-
-if __name__ == '__main__':
-    app = wx.App()
-    ex = BaslerGuiWindow(None)
-    app.MainLoop()
+        
+        
