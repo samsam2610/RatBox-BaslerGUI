@@ -43,7 +43,7 @@ class SystemControl(wx.Frame):
             self.SetTitle("Single Camera Control")
             
             sizer = wx.GridBagSizer(0, 0)
-            sizer.Add(self.camera_panel, pos=(0, 0), flag=wx.EXPAND | wx.ALL, border=5)
+            sizer.Add(self.camera_panel, pos=(0, 0), span=(27, 2), flag=wx.EXPAND | wx.ALL, border=5)
             self.SetSizerAndFit(sizer)
     
     def OnCloseWindow(self, event):

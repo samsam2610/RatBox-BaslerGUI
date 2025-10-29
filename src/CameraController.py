@@ -95,7 +95,7 @@ class CameraController(wx.Panel):
         self.column_pos = column_pos
         self.row_pos = row_pos
         self.is_multi_cam = multi_cam
-        super(CameraController, self).__init__(parent, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
 
     def InitUI(self):
         print("Initializing CameraController UI...")
