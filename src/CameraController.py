@@ -98,6 +98,7 @@ class CameraController(wx.Panel):
         super(CameraController, self).__init__(*args, **kwargs)
 
     def InitUI(self, parent=None):
+        print("Initializing CameraController UI...")
         devices = pylon.TlFactory.GetInstance().EnumerateDevices()
         cameras = []
         for device in devices:
