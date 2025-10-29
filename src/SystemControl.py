@@ -34,3 +34,8 @@ class SystemControl(wx.Panel):
         if self.is_multi_cam is False:
             self.camera1 = CameraController(self, cam_index=0, cam_details="Camera 1", multi_cam=False, column_pos=0, row_pos=0)
             self.camera1.InitUI()
+
+if __name__ == '__main__':
+    app = wx.App()
+    ex = SystemControl(None, number_of_cameras=1)
+    app.MainLoop()
