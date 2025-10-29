@@ -90,10 +90,12 @@ class CameraController(wx.Panel):
     
     video_session = VideoRecordingSession(cam_num=0)
     
-    def __init__(self, parent, cam_index, cam_details, multi_cam=False, column_pos=0, row_pos=0):
+    def __init__(self, parent, cam_index, cam_details, multi_cam=False, column_pos=0, row_pos=0, *args, **kwargs):
+        
         self.column_pos = column_pos
         self.row_pos = row_pos
         self.is_multi_cam = multi_cam
+        super(CameraController, self).__init__(*args, **kwargs)
 
     def InitUI(self):
         devices = pylon.TlFactory.GetInstance().EnumerateDevices()
