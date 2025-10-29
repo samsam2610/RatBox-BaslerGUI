@@ -39,7 +39,7 @@ class SystemControl(wx.Frame):
         if self.is_multi_cam is False:
             print("Initializing single camera UI...")
             self.camera_panel = CameraController(self, cam_index=0, cam_details="Camera 1", multi_cam=False, column_pos=0, row_pos=0)
-            self.camera_panel.InitUI()
+            self.camera_panel.InitUI(self)
             self.SetTitle("Single Camera Control")
             
             sizer = wx.GridBagSizer(0, 0)
