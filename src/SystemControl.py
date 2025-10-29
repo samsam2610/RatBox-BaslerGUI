@@ -38,13 +38,17 @@ class SystemControl(wx.Frame):
     def InitSystemUI(self):
         if self.is_multi_cam is False:
             print("Initializing single camera UI...")
-            self.camera1 = CameraController(self, cam_index=0, cam_details="Camera 1", multi_cam=False, column_pos=0, row_pos=0)
-            self.camera1.InitUI()
+            self.camera_panel = CameraController(self, cam_index=0, cam_details="Camera 1", multi_cam=False, column_pos=0, row_pos=0)
+            self.camera_panel.InitUI()
             self.SetTitle("Single Camera Control")
+            
+            sizer = wx.GridBagSizer(0, 0)
+            sizer.Add(self.camera_panel, pos=(0, 0), flag=wx.EXPAND | wx.ALL, border=5)
+            self.SetSizerAndFit(sizer)
     
     def OnCloseWindow(self, event):
         print("Closing application...")
-        self.view.Destroy()
+        self.camera_panel.Destroy()
 
 if __name__ == '__main__':
     app = wx.App()
