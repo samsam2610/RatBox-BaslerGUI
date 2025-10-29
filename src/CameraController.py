@@ -97,7 +97,7 @@ class CameraController(wx.Panel):
         self.is_multi_cam = multi_cam
         super(CameraController, self).__init__(parent, *args, **kwargs)
 
-    def InitUI(self, parent=None):
+    def InitUI(self):
         print("Initializing CameraController UI...")
         devices = pylon.TlFactory.GetInstance().EnumerateDevices()
         cameras = []
@@ -106,7 +106,7 @@ class CameraController(wx.Panel):
             self.cameras_list.append({"name": device.GetModelName(),
                                       "serial": device.GetSerialNumber()})
 
-        panel = wx.Panel(parent)
+        panel = wx.Panel(self)
         # self.SetTitle('Basler CAM GUI')
         sizer = wx.GridBagSizer(0, 0)
 
