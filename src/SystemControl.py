@@ -17,7 +17,7 @@ from InputEventHandler import ConfigurationEventPrinter
 from ImagePanel import ImagePanel
 from CameraController import CameraController
 
-class SystemControl(wx.Panel):
+class SystemControl(wx.Frame):
     def __init__(self, parent, number_of_cameras=2, *args, **kwargs):
         super(SystemControl, self).__init__(*args, **kwargs)
         self.number_of_cameras = number_of_cameras
