@@ -40,6 +40,7 @@ class SystemControl(wx.Frame):
             print("Initializing single camera UI...")
             self.camera1 = CameraController(self, cam_index=0, cam_details="Camera 1", multi_cam=False, column_pos=0, row_pos=0)
             self.camera1.InitUI()
+            self.SetTitle("Single Camera Control")
     
     def OnCloseWindow(self, event):
         print("Closing application...")

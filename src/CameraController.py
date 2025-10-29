@@ -107,7 +107,7 @@ class CameraController(wx.Panel):
                                       "serial": device.GetSerialNumber()})
 
         panel = wx.Panel(self)
-        self.SetTitle('Basler CAM GUI')
+        # self.SetTitle('Basler CAM GUI')
         sizer = wx.GridBagSizer(0, 0)
 
         selected_ctrl_label = wx.StaticText(panel, label="Selected camera:")
