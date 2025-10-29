@@ -22,8 +22,10 @@ class SystemControl(wx.Frame):
         super(SystemControl, self).__init__(*args, **kwargs)
         self.number_of_cameras = number_of_cameras
         if self.number_of_cameras > 1:
+            print("Multi-camera mode activated.")
             self.is_multi_cam = True
         else:
+            print("Single camera mode activated.")
             self.is_multi_cam = False
             
         # Initialize UI
