@@ -39,6 +39,7 @@ class SystemControl(wx.Frame):
             self.camera1.InitUI()
     
     def OnCloseWindow(self, event):
+        print("Closing application...")
         self.view.Destroy()
 
 if __name__ == '__main__':
