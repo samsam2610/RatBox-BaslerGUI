@@ -36,6 +36,60 @@ class CameraSettings:
     
     
 class CameraController(wx.Panel):
+    output_string_1 = ""
+    output_string_2 = ""
+    update_ratio = 0
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    lock = threading.Lock()
+
+    auto_index_on = True
+    current_index = 0
+    append_date_flag = True
+    measurement_interval = 2
+    sequence_length = 1
+    current_step = 0
+    last_capture_time = 0
+    frames_to_capture = 360
+    selected_mode = 2
+    encoding_mode = 0
+    time_to_next = 0
+
+    selected_camera = 0
+    auto_exposure_on = False
+    auto_gain_on = False
+    preview_on = False
+    capture_on = False
+    framerate = 120
+    exposure = 7
+    
+    gain = 0
+    cameras_list = []
+    capture_sequence_timer = None
+    capture_status_timer = None
+    camera_connected = False
+    camera = []
+
+    frame_width = 1440 
+    frame_height = 1088
+    offset_x = 16
+    offset_y = 0
+    
+    max_frame_width = 1456
+    max_frame_height = 1088
+
+    roi_on = False
+    roi_x = 0
+    roi_y = 0
+    roi_width = 10
+    roi_height = 10
+    min_gray_val = 5
+    preview_thread_obj = None
+    capture_thread_obj = None
+    process_thread_obj = None
+    max_contrast = 0.8
+    
+    video_session = VideoRecordingSession(cam_num=0)
+    
     def __init__(self, parent, cam_index, cam_details, multi_cam=False, column_pos=0, row_pos=0):
         self.column_pos = column_pos
         self.row_pos = row_pos
