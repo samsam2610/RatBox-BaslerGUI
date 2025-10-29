@@ -18,8 +18,8 @@ from ImagePanel import ImagePanel
 from CameraController import CameraController
 
 class SystemControl(wx.Panel):
-    def __init__(self, parent, number_of_cameras=2):
-        super(SystemControl, self).__init__(parent)
+    def __init__(self, parent, number_of_cameras=2, *args, **kwargs):
+        super(SystemControl, self).__init__(*args, **kwargs)
         self.InitSystemUI()
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.Centre()
