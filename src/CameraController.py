@@ -364,7 +364,7 @@ class CameraController(wx.Panel):
         self.border = wx.BoxSizer()
         self.border.Add(sizer, 1, wx.ALL | wx.EXPAND, 20)
 
-        panel.SetSizerAndFit(self.border)
+        # panel.SetSizerAndFit(self.border)
         self.Fit()
         self.preview_thread_obj = threading.Thread(target=self.preview_thread)
         self.capture_thread_obj = threading.Thread(target=self.capture_thread)
