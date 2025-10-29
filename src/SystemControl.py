@@ -28,7 +28,7 @@ class SystemControl(wx.Frame):
             
         # Initialize UI
         self.InitSystemUI()
-        # self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.Centre()
         self.Show()
  
@@ -37,6 +37,9 @@ class SystemControl(wx.Frame):
         if self.is_multi_cam is False:
             self.camera1 = CameraController(self, cam_index=0, cam_details="Camera 1", multi_cam=False, column_pos=0, row_pos=0)
             self.camera1.InitUI()
+    
+    def OnCloseWindow(self, event):
+        self.view.Destroy()
 
 if __name__ == '__main__':
     app = wx.App()
