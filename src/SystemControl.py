@@ -83,7 +83,7 @@ class SystemControl(wx.Frame):
             # Adding another StaticBoxSizer for system-wide controls
             system_box = wx.StaticBox(self.outer_panel, label="System Controls")
             system_sizer = wx.StaticBoxSizer(system_box, wx.VERTICAL)
-            system_panel = wx.Panel(self.outer_panel)
+            self.system_panel = wx.Panel(self.outer_panel)
             
             sizer = wx.GridBagSizer(5, 5)
             exportfile_ctrl_label = wx.StaticText(self.system_panel, label="Export file name:")
