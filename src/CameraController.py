@@ -107,7 +107,7 @@ class CameraController(wx.Panel):
             self.cameras_list.append({"name": device.GetModelName(),
                                       "serial": device.GetSerialNumber()})
 
-        panel = wx.Panel(self.parent)
+        panel = self
         # self.SetTitle('Basler CAM GUI')
         sizer = wx.GridBagSizer(0, 0)
 
