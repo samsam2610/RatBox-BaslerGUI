@@ -1,3 +1,4 @@
+from curses.panel import panel
 import queue
 import wx
 import os
@@ -367,7 +368,9 @@ class CameraController(wx.Panel):
         self.border.Add(sizer, 1, wx.ALL | wx.EXPAND, 20)
 
         # panel.SetSizerAndFit(self.border)
-        self.Fit()
+        panel.SetSizer(sizer)
+        panel.Layout()
+        # self.Fit()
         self.preview_thread_obj = threading.Thread(target=self.preview_thread)
         self.capture_thread_obj = threading.Thread(target=self.capture_thread)
         self.EnableGUI(False)
