@@ -36,6 +36,7 @@ class SystemControl(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.outer_panel.Layout()
         self.outer_panel.Fit()
+        self.Fit()
         self.Centre()
         self.Show()
  
@@ -62,7 +63,8 @@ class SystemControl(wx.Frame):
     
     def OnCloseWindow(self, event):
         print("Closing application...")
-        self.camera_panel.Destroy()
+        for p in getattr(self, "camera_panels", []):
+            p.Destroy()
         self.Destroy()
 
 if __name__ == '__main__':
