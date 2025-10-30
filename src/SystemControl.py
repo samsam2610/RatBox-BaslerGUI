@@ -19,7 +19,7 @@ from CameraController import CameraController
 
 class SystemControl(wx.Frame):
     def __init__(self, number_of_cameras=2, *args, **kwargs):
-        super().__init__(None, *args, **kwargs)
+        super().__init__(None, size=(1100, 450),*args, **kwargs)
         # Outer panel so we can attach a sizer
         self.outer_panel = wx.Panel(self)
         
@@ -55,6 +55,8 @@ class SystemControl(wx.Frame):
             hbox.Add(static_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
         
         self.outer_panel.SetSizer(hbox)
+        self.Centre()
+        self.Show()
 
     
     def OnCloseWindow(self, event):
