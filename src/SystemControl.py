@@ -49,6 +49,8 @@ class SystemControl(wx.Frame):
             # sizer = wx.GridBagSizer(0, 0)
             # sizer.Add(self.camera_panel, pos=(0, 0), flag=wx.EXPAND | wx.ALL, border=5)
             # # self.SetSizerAndFit(sizer)
+        self.outer_panel.Layout()
+        self.Fit()
     
     def OnCloseWindow(self, event):
         print("Closing application...")
