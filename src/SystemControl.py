@@ -129,6 +129,10 @@ class SystemControl(wx.Frame):
             sizer.Add(self.index_ctrl, pos=(20, self.column_pos + 1), flag=wx.EXPAND | wx.ALL, border=5)
             self.row_pos += 1 # Current row position = 5
 
+            
+            # Add to the main horizontal layout
+            hbox.Add(system_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+
         self.outer_panel.SetSizer(hbox)
         hbox.Layout()
         
