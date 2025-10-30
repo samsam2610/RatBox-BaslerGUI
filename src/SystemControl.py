@@ -39,18 +39,23 @@ class SystemControl(wx.Frame):
  
         
     def InitSystemUI(self):
-        
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
         if self.is_multi_cam is False:
             print("Initializing single camera UI...")
             self.camera_panel = CameraController(self.outer_panel, cam_index=0, cam_details="Camera 1", multi_cam=False, column_pos=0, row_pos=0)
             self.camera_panel.InitUI()
             self.SetTitle("Single Camera Control")
             
-            # sizer = wx.GridBagSizer(0, 0)
-            # sizer.Add(self.camera_panel, pos=(0, 0), flag=wx.EXPAND | wx.ALL, border=5)
-            # # self.SetSizerAndFit(sizer)
-        self.outer_panel.Layout()
-        self.Fit()
+            # Put each camera panel in a StaticBoxSizer for visual grouping
+            box = wx.StaticBox(self.outer_panel, label="Camera 1 Controls")
+            static_sizer = wx.StaticBoxSizer(box, wx.VERTICAL)
+            static_sizer.Add(self.camera_panel, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+
+            # Add to the main horizontal layout
+            hbox.Add(static_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+        
+        self.outer_panel.SetSizer(hbox)
+
     
     def OnCloseWindow(self, event):
         print("Closing application...")
