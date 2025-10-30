@@ -59,6 +59,7 @@ class SystemControl(wx.Frame):
     def OnCloseWindow(self, event):
         print("Closing application...")
         self.camera_panel.Destroy()
+        self.Destroy()
 
 if __name__ == '__main__':
     app = wx.App()
