@@ -77,7 +77,7 @@ class SystemControl(wx.Frame):
 
                 self.camera_panels.append(camera_panel)
             
-            self.column_pos = self.number_of_cameras + 1
+            self.column_pos = 0
             self.row_pos = 0
             
             # Adding another StaticBoxSizer for system-wide controls
