@@ -110,18 +110,18 @@ class CameraController(wx.Panel):
         # self.SetTitle('Basler CAM GUI')
         sizer = wx.GridBagSizer(0, 0)
 
-        selected_ctrl_label = wx.StaticText(self, label="Selected camera:")
+        selected_ctrl_label = wx.StaticText(panel, label="Selected camera:")
         sizer.Add(selected_ctrl_label, pos=(self.row_pos, self.column_pos),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.row_pos += 1 # Current row position = 1
-
-        self.cam_combo = wx.ComboBox(self, choices=cameras)
+        
+        self.cam_combo = wx.ComboBox(panel, choices=cameras)
         sizer.Add(self.cam_combo, pos=(self.row_pos, self.column_pos),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.cam_combo.Bind(wx.EVT_COMBOBOX, self.OnCamCombo)
         self.cam_combo.SetSelection(self.selected_camera)
 
-        self.connect_btn = wx.Button(self, label="Connect")
+        self.connect_btn = wx.Button(panel, label="Connect")
         self.connect_btn.Bind(wx.EVT_BUTTON, self.OnConnect)
         sizer.Add(self.connect_btn, pos=(self.row_pos, self.column_pos + 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
