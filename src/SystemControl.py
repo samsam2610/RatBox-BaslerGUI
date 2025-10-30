@@ -136,7 +136,7 @@ class SystemControl(wx.Frame):
 
             # Add to the main horizontal layout
             system_sizer.Add(self.system_panel, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
-            hbox.Add(self.system_panel, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+            hbox.Add(system_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
 
         self.outer_panel.SetSizer(hbox)
         hbox.Layout()
