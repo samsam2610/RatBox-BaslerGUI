@@ -34,6 +34,8 @@ class SystemControl(wx.Frame):
         # Initialize UI
         self.InitSystemUI()
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
+        self.outer_panel.Layout()
+        self.outer_panel.Fit()
         self.Centre()
         self.Show()
  
@@ -55,8 +57,8 @@ class SystemControl(wx.Frame):
             hbox.Add(static_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
         
         self.outer_panel.SetSizer(hbox)
-        self.outer_panel.Layout()
-        self.outer_panel.Fit()
+        hbox.Layout()
+        
     
     def OnCloseWindow(self, event):
         print("Closing application...")
