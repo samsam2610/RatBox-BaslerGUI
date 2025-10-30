@@ -76,6 +76,58 @@ class SystemControl(wx.Frame):
                 hbox.Add(static_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
 
                 self.camera_panels.append(camera_panel)
+            
+            self.column_pos = self.number_of_cameras + 1
+            self.row_pos = 0
+            
+            # Adding another StaticBoxSizer for system-wide controls
+            system_box = wx.StaticBox(self.outer_panel, label="System Controls")
+            system_sizer = wx.StaticBoxSizer(system_box, wx.VERTICAL)
+            
+            sizer = wx.GridBagSizer(5, 5)
+            exportfile_ctrl_label = wx.StaticText(self.outer_panel, label="Export file name:")
+            sizer.Add(exportfile_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.exportfile_ctrl = wx.TextCtrl(self.outer_panel)
+            sizer.Add(self.exportfile_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.row_pos += 1 # Current row position = 1
+
+            exportfolder_ctrl_label = wx.StaticText(self.outer_panel, label="Export directory:")
+            sizer.Add(exportfolder_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+
+            self.select_folder_btn = wx.Button(self.outer_panel, label="Select folder")
+            self.select_folder_btn.Bind(wx.EVT_BUTTON, self.OnSelectFolder)
+            sizer.Add(self.select_folder_btn, pos=(self.row_pos, self.column_pos + 1),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.row_pos += 1 # Current row position = 2
+
+            self.exportfolder_ctrl = wx.TextCtrl(self.outer_panel)
+            sizer.Add(self.exportfolder_ctrl, pos=(self.row_pos, self.column_pos), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.exportfolder_ctrl.Disable()
+            self.row_pos += 1 # Current row position = 3
+
+            self.append_date = wx.CheckBox(self.outer_panel, label="Append date and time")
+            sizer.Add(self.append_date, pos=(self.row_pos, self.column_pos), span=(1, 1),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.append_date.SetBackgroundColour(wx.NullColour)
+            self.append_date.Bind(wx.EVT_CHECKBOX, self.OnAppendDate)
+            self.append_date.SetValue(True)  
+            self.row_pos += 1 # Current row position = 4
+
+            self.auto_index = wx.CheckBox(self.outer_panel, label="Auto index")
+            sizer.Add(self.auto_index, pos=(self.row_pos, self.column_pos), span=(1, 1),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.auto_index.SetBackgroundColour(wx.NullColour)
+            self.auto_index.Bind(wx.EVT_CHECKBOX, self.OnAutoIndex)
+            self.auto_index.SetValue(True)  # Set checkbox to checked by default
+
+            self.index_ctrl = wx.TextCtrl(self.outer_panel)
+            self.index_ctrl.SetValue(str(1))
+            sizer.Add(self.index_ctrl, pos=(20, self.column_pos + 1), flag=wx.EXPAND | wx.ALL, border=5)
+            self.row_pos += 1 # Current row position = 5
 
         self.outer_panel.SetSizer(hbox)
         hbox.Layout()
