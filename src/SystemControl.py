@@ -55,6 +55,8 @@ class SystemControl(wx.Frame):
             hbox.Add(static_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
         
         self.outer_panel.SetSizer(hbox)
+        self.outer_panel.Layout()
+        self.outer_panel.Fit()
     
     def OnCloseWindow(self, event):
         print("Closing application...")
