@@ -83,35 +83,36 @@ class SystemControl(wx.Frame):
             # Adding another StaticBoxSizer for system-wide controls
             system_box = wx.StaticBox(self.outer_panel, label="System Controls")
             system_sizer = wx.StaticBoxSizer(system_box, wx.VERTICAL)
+            
             self.system_panel = wx.Panel(self.outer_panel)
             
-            system_sizer = wx.GridBagSizer(5, 5)
+            sizer = wx.GridBagSizer(5, 5)
             exportfile_ctrl_label = wx.StaticText(self.system_panel, label="Export file name:")
-            system_sizer.Add(exportfile_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+            sizer.Add(exportfile_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.exportfile_ctrl = wx.TextCtrl(self.system_panel)
-            system_sizer.Add(self.exportfile_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
+            sizer.Add(self.exportfile_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.row_pos += 1 # Current row position = 1
 
             exportfolder_ctrl_label = wx.StaticText(self.system_panel, label="Export directory:")
-            system_sizer.Add(exportfolder_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+            sizer.Add(exportfolder_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                     flag=wx.EXPAND | wx.ALL, border=5)
 
             self.select_folder_btn = wx.Button(self.system_panel, label="Select folder")
             self.select_folder_btn.Bind(wx.EVT_BUTTON, self.OnSelectFolder)
-            system_sizer.Add(self.select_folder_btn, pos=(self.row_pos, self.column_pos + 1),
+            sizer.Add(self.select_folder_btn, pos=(self.row_pos, self.column_pos + 1),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.row_pos += 1 # Current row position = 2
 
             self.exportfolder_ctrl = wx.TextCtrl(self.system_panel)
-            system_sizer.Add(self.exportfolder_ctrl, pos=(self.row_pos, self.column_pos), span=(1, 2),
+            sizer.Add(self.exportfolder_ctrl, pos=(self.row_pos, self.column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.exportfolder_ctrl.Disable()
             self.row_pos += 1 # Current row position = 3
 
             self.append_date = wx.CheckBox(self.system_panel, label="Append date and time")
-            system_sizer.Add(self.append_date, pos=(self.row_pos, self.column_pos), span=(1, 1),
+            sizer.Add(self.append_date, pos=(self.row_pos, self.column_pos), span=(1, 1),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.append_date.SetBackgroundColour(wx.NullColour)
             self.append_date.Bind(wx.EVT_CHECKBOX, self.OnAppendDate)
@@ -119,7 +120,7 @@ class SystemControl(wx.Frame):
             self.row_pos += 1 # Current row position = 4
 
             self.auto_index = wx.CheckBox(self.system_panel, label="Auto index")
-            system_sizer.Add(self.auto_index, pos=(self.row_pos, self.column_pos), span=(1, 1),
+            sizer.Add(self.auto_index, pos=(self.row_pos, self.column_pos), span=(1, 1),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.auto_index.SetBackgroundColour(wx.NullColour)
             self.auto_index.Bind(wx.EVT_CHECKBOX, self.OnAutoIndex)
@@ -127,11 +128,14 @@ class SystemControl(wx.Frame):
 
             self.index_ctrl = wx.TextCtrl(self.system_panel)
             self.index_ctrl.SetValue(str(1))
-            system_sizer.Add(self.index_ctrl, pos=(20, self.column_pos + 1), flag=wx.EXPAND | wx.ALL, border=5)
+            sizer.Add(self.index_ctrl, pos=(self.row_pos, self.column_pos + 1), flag=wx.EXPAND | wx.ALL, border=5)
             self.row_pos += 1 # Current row position = 5
-
             
+            self.system_panel.SetSizer(sizer)
+            self.system_panel.Layout()
+
             # Add to the main horizontal layout
+            system_sizer.Add(self.system_panel, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
             hbox.Add(self.system_panel, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
 
         self.outer_panel.SetSizer(hbox)
