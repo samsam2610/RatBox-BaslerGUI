@@ -370,7 +370,7 @@ class CameraController(wx.Panel):
         # panel.SetSizerAndFit(self.border)
         panel.SetSizer(sizer)
         panel.Layout()
-        # self.Fit()
+        self.Fit()
         self.preview_thread_obj = threading.Thread(target=self.preview_thread)
         self.capture_thread_obj = threading.Thread(target=self.capture_thread)
         self.EnableGUI(False)
