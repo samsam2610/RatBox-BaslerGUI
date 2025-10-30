@@ -109,7 +109,7 @@ class CameraController(wx.Panel):
 
         panel = self
         # self.SetTitle('Basler CAM GUI')
-        sizer = wx.GridBagSizer(0, 0)
+        sizer = wx.GridBagSizer(5, 5)
 
         selected_ctrl_label = wx.StaticText(panel, label="Selected camera:")
         sizer.Add(selected_ctrl_label, pos=(self.row_pos, self.column_pos),
