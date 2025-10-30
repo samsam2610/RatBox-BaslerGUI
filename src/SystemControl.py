@@ -20,6 +20,9 @@ from CameraController import CameraController
 class SystemControl(wx.Frame):
     def __init__(self, number_of_cameras=2, *args, **kwargs):
         super(SystemControl, self).__init__(None, *args, **kwargs)
+        # Outer panel so we can attach a sizer
+        self.outer_panel = wx.Panel(self)
+        
         self.number_of_cameras = number_of_cameras
         if self.number_of_cameras > 1:
             print("Multi-camera mode activated.")
@@ -36,10 +39,11 @@ class SystemControl(wx.Frame):
  
         
     def InitSystemUI(self):
+        
         if self.is_multi_cam is False:
             print("Initializing single camera UI...")
-            self.camera_panel = CameraController(self, cam_index=0, cam_details="Camera 1", multi_cam=False, column_pos=0, row_pos=0)
-            self.camera_panel.InitUI(self)
+            self.camera_panel = CameraController(self.outer_panel, cam_index=0, cam_details="Camera 1", multi_cam=False, column_pos=0, row_pos=0)
+            self.camera_panel.InitUI()
             self.SetTitle("Single Camera Control")
             
             sizer = wx.GridBagSizer(0, 0)
