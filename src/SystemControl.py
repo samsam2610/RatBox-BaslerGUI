@@ -132,12 +132,31 @@ class SystemControl(wx.Frame):
         self.outer_panel.SetSizer(hbox)
         hbox.Layout()
         
-    
     def OnCloseWindow(self, event):
         print("Closing application...")
         for p in getattr(self, "camera_panels", []):
             p.Destroy()
         self.Destroy()
+    
+    def OnSelectFolder(self, event):
+        dlg = wx.DirDialog(None, "Choose input directory", "",
+                           wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
+        dlg.ShowModal()
+        self.exportfolder_ctrl.SetValue(dlg.GetPath())
+    
+    def OnAppendDate(self, event):
+        self.append_date_flag = self.append_date.GetValue()
+        
+    def OnAutoIndex(self, event):
+        if self.camera_connected is True:
+            self.auto_index_on = self.auto_index.GetValue()
+            if self.auto_index_on is True:
+                self.index_ctrl.Disable()
+                self.current_index = int(self.index_ctrl.GetValue())
+            else:
+                self.index_ctrl.Enable()
+
+
 
 if __name__ == '__main__':
     app = wx.App()
