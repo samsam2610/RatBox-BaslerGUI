@@ -173,7 +173,7 @@ class SystemControl(wx.Frame):
             else:
                 self.index_ctrl.Enable()
 
-    def SetFolderAndFileConfigurationSystemWide(self):
+    def SetFolderAndFileConfigurationSystemWide(self, event):
         # Check if the export name and folder is set
         export_folder = self.exportfolder_ctrl.GetValue()
         if not export_folder:
