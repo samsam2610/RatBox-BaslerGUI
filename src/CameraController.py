@@ -1,4 +1,3 @@
-from curses.panel import panel
 import queue
 import wx
 import os
