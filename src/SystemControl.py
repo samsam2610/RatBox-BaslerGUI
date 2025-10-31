@@ -131,6 +131,14 @@ class SystemControl(wx.Frame):
             sizer.Add(self.index_ctrl, pos=(self.row_pos, self.column_pos + 1), flag=wx.EXPAND | wx.ALL, border=5)
             self.row_pos += 1 # Current row position = 5
             
+            self.set_config_btn = wx.Button(self.system_panel, label="Set configuration system-wide")
+            sizer.Add(self.set_config_btn, pos=(self.row_pos, self.column_pos), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.set_config_btn.Bind(wx.EVT_BUTTON, self.SetFolderAndFileConfigurationSystemWide)
+            self.row_pos += 1 # Current row position = 6
+            
+            
+            
             self.system_panel.SetSizer(sizer)
             self.system_panel.Layout()
 
