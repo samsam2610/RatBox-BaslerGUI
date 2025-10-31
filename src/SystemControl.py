@@ -165,7 +165,23 @@ class SystemControl(wx.Frame):
             else:
                 self.index_ctrl.Enable()
 
+    def SetFolderAndFileConfigurationSystemWide(self):
+        # Check if the export name and folder is set
+        export_folder = self.exportfolder_ctrl.GetValue()
+        if not export_folder:
+            wx.MessageBox("Please select an export folder.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        
+        export_name = self.exportfile_ctrl.GetValue()
+        if not export_name:
+            wx.MessageBox("Please enter an export file name.", "Error", wx.OK | wx.ICON_ERROR)
+            return
 
+        for cam_panel in self.camera_panels:
+            cam_panel.SetExportFolder(export_folder)
+            cam_panel.SetAutoIndex(self.auto_index.GetValue())
+            cam_panel.SetAppendDate(self.append_date.GetValue())
+            cam_panel.SetFileName(export_name)
 
 if __name__ == '__main__':
     app = wx.App()

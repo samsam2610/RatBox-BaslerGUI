@@ -93,6 +93,8 @@ class CameraController(wx.Panel):
     
     def __init__(self, parent, cam_index, cam_details, multi_cam=False, column_pos=0, row_pos=0, *args, **kwargs):
         
+        self.cam_index = cam_index
+        self.cam_details = cam_details
         self.column_pos = column_pos
         self.row_pos = row_pos
         self.is_multi_cam = multi_cam
@@ -756,6 +758,14 @@ class CameraController(wx.Panel):
             else:
                 self.index_ctrl.Enable()
 
+    def SetAutoIndex(self, value: bool):
+        self.auto_index.SetValue(value)
+        self.auto_index_on = value
+        if value is True:
+            self.index_ctrl.Disable()
+        else:
+            self.index_ctrl.Enable()
+
     def ContrastSliderScroll(self, event):
         obj = event.GetEventObject()
         val = obj.GetValue()
@@ -805,6 +815,9 @@ class CameraController(wx.Panel):
                            wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
         dlg.ShowModal()
         self.exportfolder_ctrl.SetValue(dlg.GetPath())
+    
+    def SetExportFolder(self, folder_path):
+        self.exportfolder_ctrl.SetValue(folder_path)
 
     def GetHistogram(self, image):
         hist_full = cv2.calcHist([image], [0], None, [256], [0, 256])
@@ -838,6 +851,13 @@ class CameraController(wx.Panel):
 
     def OnAppendDate(self, event):
         self.append_date_flag = self.append_date.GetValue()
+    
+    def SetAppendDate(self, value):
+        self.append_date.SetValue(value)
+        self.append_date_flag = value
+
+    def SetFileName(self, filename):
+        self.exportfile_ctrl.SetValue(filename)
 
     def OnSetOffsetX(self, event):
         new_offset_x = self.offset_x_ctrl.GetValue()
@@ -974,6 +994,8 @@ class CameraController(wx.Panel):
         output_file_name = self.exportfile_ctrl.GetValue()
         if len(output_file_name) <= 1:
             output_file_name = "output"
+        # Adding cam index to the file name
+        output_file_name = output_file_name + "_cam" + str(self.camera_index)
             
         output_folder_name = self.exportfolder_ctrl.GetValue()
         if len(output_folder_name) <= 1:
