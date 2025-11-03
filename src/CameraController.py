@@ -298,32 +298,32 @@ class CameraController(wx.Panel):
         self.encoding_mode_combo.SetSelection(self.encoding_mode)
         self.row_pos += 1 # Current row position = 22   
 
-        interval_ctrl_label = wx.StaticText(panel, label="Measurement interval (sec):")
-        sizer.Add(interval_ctrl_label, pos=(self.row_pos, self.column_pos),
-                  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
-        self.interval_ctrl = wx.TextCtrl(panel)
-        self.interval_ctrl.SetValue(str(self.measurement_interval))
-        sizer.Add(self.interval_ctrl, pos=(self.row_pos, self.column_pos + 1),
-                  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
-        self.row_pos += 1 # Current row position = 23
+        # interval_ctrl_label = wx.StaticText(panel, label="Measurement interval (sec):")
+        # sizer.Add(interval_ctrl_label, pos=(self.row_pos, self.column_pos),
+        #           flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+        # self.interval_ctrl = wx.TextCtrl(panel)
+        # self.interval_ctrl.SetValue(str(self.measurement_interval))
+        # sizer.Add(self.interval_ctrl, pos=(self.row_pos, self.column_pos + 1),
+        #           flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
+        # self.row_pos += 1 # Current row position = 23
 
-        sequence_ctrl_label = wx.StaticText(panel, label="Sequence length (num):")
-        sizer.Add(sequence_ctrl_label, pos=(self.row_pos, self.column_pos),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.sequence_ctrl = wx.TextCtrl(panel)
-        self.sequence_ctrl.SetValue(str(self.sequence_length))
-        sizer.Add(self.sequence_ctrl, pos=(self.row_pos, self.column_pos + 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.row_pos += 1 # Current row position = 24
+        # sequence_ctrl_label = wx.StaticText(panel, label="Sequence length (num):")
+        # sizer.Add(sequence_ctrl_label, pos=(self.row_pos, self.column_pos),
+        #           flag=wx.EXPAND | wx.ALL, border=5)
+        # self.sequence_ctrl = wx.TextCtrl(panel)
+        # self.sequence_ctrl.SetValue(str(self.sequence_length))
+        # sizer.Add(self.sequence_ctrl, pos=(self.row_pos, self.column_pos + 1),
+        #           flag=wx.EXPAND | wx.ALL, border=5)
+        # self.row_pos += 1 # Current row position = 24
         
-        framescap_ctrl_label = wx.StaticText(panel, label="Video length (sec):")
-        sizer.Add(framescap_ctrl_label, pos=(self.row_pos, self.column_pos),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.framescap_ctrl = wx.TextCtrl(panel)
-        self.framescap_ctrl.SetValue(str(self.frames_to_capture))
-        sizer.Add(self.framescap_ctrl, pos=(self.row_pos, self.column_pos + 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.row_pos += 1 # Current row position = 25
+        # framescap_ctrl_label = wx.StaticText(panel, label="Video length (sec):")
+        # sizer.Add(framescap_ctrl_label, pos=(self.row_pos, self.column_pos),
+        #           flag=wx.EXPAND | wx.ALL, border=5)
+        # self.framescap_ctrl = wx.TextCtrl(panel)
+        # self.framescap_ctrl.SetValue(str(self.frames_to_capture))
+        # sizer.Add(self.framescap_ctrl, pos=(self.row_pos, self.column_pos + 1),
+        #           flag=wx.EXPAND | wx.ALL, border=5)
+        # self.row_pos += 1 # Current row position = 25
 
         self.capture_btn = wx.Button(panel, label="Capture START")
         self.capture_btn.Bind(wx.EVT_BUTTON, self.OnCapture)
@@ -403,9 +403,9 @@ class CameraController(wx.Panel):
 
     def EnableGUI(self, value, preview=False):
         if value is True:
-            self.interval_ctrl.Enable()
-            self.sequence_ctrl.Enable()
-            self.framescap_ctrl.Enable()
+            # self.interval_ctrl.Enable()
+            # self.sequence_ctrl.Enable()
+            # self.framescap_ctrl.Enable()
             self.framerate_slider.Enable()
             self.exposure_slider.Enable()
             self.gain_slider.Enable()
@@ -446,9 +446,9 @@ class CameraController(wx.Panel):
 
             return
         elif preview is True:
-            self.interval_ctrl.Disable()
-            self.sequence_ctrl.Disable()
-            self.framescap_ctrl.Disable()
+            # self.interval_ctrl.Disable()
+            # self.sequence_ctrl.Disable()
+            # self.framescap_ctrl.Disable()
             self.framerate_slider.Disable()
             self.exposure_slider.Disable()
             self.gain_slider.Disable()
@@ -467,9 +467,9 @@ class CameraController(wx.Panel):
             self.auto_index.Enable()
             self.index_ctrl.Disable()
         else:
-            self.interval_ctrl.Disable()
-            self.sequence_ctrl.Disable()
-            self.framescap_ctrl.Disable()
+            # self.interval_ctrl.Disable()
+            # self.sequence_ctrl.Disable()
+            # self.framescap_ctrl.Disable()
             self.framerate_slider.Disable()
             self.exposure_slider.Disable()
             self.gain_slider.Disable()
@@ -491,9 +491,9 @@ class CameraController(wx.Panel):
 
     def BlockGUI(self, value):
         if value is True:
-            self.interval_ctrl.Enable()
-            self.sequence_ctrl.Enable()
-            self.framescap_ctrl.Enable()
+            # self.interval_ctrl.Enable()
+            # self.sequence_ctrl.Enable()
+            # self.framescap_ctrl.Enable()
             self.framerate_slider.Enable()
             self.exportfile_ctrl.Enable()
             self.mode_combo.Enable()
@@ -529,9 +529,9 @@ class CameraController(wx.Panel):
 
             return
         else:
-            self.interval_ctrl.Disable()
-            self.sequence_ctrl.Disable()
-            self.framescap_ctrl.Disable()
+            # self.interval_ctrl.Disable()
+            # self.sequence_ctrl.Disable()
+            # self.framescap_ctrl.Disable()
             self.framerate_slider.Disable()
             self.exposure_slider.Disable()
             self.gain_slider.Disable()
