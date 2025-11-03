@@ -981,7 +981,7 @@ class CameraController(wx.Panel):
     def preview_thread(self):
         # Create Image Windows to display live video while capturing
         imageWindow = pylon.PylonImageWindow()
-        imageWindow.Create(1, 0, 0, 640, 480)
+        imageWindow.Create(self.cam_index, 0, 0, 640, 480)
         
         self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
         self.previous_time = int(round(time.time() * 1000))
