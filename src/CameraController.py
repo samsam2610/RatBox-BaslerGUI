@@ -89,15 +89,16 @@ class CameraController(wx.Panel):
     max_contrast = 0.8
     
     video_session = VideoRecordingSession(cam_num=0)
-    
-    def __init__(self, parent, cam_index, cam_details, multi_cam=False, column_pos=0, row_pos=0, *args, **kwargs):
-        
+
+    def __init__(self, parent, cam_index, cam_details, multi_cam=False, column_pos=0, row_pos=0, trigger_mode: bool=False, *args, **kwargs):
+
         self.cam_index = cam_index
         self.cam_details = cam_details
         self.column_pos = column_pos
         self.row_pos = row_pos
         self.is_multi_cam = multi_cam
         self.parent = parent
+        self.trigger_mode = trigger_mode
         super().__init__(parent)
 
     def InitUI(self):
@@ -359,11 +360,11 @@ class CameraController(wx.Panel):
         self.preview_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.Draw, self.preview_timer)
 
-        self.capture_status_timer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.capture_status, self.capture_status_timer)
+        # self.capture_status_timer = wx.Timer(self)
+        # self.Bind(wx.EVT_TIMER, self.capture_status, self.capture_status_timer)
 
-        self.capture_sequence_timer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.count_elapsed, self.capture_sequence_timer)
+        # self.capture_sequence_timer = wx.Timer(self)
+        # self.Bind(wx.EVT_TIMER, self.count_elapsed, self.capture_sequence_timer)
 
         self.border = wx.BoxSizer()
         self.border.Add(sizer, 1, wx.ALL | wx.EXPAND, 20)
@@ -580,6 +581,16 @@ class CameraController(wx.Panel):
                         # self.camera.LineEventSource.Value = "RisingEdge" # Trigger on Rising Edge
                         # self.camera.LineEventEnable.Value = True  # Enable event generation
                         
+                        # Setting trigger mode
+                        if self.trigger_mode_value:
+                            self.camera.LineSelector.Value = "Line1"
+                            self.camera.LineMode.Value = "Input"
+                            self.camera.TriggerMode.Value = "On"
+                            self.camera.TriggerSelector.Value = "FrameStart"
+                            self.camera.TriggerSource.Value = "Line1"
+                        else:
+                            self.camera.TriggerMode.Value = "Off"
+                            
                         # # Register the standard event handler for configuring input detected events.
                         self.camera.RegisterConfiguration(ConfigurationEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete)
                         
@@ -978,14 +989,14 @@ class CameraController(wx.Panel):
         self.EnableGUI(False)
         self.connect_btn.Disable()
         self.capture_btn.Enable()
-        self.capture_status_timer.Start(10000, oneShot=True)
+        # self.capture_status_timer.Start(10000, oneShot=True)
     
     def SetupCapture(self):
         # Prepare data output file before starting capture
-        sequence_length = int(self.sequence_ctrl.GetValue())
-        video_length = float(self.framescap_ctrl.GetValue())
-        frames_to_capture = int(video_length * self.framerate)
-        interval_length = float(self.interval_ctrl.GetValue())
+        # sequence_length = int(self.sequence_ctrl.GetValue())
+        # video_length = float(self.framescap_ctrl.GetValue())
+        # frames_to_capture = int(video_length * self.framerate)
+        # interval_length = float(self.interval_ctrl.GetValue())
         
         fourcc_code = str(self.encoding_mode_combo.GetValue())
 
@@ -1008,14 +1019,14 @@ class CameraController(wx.Panel):
             wx.MessageBox('Please provide output file name!', 'Warning',
                           wx.OK | wx.ICON_WARNING)
             self.capture_on = False
-            self.current_step = sequence_length
+            # self.current_step = sequence_length
             return
 
         if len(output_folder_name) <= 1:
             wx.MessageBox('Please provide output folder!', 'Warning',
                           wx.OK | wx.ICON_WARNING)
             self.capture_on = False
-            self.current_step = sequence_length
+            # self.current_step = sequence_length
             return
 
         if self.append_date_flag is True:
@@ -1026,42 +1037,41 @@ class CameraController(wx.Panel):
             self.current_index += 1
 
         if self.auto_index_on is False and self.append_date_flag is False:
-            if sequence_length > 1:
-                wx.MessageBox('Turn on auto indexing or append date to' +
-                                ' file name when capturing sequence!',
-                                'Warning', wx.OK | wx.ICON_WARNING)
-                self.capture_on = False
-                self.current_step = sequence_length
-                return
+            wx.MessageBox('Turn on auto indexing or append date to' +
+                            ' file name when capturing sequence!',
+                            'Warning', wx.OK | wx.ICON_WARNING)
+            self.capture_on = False
+            # self.current_step = sequence_length
+            return
 
         if len(output_path) <= 4:
             wx.MessageBox('Invalid name for data output file!',
                           'Warning', wx.OK | wx.ICON_WARNING)
             self.capture_on = False
-            self.current_step = sequence_length
+            # self.current_step = sequence_length
             return
 
-        if sequence_length < 1:
-            wx.MessageBox('Invalid length of measurement sequence! Minimum' +
-                          ' required value is 1.',
-                          'Warning', wx.OK | wx.ICON_WARNING)
-            self.capture_on = False
-            return
+        # if sequence_length < 1:
+        #     wx.MessageBox('Invalid length of measurement sequence! Minimum' +
+        #                   ' required value is 1.',
+        #                   'Warning', wx.OK | wx.ICON_WARNING)
+        #     self.capture_on = False
+        #     return
         
-        if sequence_length > 1:
-            if(video_length > interval_length):
-                wx.MessageBox('Interval length should be greater than video length',
-                              'Warning', wx.OK | wx.ICON_WARNING)
-                self.capture_on = False
-                return
+        # if sequence_length > 1:
+        #     if(video_length > interval_length):
+        #         wx.MessageBox('Interval length should be greater than video length',
+        #                       'Warning', wx.OK | wx.ICON_WARNING)
+        #         self.capture_on = False
+        #         return
 
-        if frames_to_capture < 1:
-            wx.MessageBox('Invalid number of frames to capture! Minimum' +
-                          ' required value is 5 frames.',
-                          'Warning', wx.OK | wx.ICON_WARNING)
-            self.capture_on = False
-            self.current_step = sequence_length
-            return
+        # if frames_to_capture < 1:
+        #     wx.MessageBox('Invalid number of frames to capture! Minimum' +
+        #                   ' required value is 5 frames.',
+        #                   'Warning', wx.OK | wx.ICON_WARNING)
+        #     self.capture_on = False
+        #     self.current_step = sequence_length
+        #     return
         
         # Making sure the output file is .avi
         if not output_path.endswith('.avi'):
@@ -1085,8 +1095,8 @@ class CameraController(wx.Panel):
             self.capture_thread_obj.join()
 
         self.EnableGUI(True)
-        self.capture_status_timer.Stop()
-        self.capture_sequence_timer.Stop()
+        # self.capture_status_timer.Stop()
+        # self.capture_sequence_timer.Stop()
 
     def capture_thread(self):
         # Indefinite capture mode
@@ -1166,63 +1176,63 @@ class CameraController(wx.Panel):
             print("Camera is not connected.")
             return 0
 
-    def capture_status(self, evt):
-        if self.capture_on is True:
-            self.capture_status_timer.Start(200, oneShot=True)
-            self.current_state.SetLabel("Current status: capturing data!")
-            return
-        else:
-            sequence_length = int(self.sequence_ctrl.GetValue())
-            if sequence_length == 1:
-                self.current_state.SetLabel("Current state: idle")
-                self.EnableGUI(True)
-                self.connect_btn.Enable()
-                self.capture_btn.SetLabel("Capture START")
-                self.StartPreview()
-                return
-            else:
-                self.current_step += 1
-                if sequence_length > self.current_step:
-                    self.capture_btn.SetLabel("Capture STOP")
-                    correction = int(time.time() - self.last_capture_time)
-                    self.time_to_next = int(self.interval_ctrl.GetValue()) - correction
-                    time_to_next_str = str(datetime.timedelta(seconds=self.time_to_next))
-                    self.current_state.SetLabel(
-                        f"Current status: step {self.current_step} out of" +
-                        f"{sequence_length}" +
-                        "time to next: " + time_to_next_str)
-                    self.capture_sequence_timer.Start(1000, oneShot=True)
-                    self.capture_btn.Enable()
-                    self.preview_btn.Enable()
-                    self.StartPreview()
-                    return
-                else:
-                    if self.index_ctrl.GetValue() == '':
-                        self.index_ctrl.SetValue(str(1))
-                        self.current_index = 1
-                    else:
-                        self.current_index = int(self.index_ctrl.GetValue())
-                    self.current_step = 0
-                    self.capture_btn.SetLabel("Capture START")
-                    self.current_state.SetLabel("Current state: idle")
-                    self.EnableGUI(True)
-                    self.connect_btn.Enable()
-                    self.StartPreview()
-                    return
-        return
+    # def capture_status(self, evt):
+    #     if self.capture_on is True:
+    #         self.capture_status_timer.Start(200, oneShot=True)
+    #         self.current_state.SetLabel("Current status: capturing data!")
+    #         return
+    #     else:
+    #         sequence_length = int(self.sequence_ctrl.GetValue())
+    #         if sequence_length == 1:
+    #             self.current_state.SetLabel("Current state: idle")
+    #             self.EnableGUI(True)
+    #             self.connect_btn.Enable()
+    #             self.capture_btn.SetLabel("Capture START")
+    #             self.StartPreview()
+    #             return
+    #         else:
+    #             self.current_step += 1
+    #             if sequence_length > self.current_step:
+    #                 self.capture_btn.SetLabel("Capture STOP")
+    #                 correction = int(time.time() - self.last_capture_time)
+    #                 self.time_to_next = int(self.interval_ctrl.GetValue()) - correction
+    #                 time_to_next_str = str(datetime.timedelta(seconds=self.time_to_next))
+    #                 self.current_state.SetLabel(
+    #                     f"Current status: step {self.current_step} out of" +
+    #                     f"{sequence_length}" +
+    #                     "time to next: " + time_to_next_str)
+    #                 self.capture_sequence_timer.Start(1000, oneShot=True)
+    #                 self.capture_btn.Enable()
+    #                 self.preview_btn.Enable()
+    #                 self.StartPreview()
+    #                 return
+    #             else:
+    #                 if self.index_ctrl.GetValue() == '':
+    #                     self.index_ctrl.SetValue(str(1))
+    #                     self.current_index = 1
+    #                 else:
+    #                     self.current_index = int(self.index_ctrl.GetValue())
+    #                 self.current_step = 0
+    #                 self.capture_btn.SetLabel("Capture START")
+    #                 self.current_state.SetLabel("Current state: idle")
+    #                 self.EnableGUI(True)
+    #                 self.connect_btn.Enable()
+    #                 self.StartPreview()
+    #                 return
+    #     return
 
-    def count_elapsed(self, evt):
-        self.time_to_next -= 1
-        time_to_next_str = str(datetime.timedelta(seconds=self.time_to_next))
-        sequence_length = int(self.sequence_ctrl.GetValue())
-        self.current_state.SetLabel(
-            f"Current status: step {self.current_step} out of" +
-            f"{sequence_length}" +
-            "time to next: " + time_to_next_str)
-        if self.time_to_next > 0:
-            self.capture_sequence_timer.Start(1000, oneShot=True)
-        else:
-            self.StartCapture()
+    # def count_elapsed(self, evt):
+    #     self.time_to_next -= 1
+    #     time_to_next_str = str(datetime.timedelta(seconds=self.time_to_next))
+    #     sequence_length = int(self.sequence_ctrl.GetValue())
+    #     self.current_state.SetLabel(
+    #         f"Current status: step {self.current_step} out of" +
+    #         f"{sequence_length}" +
+    #         "time to next: " + time_to_next_str)
+    #     if self.time_to_next > 0:
+    #         self.capture_sequence_timer.Start(1000, oneShot=True)
+    #     else:
+    #         self.StartCapture()
     
     @staticmethod
     def precise_sleep(duration):

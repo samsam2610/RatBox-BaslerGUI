@@ -191,6 +191,19 @@ class SystemControl(wx.Frame):
             cam_panel.SetAppendDate(self.append_date.GetValue())
             cam_panel.SetFileName(export_name)
 
+    def StartSystemPreview(self, event):
+        pass
+    
+    def StopSystemPreview(self, event):
+        pass
+    
+    def StartSystemCapture(self, event):
+        for cam_panel in self.camera_panels:
+            cam_panel.OnStartCapture(event)
+
+    def StopSystemCapture(self, event):
+        pass            
+
 if __name__ == '__main__':
     app = wx.App()
     ex = SystemControl(number_of_cameras=2)
