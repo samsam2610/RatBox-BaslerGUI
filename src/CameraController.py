@@ -883,9 +883,9 @@ class CameraController(wx.Panel):
          
     def SetTriggerModeLabel(self):
         if self.trigger_mode is True:
-            self.trigger_mode_label = "On"
+            self.trigger_mode_label = 0
         else:
-            self.trigger_mode_label = "Off"
+            self.trigger_mode_label = 1
 
     def SetAppendDate(self, value):
         self.append_date.SetValue(value)
