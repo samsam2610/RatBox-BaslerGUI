@@ -979,9 +979,14 @@ class CameraController(wx.Panel):
         self.preview_btn.SetLabel("Preview START")
 
     def preview_thread(self):
+        import ctypes, time
+
+        user32 = ctypes.windll.user32
+        IsWindowVisible = user32.IsWindowVisible
         # Create Image Windows to display live video while capturing
         imageWindow = pylon.PylonImageWindow()
         imageWindow.Create(self.cam_index, 0, 0, 640, 480)
+        hwnd = imageWindow.GetWindowHandle()  # HWND
         
         self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
         self.previous_time = int(round(time.time() * 1000))
@@ -989,8 +994,11 @@ class CameraController(wx.Panel):
         current_date_and_time = str(datetime.datetime.now())
         last_display_time = time.time()
         display_interval = 1/30  # Update display every 1/60 seconds (to match 60Hz refresh rate)
-         
+
+ 
         while self.preview_on is True:
+            if not IsWindowVisible(hwnd):
+                break
             if self.camera.IsGrabbing():
                 grabResult = self.camera.RetrieveResult(5000,
                                                         pylon.TimeoutHandling_ThrowException)
