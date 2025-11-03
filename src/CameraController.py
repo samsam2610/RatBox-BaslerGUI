@@ -344,6 +344,7 @@ class CameraController(wx.Panel):
         self.current_state = wx.StaticText(panel, label="Current state: idle")
         sizer.Add(self.current_state, pos=(self.row_pos, self.column_pos), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
+        self.row_pos += 1 # Current row position = 27
 
         self.offset_x_ctrl.Disable()
         self.offset_y_ctrl.Disable()
