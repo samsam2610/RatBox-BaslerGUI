@@ -997,8 +997,6 @@ class CameraController(wx.Panel):
 
  
         while self.preview_on is True:
-            if not IsWindowVisible(hwnd):
-                break
             if self.camera.IsGrabbing():
                 grabResult = self.camera.RetrieveResult(5000,
                                                         pylon.TimeoutHandling_ThrowException)
