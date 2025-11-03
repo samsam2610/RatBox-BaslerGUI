@@ -887,7 +887,6 @@ class CameraController(wx.Panel):
         if self.trigger_mode is True:
             self.trigger_mode_label = 0                 
         else:
-            self.camera.TriggerMode.Value = "Off"
             self.trigger_mode_label = 1
     
     def SetTriggerMode(self):
