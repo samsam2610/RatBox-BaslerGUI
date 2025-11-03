@@ -99,6 +99,7 @@ class CameraController(wx.Panel):
         self.is_multi_cam = multi_cam
         self.parent = parent
         self.trigger_mode = trigger_mode
+        self.SetTriggerModeLabel()
         super().__init__(parent)
 
     def InitUI(self):
@@ -880,10 +881,17 @@ class CameraController(wx.Panel):
         else:
             self.trigger_mode = False
         self.SetTriggerMode()
+        self.SetTriggerModeLabel()
          
-    def SetTriggerMode(self):
+    def SetTriggerModeLabel(self):
         if self.trigger_mode is True:
             self.trigger_mode_label = 0                 
+        else:
+            self.camera.TriggerMode.Value = "Off"
+            self.trigger_mode_label = 1
+    
+    def SetTriggerMode(self):
+        if self.trigger_mode is True:
             self.camera.LineSelector.Value = "Line1"
             self.camera.LineMode.Value = "Input"
             self.camera.TriggerMode.Value = "On"
@@ -891,7 +899,6 @@ class CameraController(wx.Panel):
             self.camera.TriggerSource.Value = "Line1"
         else:
             self.camera.TriggerMode.Value = "Off"
-            self.trigger_mode_label = 1
 
     def SetAppendDate(self, value):
         self.append_date.SetValue(value)
