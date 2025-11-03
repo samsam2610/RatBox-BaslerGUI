@@ -99,6 +99,7 @@ class CameraController(wx.Panel):
         self.is_multi_cam = multi_cam
         self.parent = parent
         self.trigger_mode = trigger_mode
+        self.SetTriggerModeLabel()
         super().__init__(parent)
 
     def InitUI(self):
@@ -149,7 +150,16 @@ class CameraController(wx.Panel):
         sizer.Add(self.Window, pos=(self.row_pos, self.column_pos), span=(row_span, 3),
                   flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
         self.row_pos += (row_span+1)  # Current row position = 8
-        
+
+        self.trigger_ctrl_label = wx.StaticText(panel, label="Trigger mode:")
+        sizer.Add(self.trigger_ctrl_label, pos=(self.row_pos, self.column_pos),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        trigger_mode_selection = ["On", "Off"]
+        self.trigger_mode_combo = wx.ComboBox(panel, choices=trigger_mode_selection)
+        sizer.Add(self.trigger_mode_combo, pos=(self.row_pos, self.column_pos + 1), flag=wx.ALL, border=5)
+        self.trigger_mode_combo.Bind(wx.EVT_COMBOBOX, self.OnTriggerModeCombo)
+        self.trigger_mode_combo.SetSelection(self.trigger_mode_label)
+        self.row_pos += 1 # Current row position = 22
         
         self.framerate_ctrl_label = wx.StaticText(panel, label="Framerate (Hz):")
         sizer.Add(self.framerate_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
@@ -342,11 +352,12 @@ class CameraController(wx.Panel):
         
         # Text field to enter the queue
         self.note_label = wx.StaticText(panel, label="Notes (Press Enter to send):")
-        sizer.Add(self.note_label, pos=(27, self.column_pos), span=(1, 1),
+        sizer.Add(self.note_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.note_ctrl = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
-        sizer.Add(self.note_ctrl, pos=(27, self.column_pos + 1), span=(1, 2),
+        sizer.Add(self.note_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
+        self.row_pos += 1
 
         self.next_note_q = queue.Queue(maxsize=1)
         self.note_ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnNoteEnter)
@@ -861,7 +872,21 @@ class CameraController(wx.Panel):
 
     def OnAppendDate(self, event):
         self.append_date_flag = self.append_date.GetValue()
-    
+   
+    def OnTriggerModeCombo(self, event):
+        selection = self.trigger_mode_combo.GetSelection()
+        if selection == 0:
+            self.trigger_mode = True
+        else:
+            self.trigger_mode = False
+        self.SetTriggerModeLabel()
+         
+    def SetTriggerModeLabel(self):
+        if self.trigger_mode is True:
+            self.trigger_mode_label = "On"
+        else:
+            self.trigger_mode_label = "Off"
+
     def SetAppendDate(self, value):
         self.append_date.SetValue(value)
         self.append_date_flag = value
