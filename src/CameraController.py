@@ -54,7 +54,7 @@ class CameraController(wx.Panel):
     encoding_mode = 0
     time_to_next = 0
 
-    selected_camera = 0
+    
     auto_exposure_on = False
     auto_gain_on = False
     preview_on = False
@@ -93,6 +93,7 @@ class CameraController(wx.Panel):
     def __init__(self, parent, cam_index, cam_details, multi_cam=False, column_pos=0, row_pos=0, trigger_mode: bool=False, *args, **kwargs):
 
         self.cam_index = cam_index
+        self.selected_camera = cam_index
         self.cam_details = cam_details
         self.column_pos = column_pos
         self.row_pos = row_pos
