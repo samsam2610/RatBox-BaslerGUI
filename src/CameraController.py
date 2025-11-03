@@ -99,7 +99,7 @@ class CameraController(wx.Panel):
         self.is_multi_cam = multi_cam
         self.parent = parent
         self.trigger_mode = trigger_mode
-        self.SetTriggerModeLabel()
+        self.SetTriggerMode()
         super().__init__(parent)
 
     def InitUI(self):
