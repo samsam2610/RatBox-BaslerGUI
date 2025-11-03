@@ -417,7 +417,7 @@ class CameraController(wx.Panel):
         if value is True:
             # self.interval_ctrl.Enable()
             # self.sequence_ctrl.Enable()
-            # self.framescap_ctrl.Enable()
+            self.trigger_mode_combo.Enable()
             self.framerate_slider.Enable()
             self.exposure_slider.Enable()
             self.gain_slider.Enable()
@@ -460,7 +460,7 @@ class CameraController(wx.Panel):
         elif preview is True:
             # self.interval_ctrl.Disable()
             # self.sequence_ctrl.Disable()
-            # self.framescap_ctrl.Disable()
+            self.trigger_mode_combo.Disable()
             self.framerate_slider.Disable()
             self.exposure_slider.Disable()
             self.gain_slider.Disable()
@@ -481,7 +481,7 @@ class CameraController(wx.Panel):
         else:
             # self.interval_ctrl.Disable()
             # self.sequence_ctrl.Disable()
-            # self.framescap_ctrl.Disable()
+            self.trigger_mode_combo.Disable()
             self.framerate_slider.Disable()
             self.exposure_slider.Disable()
             self.gain_slider.Disable()
@@ -505,7 +505,7 @@ class CameraController(wx.Panel):
         if value is True:
             # self.interval_ctrl.Enable()
             # self.sequence_ctrl.Enable()
-            # self.framescap_ctrl.Enable()
+            self.trigger_mode_combo.Enable()
             self.framerate_slider.Enable()
             self.exportfile_ctrl.Enable()
             self.mode_combo.Enable()
@@ -543,7 +543,7 @@ class CameraController(wx.Panel):
         else:
             # self.interval_ctrl.Disable()
             # self.sequence_ctrl.Disable()
-            # self.framescap_ctrl.Disable()
+            self.trigger_mode_combo.Disable()
             self.framerate_slider.Disable()
             self.exposure_slider.Disable()
             self.gain_slider.Disable()
@@ -594,7 +594,7 @@ class CameraController(wx.Panel):
                         # self.camera.LineEventEnable.Value = True  # Enable event generation
                         
                         # Setting trigger mode
-                        if self.trigger_mode_value:
+                        if self.trigger_mode is True:
                             self.camera.LineSelector.Value = "Line1"
                             self.camera.LineMode.Value = "Input"
                             self.camera.TriggerMode.Value = "On"
@@ -880,12 +880,18 @@ class CameraController(wx.Panel):
             self.trigger_mode = True
         else:
             self.trigger_mode = False
-        self.SetTriggerModeLabel()
+        self.SetTriggerMode()
          
-    def SetTriggerModeLabel(self):
+    def SetTriggerMode(self):
         if self.trigger_mode is True:
-            self.trigger_mode_label = 0
+            self.trigger_mode_label = 0                 
+            self.camera.LineSelector.Value = "Line1"
+            self.camera.LineMode.Value = "Input"
+            self.camera.TriggerMode.Value = "On"
+            self.camera.TriggerSelector.Value = "FrameStart"
+            self.camera.TriggerSource.Value = "Line1"
         else:
+            self.camera.TriggerMode.Value = "Off"
             self.trigger_mode_label = 1
 
     def SetAppendDate(self, value):
