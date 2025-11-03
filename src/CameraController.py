@@ -1141,7 +1141,7 @@ class CameraController(wx.Panel):
         
         # Create Image Windows to display live video while capturing
         imageWindow = pylon.PylonImageWindow()
-        imageWindow.Create(1)
+        imageWindow.Create(self.cam_index, 0, 0, 640, 480)
         
         # Enable chunks in general.
         self.camera.ChunkModeActive.Value = True
