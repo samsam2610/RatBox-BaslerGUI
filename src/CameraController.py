@@ -892,8 +892,6 @@ class CameraController(wx.Panel):
     
     def SetTriggerMode(self):
         if self.trigger_mode is True:
-            # self.camera.LineSelector.Value = "Line4"
-            # self.camera.LineMode.Value = "Input"
             self.camera.TriggerMode.Value = "On"
             self.camera.TriggerSource.Value = "Line4"
             self.camera.TriggerSelector.Value = "FrameStart"
@@ -1097,28 +1095,6 @@ class CameraController(wx.Panel):
             # self.current_step = sequence_length
             return
 
-        # if sequence_length < 1:
-        #     wx.MessageBox('Invalid length of measurement sequence! Minimum' +
-        #                   ' required value is 1.',
-        #                   'Warning', wx.OK | wx.ICON_WARNING)
-        #     self.capture_on = False
-        #     return
-        
-        # if sequence_length > 1:
-        #     if(video_length > interval_length):
-        #         wx.MessageBox('Interval length should be greater than video length',
-        #                       'Warning', wx.OK | wx.ICON_WARNING)
-        #         self.capture_on = False
-        #         return
-
-        # if frames_to_capture < 1:
-        #     wx.MessageBox('Invalid number of frames to capture! Minimum' +
-        #                   ' required value is 5 frames.',
-        #                   'Warning', wx.OK | wx.ICON_WARNING)
-        #     self.capture_on = False
-        #     self.current_step = sequence_length
-        #     return
-        
         # Making sure the output file is .avi
         if not output_path.endswith('.avi'):
             output_path += '.avi'
@@ -1137,12 +1113,11 @@ class CameraController(wx.Panel):
         )
  
     def StopCapture(self):
+        self.capture_on = False
         if self.capture_thread_obj.is_alive() is True:
             self.capture_thread_obj.join()
 
         self.EnableGUI(True)
-        # self.capture_status_timer.Stop()
-        # self.capture_sequence_timer.Stop()
 
     def capture_thread(self):
         # Indefinite capture mode
