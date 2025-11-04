@@ -1151,8 +1151,38 @@ class CameraController(wx.Panel):
         print(f'Capturing video started at: {current_date_and_time}')
         
         captured_frames = 0
-        while self.camera.IsGrabbing() and self.capture_on is True:
-            grabResult = self.camera.RetrieveResult(4294967295,
+        # while self.camera.IsGrabbing() and self.capture_on is True:
+        #     grabResult = self.camera.RetrieveResult(4294967295,
+        #                                             pylon.TimeoutHandling_ThrowException)
+        #     if grabResult.GrabSucceeded():
+        #         frame = grabResult.GetArray()
+        #         timestamp = time.time()
+        #         frame_timestamp = grabResult.ChunkTimestamp.Value
+        #         frame_line_status = grabResult.ChunkLineStatusAll.Value
+        #         captured_frames += 1
+
+        #         # Pull one pending note if any (non-blocking, single-shot)
+        #         note = None
+        #         try:
+        #             note = self.next_note_q.get_nowait()
+        #         except queue.Empty:
+        #             pass
+
+        #         self.video_session.acquire_frame(frame, frame_timestamp, captured_frames, frame_line_status, note)
+                
+        #         if (timestamp - last_display_time) > display_interval:
+        #             line_status = self.camera.LineStatus.GetValue()  # Retrieve line status
+        #             imageWindow.SetImage(grabResult)
+        #             imageWindow.Show()
+        #             last_display_time = time.time()
+                
+        #         time.sleep(0.00001)
+        #     else:
+        #         print("Error: ", grabResult.ErrorCode)
+            
+        #     grabResult.Release()
+        while self.capture_on is True:
+            grabResult = self.camera.RetrieveResult(0,
                                                     pylon.TimeoutHandling_ThrowException)
             if grabResult.GrabSucceeded():
                 frame = grabResult.GetArray()
@@ -1177,6 +1207,8 @@ class CameraController(wx.Panel):
                     last_display_time = time.time()
                 
                 time.sleep(0.00001)
+            elif not grabResult.isValid():
+                break
             else:
                 print("Error: ", grabResult.ErrorCode)
             
