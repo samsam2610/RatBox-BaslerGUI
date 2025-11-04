@@ -1182,8 +1182,12 @@ class CameraController(wx.Panel):
             
         #     grabResult.Release()
         while self.capture_on is True:
-            grabResult = self.camera.RetrieveResult(0,
-                                                    pylon.TimeoutHandling_ThrowException)
+            try:
+                grabResult = self.camera.RetrieveResult(500, pylon.TimeoutHandling_ThrowException)
+            except pylon.TimeoutException:
+                print("Timeout occurred while waiting for a frame.")
+                continue
+
             if grabResult.GrabSucceeded():
                 frame = grabResult.GetArray()
                 timestamp = time.time()
