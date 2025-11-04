@@ -892,11 +892,13 @@ class CameraController(wx.Panel):
     
     def SetTriggerMode(self):
         if self.trigger_mode is True:
-            self.camera.LineSelector.Value = "Line4"
-            self.camera.LineMode.Value = "Input"
+            # self.camera.LineSelector.Value = "Line4"
+            # self.camera.LineMode.Value = "Input"
             self.camera.TriggerMode.Value = "On"
-            self.camera.TriggerSelector.Value = "FrameStart"
             self.camera.TriggerSource.Value = "Line4"
+            self.camera.TriggerSelector.Value = "FrameStart"
+            
+            print("Trigger mode set to ON")
         else:
             self.camera.TriggerMode.Value = "Off"
 
