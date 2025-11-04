@@ -1175,7 +1175,7 @@ class CameraController(wx.Panel):
         
         captured_frames = 0
         while self.camera.IsGrabbing() and self.capture_on is True:
-            grabResult = self.camera.RetrieveResult(500,
+            grabResult = self.camera.RetrieveResult(4294967295,
                                                     pylon.TimeoutHandling_ThrowException)
             if grabResult.GrabSucceeded():
                 frame = grabResult.GetArray()
