@@ -996,28 +996,31 @@ class CameraController(wx.Panel):
         last_display_time = time.time()
         display_interval = 1/30  # Update display every 1/60 seconds (to match 60Hz refresh rate)
 
- 
-        while self.preview_on is True:
-            if self.camera.IsGrabbing():
-                grabResult = self.camera.RetrieveResult(4294967295,
-                                                        pylon.TimeoutHandling_ThrowException)
-                if grabResult.GrabSucceeded():
-                    current_time = int(round(time.time() * 1000))
-                    if ((current_time - self.previous_time) > 20):
-                        self.lock.acquire()
-                        self.frame = grabResult.GetArray()
+
+        while self.camera.IsGrabbing() and self.preview_on is True:
+            try:
+                grabResult = self.camera.RetrieveResult(500,
+                                                    pylon.TimeoutHandling_ThrowException)
+            except pylon.TimeoutException:
+                print("Timeout occurred while waiting for image.")
+                continue
+            if grabResult.GrabSucceeded():
+                current_time = int(round(time.time() * 1000))
+                if ((current_time - self.previous_time) > 20):
+                    self.lock.acquire()
+                    self.frame = grabResult.GetArray()
+                    
+                    timestamp = time.time() 
+                    if (timestamp - last_display_time) > display_interval:
+                        imageWindow.SetImage(grabResult)
+                        imageWindow.Show()
+                        last_display_time = time.time()
                         
-                        timestamp = time.time() 
-                        if (timestamp - last_display_time) > display_interval:
-                            imageWindow.SetImage(grabResult)
-                            imageWindow.Show()
-                            last_display_time = time.time()
-                            
-                        self.lock.release()
-                        self.previous_time = current_time
-                else:
-                    print("Error: ", grabResult.ErrorCode)
-                grabResult.Release()
+                    self.lock.release()
+                    self.previous_time = current_time
+            else:
+                print("Error: ", grabResult.ErrorCode)
+            grabResult.Release()
 
         imageWindow.Close()
         self.camera.StopGrabbing()
