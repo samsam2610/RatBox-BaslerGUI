@@ -1213,7 +1213,7 @@ class CameraController(wx.Panel):
                     imageWindow.Show()
                     last_display_time = time.time()
                 
-                time.sleep(0.00001)
+                # time.sleep(0.00001)
             elif not grabResult.isValid():
                 break
             else:
