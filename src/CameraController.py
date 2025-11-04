@@ -892,11 +892,11 @@ class CameraController(wx.Panel):
     
     def SetTriggerMode(self):
         if self.trigger_mode is True:
-            self.camera.LineSelector.Value = "Line1"
+            self.camera.LineSelector.Value = "Line4"
             self.camera.LineMode.Value = "Input"
             self.camera.TriggerMode.Value = "On"
             self.camera.TriggerSelector.Value = "FrameStart"
-            self.camera.TriggerSource.Value = "Line1"
+            self.camera.TriggerSource.Value = "Line4"
         else:
             self.camera.TriggerMode.Value = "Off"
 
@@ -999,7 +999,7 @@ class CameraController(wx.Panel):
  
         while self.preview_on is True:
             if self.camera.IsGrabbing():
-                grabResult = self.camera.RetrieveResult(5000,
+                grabResult = self.camera.RetrieveResult(4294967295,
                                                         pylon.TimeoutHandling_ThrowException)
                 if grabResult.GrabSucceeded():
                     current_time = int(round(time.time() * 1000))
