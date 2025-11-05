@@ -14,7 +14,7 @@ class VideoRecordingSession:
         self.cam_num = cam_num
         self.recording_status = False
         self.vid_out = None
-        self.frame_buffer = deque(maxlen=500)
+        self.frame_buffer = deque(maxlen=10000)
         self.buffer_lock = threading.Lock()
         self.frame_count = 0
         self.frame_times = []
@@ -82,8 +82,8 @@ class VideoRecordingSession:
         while self.recording_status:
             if len(self.frame_buffer) > 0:
                 self._write_frame()
-            # else:
-            #     time.sleep(0.001)
+            else:
+                time.sleep(0.001)
         
         print(f"Cam {self.cam_num}: Frame processing stopped")
     
