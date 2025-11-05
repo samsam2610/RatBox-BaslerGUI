@@ -592,19 +592,19 @@ class CameraController(wx.Panel):
                         self.camera.LineSelector.Value = "Line3"  # Select GPIO Pin 3
                         self.camera.LineMode.Value = "Input"  # Configure as Input
                         # self.camera.LineEventSource.Value = "RisingEdge" # Trigger on Rising Edge
-                        # self.camera.LineEventEnable.Value = True  # Enable event generation
-                        
-
+                        # self.camera.LineEventEnable.Value = True  # Enable event generation     
                             
                         # # Register the standard event handler for configuring input detected events.
                         self.camera.RegisterConfiguration(ConfigurationEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete)
                         
-                        self.camera.MaxNumBuffer = 180
+                        self.camera.MaxNumBuffer = 10000
+                        self.camera.OutputQueueSize.Value = 10000
                         # Setting trigger mode
                         if self.trigger_mode is True:
                             self.camera.TriggerMode.Value = "On"
                             self.camera.TriggerSelector.Value = "FrameStart"
                             self.camera.TriggerSource.Value = "Line4"
+                            self.camera.TriggerActivation.Value = "RisingEdge"
                             self.camera.AcquisitionFrameRateEnable.SetValue(False)
                             # resulting_framerate = self.camera.ResultingFrameRate.GetValue()
                             # self.camera.AcquisitionFrameRate.SetValue(resulting_framerate)
@@ -897,6 +897,7 @@ class CameraController(wx.Panel):
             self.camera.TriggerMode.Value = "On"
             self.camera.TriggerSelector.Value = "FrameStart"
             self.camera.TriggerSource.Value = "Line4"
+            self.camera.TriggerActivation.Value = "RisingEdge"
             self.camera.AcquisitionFrameRateEnable.SetValue(False)
             # resulting_framerate = self.camera.ResultingFrameRate.GetValue()
             # self.camera.AcquisitionFrameRate.SetValue(resulting_framerate)
