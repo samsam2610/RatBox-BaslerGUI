@@ -597,8 +597,8 @@ class CameraController(wx.Panel):
                         # # Register the standard event handler for configuring input detected events.
                         self.camera.RegisterConfiguration(ConfigurationEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete)
                         
-                        self.camera.MaxNumBuffer = 6
-                        self.camera.OutputQueueSize.Value = 6
+                        self.camera.MaxNumBuffer = 2
+                        self.camera.OutputQueueSize.Value = 2
                         # Setting trigger mode
                         if self.trigger_mode is True:
                             self.camera.TriggerMode.Value = "On"
@@ -1172,6 +1172,9 @@ class CameraController(wx.Panel):
             except pylon.TimeoutException:
                 # print("Timeout occurred while waiting for a frame.")
                 continue
+            
+            if self.camera.NumReadyBuffers.GetValue() > 0:
+                print(f"Frames in buffer: {self.camera.NumReadyBuffers.GetValue()}")
 
             if grabResult.GrabSucceeded():
                 frame = grabResult.GetArray()

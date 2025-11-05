@@ -98,7 +98,7 @@ class VideoRecordingSession:
         self.frame_count += 1
         
         # Write to CSV
-        self.csv_writer.writerow([timestamp-self.first_frame_time, frame_number, frame_line_status, note])
+        self.csv_writer.writerow([(timestamp-self.first_frame_time)/1_000_000_000, frame_number, frame_line_status, note])
         
         if self.frame_count % 1000 == 0:
             print(f"Cam {self.cam_num}: Recorded {self.frame_count} frames. Remaining: {len(self.frame_buffer)}")
