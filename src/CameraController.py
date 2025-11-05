@@ -1115,7 +1115,7 @@ class CameraController(wx.Panel):
 
         # Configure session
         # Prepare data output file and buffer
-        self.video_session = VideoRecordingSession(cam_num=0)
+        self.video_session = VideoRecordingSession(cam_num=self.cam_index)
         print(f"Frame width: {self.frame_width}, Frame height: {self.frame_height}")
         
         # TODO: add more options for output file
