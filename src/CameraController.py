@@ -594,26 +594,28 @@ class CameraController(wx.Panel):
                         # self.camera.LineEventSource.Value = "RisingEdge" # Trigger on Rising Edge
                         # self.camera.LineEventEnable.Value = True  # Enable event generation
                         
-                        # Setting trigger mode
-                        if self.trigger_mode is True:
-                            self.camera.LineSelector.Value = "Line1"
-                            self.camera.LineMode.Value = "Input"
-                            self.camera.TriggerMode.Value = "On"
-                            self.camera.TriggerSelector.Value = "FrameStart"
-                            self.camera.TriggerSource.Value = "Line1"
-                        else:
-                            self.camera.TriggerMode.Value = "Off"
+
                             
                         # # Register the standard event handler for configuring input detected events.
                         self.camera.RegisterConfiguration(ConfigurationEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete)
                         
                         self.camera.MaxNumBuffer = 180
-                        self.camera.AcquisitionFrameRateEnable.SetValue(True)
-                        self.camera.AcquisitionFrameRate.SetValue(200.0)
-                        resulting_framerate = self.camera.ResultingFrameRate.GetValue()
-                        if (resulting_framerate != self.framerate):
-                            self.framerate = resulting_framerate
-                            self.framerate_slider.SetValue(self.framerate)
+                        # Setting trigger mode
+                        if self.trigger_mode is True:
+                            self.camera.TriggerMode.Value = "On"
+                            self.camera.TriggerSelector.Value = "FrameStart"
+                            self.camera.TriggerSource.Value = "Line4"
+                            self.camera.AcquisitionFrameRateEnable.SetValue(False)
+                            resulting_framerate = self.camera.ResultingFrameRate.GetValue()
+                            self.camera.AcquisitionFrameRate.SetValue(resulting_framerate)
+                        else:
+                            self.camera.TriggerMode.Value = "Off"
+                            self.camera.AcquisitionFrameRateEnable.SetValue(True)
+                            self.camera.AcquisitionFrameRate.SetValue(200.0)
+                            resulting_framerate = self.camera.ResultingFrameRate.GetValue()
+                            if (resulting_framerate != self.framerate):
+                                self.framerate = resulting_framerate
+                                self.framerate_slider.SetValue(self.framerate)
 
                         self.camera.GainAuto.SetValue("Off")
                         self.camera.ExposureAuto.SetValue("Off")
@@ -892,15 +894,20 @@ class CameraController(wx.Panel):
     
     def SetTriggerMode(self):
         if self.trigger_mode is True:
-            self.camera.AcquisitionFrameRateEnable.SetValue(False)
             self.camera.TriggerMode.Value = "On"
-            self.camera.TriggerSource.Value = "Line4"
             self.camera.TriggerSelector.Value = "FrameStart"
-            
-            print("Trigger mode set to ON")
+            self.camera.TriggerSource.Value = "Line4"
+            self.camera.AcquisitionFrameRateEnable.SetValue(False)
+            resulting_framerate = self.camera.ResultingFrameRate.GetValue()
+            self.camera.AcquisitionFrameRate.SetValue(resulting_framerate)
         else:
             self.camera.TriggerMode.Value = "Off"
             self.camera.AcquisitionFrameRateEnable.SetValue(True)
+            self.camera.AcquisitionFrameRate.SetValue(200.0)
+            resulting_framerate = self.camera.ResultingFrameRate.GetValue()
+            if (resulting_framerate != self.framerate):
+                self.framerate = resulting_framerate
+                self.framerate_slider.SetValue(self.framerate)
 
     def SetAppendDate(self, value):
         self.append_date.SetValue(value)
