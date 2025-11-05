@@ -597,8 +597,8 @@ class CameraController(wx.Panel):
                         # # Register the standard event handler for configuring input detected events.
                         self.camera.RegisterConfiguration(ConfigurationEventPrinter(), pylon.RegistrationMode_Append, pylon.Cleanup_Delete)
                         
-                        self.camera.MaxNumBuffer = 10000
-                        self.camera.OutputQueueSize.Value = 10000
+                        self.camera.MaxNumBuffer = 200
+                        self.camera.OutputQueueSize.Value = 200
                         # Setting trigger mode
                         if self.trigger_mode is True:
                             self.camera.TriggerMode.Value = "On"
