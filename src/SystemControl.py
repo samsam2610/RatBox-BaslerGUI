@@ -136,7 +136,18 @@ class SystemControl(wx.Frame):
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.set_config_btn.Bind(wx.EVT_BUTTON, self.SetFolderAndFileConfigurationSystemWide)
             self.row_pos += 1 # Current row position = 6
+           
+            self.system_preview_btn = wx.Button(self.system_panel, label="Start System Preview")
+            sizer.Add(self.system_preview_btn, pos=(self.row_pos, self.column_pos), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5) 
+            self.system_preview_btn.Bind(wx.EVT_BUTTON, self.OnSystemPreview)
+            self.row_pos += 1 # Current row position = 7
             
+            self.system_capture_btn = wx.Button(self.system_panel, label="Start System Capture")
+            sizer.Add(self.system_capture_btn, pos=(self.row_pos, self.column_pos), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5) 
+            self.system_capture_btn.Bind(wx.EVT_BUTTON, self.OnSystemCapture)
+            self.row_pos += 1 # Current row position = 8
             
             
             self.system_panel.SetSizer(sizer)
@@ -191,10 +202,60 @@ class SystemControl(wx.Frame):
             cam_panel.SetAppendDate(self.append_date.GetValue())
             cam_panel.SetFileName(export_name)
 
+    def EnableSystemControls(self, value, preview=True):
+        if value is True:
+            self.exportfile_ctrl.Enable()
+            self.select_folder_btn.Enable()
+            self.append_date.Enable()
+            self.auto_index.Enable()
+            self.index_ctrl.Enable()
+            self.set_config_btn.Enable()
+            if preview is True:
+                self.system_preview_btn.Enable()
+            self.system_capture_btn.Enable()
+        elif preview is True:
+            self.exportfile_ctrl.Disable()
+            self.select_folder_btn.Disable()
+            self.append_date.Disable()
+            self.auto_index.Disable()
+            self.index_ctrl.Disable()
+            self.set_config_btn.Disable()
+            self.system_preview_btn.Disable()
+            self.system_capture_btn.Disable()
+        else:
+            self.exportfile_ctrl.Disable()
+            self.select_folder_btn.Disable()
+            self.append_date.Disable()
+            self.auto_index.Disable()
+            self.index_ctrl.Disable()
+            self.set_config_btn.Disable()
+            self.system_capture_btn.Disable()
+   
+    def check_camera_connected_status(self):
+        all_connected = all(panel.camera_connected for panel in self.camera_panels)
+        self.camera_connected = all_connected
+        return all_connected
+    
+    def check_camera_preview_status(self):
+        all_preview = all(panel.preview_on for panel in self.camera_panels)
+        self.preview_on = all_preview
+        return all_preview
+
+    def OnSystemPreview(self, event):
+        if self.check_camera_preview_status() is True:
+            self.StopSystemPreview()
+        else:
+            self.StartSystemPreview()
+
     def StartSystemPreview(self, event):
-        pass
+        for cam_panel in self.camera_panels:
+            cam_panel.StartPreview()
     
     def StopSystemPreview(self, event):
+        for cam_panel in self.camera_panels:
+            cam_panel.StopPreview()
+
+    def OnSystemCapture(self, event):
         pass
     
     def StartSystemCapture(self, event):
