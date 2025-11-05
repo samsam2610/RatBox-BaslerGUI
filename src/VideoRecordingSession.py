@@ -14,7 +14,7 @@ class VideoRecordingSession:
         self.cam_num = cam_num
         self.recording_status = False
         self.vid_out = None
-        self.frame_buffer = deque(maxlen=10000)
+        self.frame_buffer = deque(maxlen=500)
         self.buffer_lock = threading.Lock()
         self.frame_count = 0
         self.frame_times = []
@@ -93,7 +93,7 @@ class VideoRecordingSession:
         self.frame_count += 1
         
         # Write to CSV
-        self.csv_writer.writerow([timestamp, frame_number, frame_line_status, note])
+        self.csv_writer.writerow([timestamp/(1_000_000_000), frame_number, frame_line_status, note])
         
         if self.frame_count % 1000 == 0:
             print(f"Cam {self.cam_num}: Recorded {self.frame_count} frames. Remaining: {len(self.frame_buffer)}")
