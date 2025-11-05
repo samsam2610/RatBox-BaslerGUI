@@ -22,6 +22,7 @@ class VideoRecordingSession:
         self.dim = None
         self.fourcc = None
         self.fps = None
+        self.first_frame_time = None
 
     def set_params(self, video_file, fourcc, fps, dim):
         self.video_file = video_file
@@ -69,6 +70,7 @@ class VideoRecordingSession:
             print(f"Cam {self.cam_num}: Closing CSV file")
             self.csv_file_handle.close()
         print(f"Cam {self.cam_num}: Recording stopped.")
+        self.first_frame_time = None
 
     def write_remaining_frames(self):
         print(f"Remaining frames: {len(self.frame_buffer)}")
@@ -88,12 +90,15 @@ class VideoRecordingSession:
         print(f"Cam {self.cam_num}: Frame processing stopped")
     
     def _write_frame(self):
+
         frame, timestamp, frame_number, frame_line_status, note = self.frame_buffer.popleft()    
+        if frame_number is 1:
+            self.first_frame_time = timestamp
         self.vid_out.write(frame)
         self.frame_count += 1
         
         # Write to CSV
-        self.csv_writer.writerow([timestamp/(1_000_000_000), frame_number, frame_line_status, note])
+        self.csv_writer.writerow([timestamp-self.first_frame_time, frame_number, frame_line_status, note])
         
         if self.frame_count % 1000 == 0:
             print(f"Cam {self.cam_num}: Recorded {self.frame_count} frames. Remaining: {len(self.frame_buffer)}")
