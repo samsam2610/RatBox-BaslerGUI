@@ -1031,7 +1031,8 @@ class CameraController(wx.Panel):
             else:
                 print("Error: ", grabResult.ErrorCode)
             grabResult.Release()
-
+        while self.camera.NumReadyBuffers.GetValue() > 0:
+            self.camera.RetrieveResult(5000, pylon.TimeoutHandling_Return)
         imageWindow.Close()
         self.camera.StopGrabbing()
 
@@ -1194,9 +1195,9 @@ class CameraController(wx.Panel):
         #         print("Error: ", grabResult.ErrorCode)
             
         #     grabResult.Release()
-        while self.capture_on is True:
+        while (self.capture_on is True) or (self.camera.NumReadyBuffers.GetValue() > 0):
             try:
-                grabResult = self.camera.RetrieveResult(500, pylon.TimeoutHandling_ThrowException)
+                grabResult = self.camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
             except pylon.TimeoutException:
                 print("Timeout occurred while waiting for a frame.")
                 continue
