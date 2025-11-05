@@ -892,6 +892,7 @@ class CameraController(wx.Panel):
     
     def SetTriggerMode(self):
         if self.trigger_mode is True:
+            self.camera.AcquisitionFrameRateEnable.SetValue(False)
             self.camera.TriggerMode.Value = "On"
             self.camera.TriggerSource.Value = "Line4"
             self.camera.TriggerSelector.Value = "FrameStart"
@@ -899,6 +900,7 @@ class CameraController(wx.Panel):
             print("Trigger mode set to ON")
         else:
             self.camera.TriggerMode.Value = "Off"
+            self.camera.AcquisitionFrameRateEnable.SetValue(True)
 
     def SetAppendDate(self, value):
         self.append_date.SetValue(value)
