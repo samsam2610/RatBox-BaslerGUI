@@ -606,8 +606,8 @@ class CameraController(wx.Panel):
                             self.camera.TriggerSelector.Value = "FrameStart"
                             self.camera.TriggerSource.Value = "Line4"
                             self.camera.AcquisitionFrameRateEnable.SetValue(False)
-                            resulting_framerate = self.camera.ResultingFrameRate.GetValue()
-                            self.camera.AcquisitionFrameRate.SetValue(resulting_framerate)
+                            # resulting_framerate = self.camera.ResultingFrameRate.GetValue()
+                            # self.camera.AcquisitionFrameRate.SetValue(resulting_framerate)
                         else:
                             self.camera.TriggerMode.Value = "Off"
                             self.camera.AcquisitionFrameRateEnable.SetValue(True)
@@ -898,8 +898,8 @@ class CameraController(wx.Panel):
             self.camera.TriggerSelector.Value = "FrameStart"
             self.camera.TriggerSource.Value = "Line4"
             self.camera.AcquisitionFrameRateEnable.SetValue(False)
-            resulting_framerate = self.camera.ResultingFrameRate.GetValue()
-            self.camera.AcquisitionFrameRate.SetValue(resulting_framerate)
+            # resulting_framerate = self.camera.ResultingFrameRate.GetValue()
+            # self.camera.AcquisitionFrameRate.SetValue(resulting_framerate)
         else:
             self.camera.TriggerMode.Value = "Off"
             self.camera.AcquisitionFrameRateEnable.SetValue(True)
