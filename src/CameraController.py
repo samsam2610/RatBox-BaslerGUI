@@ -1152,6 +1152,8 @@ class CameraController(wx.Panel):
         self.camera.ChunkSelector.Value = "LineStatusAll"
         self.camera.ChunkEnable.Value = True
         
+        self.camera.TimestampReset.Execute()  # Reset time stamp to zero
+        
         # Start the video recording session
         self.video_session.start_recording()
         
