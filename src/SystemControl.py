@@ -93,6 +93,7 @@ class SystemControl(wx.Frame):
             self.exportfile_ctrl = wx.TextCtrl(self.system_panel)
             sizer.Add(self.exportfile_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
                     flag=wx.EXPAND | wx.ALL, border=5)
+            self.exportfile_ctrl.SetValue(self.get_last_filename())
             self.row_pos += 1 # Current row position = 1
 
             exportfolder_ctrl_label = wx.StaticText(self.system_panel, label="Export directory:")
@@ -281,15 +282,15 @@ class SystemControl(wx.Frame):
             self.system_capture_btn.SetLabel("Start System Capture")
             self.EnableSystemControls(value=True, preview=False)          
     
-    def set_last_dir(self, path):
-        cfg = self.get_config()
-        cfg.Write("last_export_dir", path)
-        cfg.Flush()
-
     def get_config(self):
         APP_NAME = "BaslerCamGUI"  # any unique name
         # Stores under a per-user location (AppData on Windows, ~/.config on Linux, etc.)
         return wx.Config(APP_NAME)
+    
+    def set_last_dir(self, path):
+        cfg = self.get_config()
+        cfg.Write("last_export_dir", path)
+        cfg.Flush()
 
     def get_last_dir(self, fallback=None):
         cfg = self.get_config()
@@ -297,6 +298,18 @@ class SystemControl(wx.Frame):
         if last_dir and os.path.isdir(last_dir):
             return last_dir
         return fallback or os.getcwd()
+    
+    def set_last_filename(self, filename):
+        cfg = self.get_config()
+        cfg.Write("last_export_filename", filename)
+        cfg.Flush()
+        
+    def get_last_filename(self, fallback=None):
+        cfg = self.get_config()
+        last_filename = cfg.Read("last_export_filename", "")
+        if last_filename:
+            return last_filename
+        return fallback or "subject_name"
 
 if __name__ == '__main__':
     app = wx.App()
