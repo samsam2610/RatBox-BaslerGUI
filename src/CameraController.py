@@ -1185,6 +1185,7 @@ class CameraController(wx.Panel):
                 if (timestamp - last_display_time) > display_interval:
                     line_status = self.camera.LineStatus.GetValue()  # Retrieve line status
                     imageWindow.SetImage(grabResult)
+                    imageWindow.Show()
                     last_display_time = time.time()
                 
                 # time.sleep(0.00001)
