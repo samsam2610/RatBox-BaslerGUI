@@ -242,7 +242,7 @@ class SystemControl(wx.Frame):
         return all_preview
 
     def OnSystemPreview(self, event):
-        if self.check_camera_preview_status() is True:
+        if self.check_camera_preview_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartPreview()
         else:
