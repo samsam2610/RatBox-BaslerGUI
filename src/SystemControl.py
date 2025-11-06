@@ -199,6 +199,11 @@ class SystemControl(wx.Frame):
                 self.index_ctrl.Enable()
 
     def SetFolderAndFileConfigurationSystemWide(self, event):
+        # Check if the cameras are busy
+        if self.check_camera_preview_status() is True or self.check_camera_capture_status() is True:
+            wx.MessageBox("Please stop all camera previews and captures before setting system-wide configuration.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        
         # Check if the export name and folder is set
         export_folder = self.exportfolder_ctrl.GetValue()
         if not export_folder:
