@@ -276,6 +276,9 @@ class SystemControl(wx.Frame):
             self.EnableSystemControls(value=True, preview=False)
 
     def OnSystemCapture(self, event):
+        if not self.check_camera_connected_status():
+            wx.MessageBox("Please connect all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
         if self.check_camera_capture_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartCapture()
