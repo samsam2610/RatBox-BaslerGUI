@@ -163,7 +163,7 @@ class SystemControl(wx.Frame):
         self.outer_panel.SetSizer(hbox)
         hbox.Layout()
         
-        self.EnableSystemControls(value=False, preview=False)
+        self.EnableSystemControls(value=True, preview=False)
         
     def OnCloseWindow(self, event):
         print("Closing application...")
@@ -216,7 +216,7 @@ class SystemControl(wx.Frame):
             cam_panel.SetAppendDate(self.append_date.GetValue())
             cam_panel.SetFileName(export_name)
 
-    def EnableSystemControls(self, value, preview=True):
+    def EnableSystemControls(self, value, preview=True, startup=False):
         if value is True:
             self.exportfile_ctrl.Enable()
             self.select_folder_btn.Enable()
@@ -243,10 +243,7 @@ class SystemControl(wx.Frame):
             self.index_ctrl.Disable()
             self.set_config_btn.Disable()
             self.system_preview_btn.Disable()
-            if preview is False:
-                self.system_capture_btn.Disable()
-            else:
-                self.system_capture_btn.Enable()
+            self.system_capture_btn.Disable()
    
     def check_camera_connected_status(self):
         all_connected = all(panel.camera_connected for panel in self.camera_panels)
@@ -264,6 +261,9 @@ class SystemControl(wx.Frame):
         return all_capturing
 
     def OnSystemPreview(self, event):
+        if not self.check_camera_connected_status():
+            wx.MessageBox("Please connect all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
+            return
         if self.check_camera_preview_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartPreview()
