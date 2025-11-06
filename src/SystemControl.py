@@ -167,11 +167,20 @@ class SystemControl(wx.Frame):
         self.Destroy()
     
     def OnSelectFolder(self, event):
-        dlg = wx.DirDialog(None, "Choose input directory", "",
-                           wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
-        dlg.ShowModal()
-        self.exportfolder_ctrl.SetValue(dlg.GetPath())
-    
+        # Pre-fill from the text box if it has a valid path; otherwise from config
+        current_val = self.exportfolder_ctrl.GetValue()
+        start_dir = current_val if os.path.isdir(current_val) else self.get_last_dir()
+
+        with wx.DirDialog(
+            self, "Choose input directory",
+            defaultPath=start_dir,
+            style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST
+        ) as dlg:
+            if dlg.ShowModal() == wx.ID_OK:
+                path = dlg.GetPath()
+                self.exportfolder_ctrl.SetValue(path)
+                self.set_last_dir(path)  # persist for next time
+
     def OnAppendDate(self, event):
         self.append_date_flag = self.append_date.GetValue()
         
@@ -269,6 +278,23 @@ class SystemControl(wx.Frame):
                 cam_panel.StopCapture()
             self.system_capture_btn.SetLabel("Start System Capture")
             self.EnableSystemControls(value=True, preview=False)          
+    
+    def set_last_dir(self, path):
+        cfg = self.get_config()
+        cfg.Write("last_export_dir", path)
+        cfg.Flush()
+
+    def get_config(self):
+        APP_NAME = "BaslerCamGUI"  # any unique name
+        # Stores under a per-user location (AppData on Windows, ~/.config on Linux, etc.)
+        return wx.Config(APP_NAME)
+
+    def get_last_dir(self, fallback=None):
+        cfg = self.get_config()
+        last_dir = cfg.Read("last_export_dir", "")
+        if last_dir and os.path.isdir(last_dir):
+            return last_dir
+        return fallback or os.getcwd()
 
 if __name__ == '__main__':
     app = wx.App()
