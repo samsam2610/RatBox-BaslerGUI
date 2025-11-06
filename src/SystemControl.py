@@ -268,7 +268,10 @@ class SystemControl(wx.Frame):
     def check_for_file_name_and_folder(self):
         # Check if all camera panels have export folder (exportfolder_ctrl) and filename set (exportfile_ctrl) are not empty
         for cam_panel in self.camera_panels:
-            if not cam_panel.export_folder or not cam_panel.export_file_name:
+            export_folder = cam_panel.exportfolder_ctrl.GetValue()
+            export_file_name = cam_panel.exportfile_ctrl.GetValue()
+            # If either is empty, return False
+            if not export_folder or not export_file_name:
                 return False
         return True
     
