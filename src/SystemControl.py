@@ -265,6 +265,13 @@ class SystemControl(wx.Frame):
         self.capturing_on = all_capturing
         return all_capturing
 
+    def check_for_file_name_and_folder(self):
+        # Check if all camera panels have export folder (exportfolder_ctrl) and filename set (exportfile_ctrl) are not empty
+        for cam_panel in self.camera_panels:
+            if not cam_panel.export_folder or not cam_panel.export_file_name:
+                return False
+        return True
+    
     def OnSystemPreview(self, event):
         if not self.check_camera_connected_status():
             wx.MessageBox("Please connect all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
@@ -283,6 +290,12 @@ class SystemControl(wx.Frame):
     def OnSystemCapture(self, event):
         if not self.check_camera_connected_status():
             wx.MessageBox("Please connect all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        if self.check_camera_preview_status():
+            wx.MessageBox("Please stop all camera previews before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        if not self.check_for_file_name_and_folder():
+            wx.MessageBox("Please set export folder and file name for all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
             return
         if self.check_camera_capture_status() is False:
             for cam_panel in self.camera_panels:
