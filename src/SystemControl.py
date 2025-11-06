@@ -105,10 +105,12 @@ class SystemControl(wx.Frame):
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.row_pos += 1 # Current row position = 2
 
+            
             self.exportfolder_ctrl = wx.TextCtrl(self.system_panel)
             sizer.Add(self.exportfolder_ctrl, pos=(self.row_pos, self.column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.exportfolder_ctrl.Disable()
+            self.exportfolder_ctrl.SetValue(self.get_last_dir())
             self.row_pos += 1 # Current row position = 3
 
             self.append_date = wx.CheckBox(self.system_panel, label="Append date and time")
