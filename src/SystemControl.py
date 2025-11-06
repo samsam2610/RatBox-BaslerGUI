@@ -243,17 +243,11 @@ class SystemControl(wx.Frame):
 
     def OnSystemPreview(self, event):
         if self.check_camera_preview_status() is True:
-            self.StopSystemPreview()
+            for cam_panel in self.camera_panels:
+                cam_panel.StartPreview()
         else:
-            self.StartSystemPreview()
-
-    def StartSystemPreview(self, event):
-        for cam_panel in self.camera_panels:
-            cam_panel.StartPreview()
-    
-    def StopSystemPreview(self, event):
-        for cam_panel in self.camera_panels:
-            cam_panel.StopPreview()
+            for cam_panel in self.camera_panels:
+                cam_panel.StopPreview()
 
     def OnSystemCapture(self, event):
         pass
