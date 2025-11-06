@@ -210,8 +210,7 @@ class SystemControl(wx.Frame):
             self.auto_index.Enable()
             self.index_ctrl.Enable()
             self.set_config_btn.Enable()
-            if preview is True:
-                self.system_preview_btn.Enable()
+            self.system_preview_btn.Enable()
             self.system_capture_btn.Enable()
         elif preview is True:
             self.exportfile_ctrl.Disable()
@@ -220,7 +219,7 @@ class SystemControl(wx.Frame):
             self.auto_index.Disable()
             self.index_ctrl.Disable()
             self.set_config_btn.Disable()
-            self.system_preview_btn.Disable()
+            self.system_preview_btn.Enable()
             self.system_capture_btn.Disable()
         else:
             self.exportfile_ctrl.Disable()
@@ -245,9 +244,13 @@ class SystemControl(wx.Frame):
         if self.check_camera_preview_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartPreview()
+            self.system_preview_btn.SetLabel("Stop System Preview")
+            self.EnableSystemControls(value=False, preview=True)
         else:
             for cam_panel in self.camera_panels:
                 cam_panel.StopPreview()
+            self.system_preview_btn.SetLabel("Start System Preview")
+            self.EnableSystemControls(value=True, preview=False)
 
     def OnSystemCapture(self, event):
         pass
