@@ -163,6 +163,8 @@ class SystemControl(wx.Frame):
         self.outer_panel.SetSizer(hbox)
         hbox.Layout()
         
+        self.EnableSystemControls(value=False, preview=False)
+        
     def OnCloseWindow(self, event):
         print("Closing application...")
         for p in getattr(self, "camera_panels", []):
