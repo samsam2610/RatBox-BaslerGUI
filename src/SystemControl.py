@@ -207,7 +207,7 @@ class SystemControl(wx.Frame):
         if not export_name:
             wx.MessageBox("Please enter an export file name.", "Error", wx.OK | wx.ICON_ERROR)
             return
-
+        self.set_last_filename(export_name)
         for cam_panel in self.camera_panels:
             cam_panel.SetExportFolder(export_folder)
             cam_panel.SetAutoIndex(self.auto_index.GetValue())
