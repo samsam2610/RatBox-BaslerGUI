@@ -228,6 +228,7 @@ class SystemControl(wx.Frame):
             self.auto_index.Disable()
             self.index_ctrl.Disable()
             self.set_config_btn.Disable()
+            self.system_preview_btn.Disable()
             self.system_capture_btn.Enable()
    
     def check_camera_connected_status(self):
