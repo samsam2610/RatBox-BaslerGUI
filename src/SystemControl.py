@@ -228,7 +228,7 @@ class SystemControl(wx.Frame):
             self.auto_index.Disable()
             self.index_ctrl.Disable()
             self.set_config_btn.Disable()
-            self.system_capture_btn.Disable()
+            self.system_capture_btn.Enable()
    
     def check_camera_connected_status(self):
         all_connected = all(panel.camera_connected for panel in self.camera_panels)
@@ -239,6 +239,11 @@ class SystemControl(wx.Frame):
         all_preview = all(panel.preview_on for panel in self.camera_panels)
         self.preview_on = all_preview
         return all_preview
+    
+    def check_camera_capture_status(self):
+        all_capturing = all(panel.capture_on for panel in self.camera_panels)
+        self.capturing_on = all_capturing
+        return all_capturing
 
     def OnSystemPreview(self, event):
         if self.check_camera_preview_status() is False:
@@ -253,14 +258,16 @@ class SystemControl(wx.Frame):
             self.EnableSystemControls(value=True, preview=False)
 
     def OnSystemCapture(self, event):
-        pass
-    
-    def StartSystemCapture(self, event):
-        for cam_panel in self.camera_panels:
-            cam_panel.OnStartCapture(event)
-
-    def StopSystemCapture(self, event):
-        pass            
+        if self.check_camera_capture_status() is False:
+            for cam_panel in self.camera_panels:
+                cam_panel.StartCapture()
+            self.system_capture_btn.SetLabel("Stop System Capture")
+            self.EnableSystemControls(value=False, preview=False)
+        else:
+            for cam_panel in self.camera_panels:
+                cam_panel.StopCapture()
+            self.system_capture_btn.SetLabel("Start System Capture")
+            self.EnableSystemControls(value=True, preview=False)          
 
 if __name__ == '__main__':
     app = wx.App()

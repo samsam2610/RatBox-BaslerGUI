@@ -736,21 +736,13 @@ class CameraController(wx.Panel):
         if self.current_step == 0:
             if self.capture_on is False:
                 self.StartCapture()
-                self.capture_btn.SetLabel("Capture STOP")
             else:
                 self.capture_on = False
                 self.current_step = 0
                 self.StopCapture()
-                self.capture_btn.SetLabel("Capture START")
-                self.current_state.SetLabel("Current state: idle")
-                self.connect_btn.Enable()
                 self.StartPreview()
         else:
-            self.current_step = 0
             self.StopCapture()
-            self.capture_btn.SetLabel("Capture START")
-            self.current_state.SetLabel("Current state: idle")
-            self.connect_btn.Enable()
 
     def FramerteSliderScroll(self, event):
         obj = event.GetEventObject()
@@ -1045,6 +1037,7 @@ class CameraController(wx.Panel):
         self.capture_thread_obj.start()
         
         self.EnableGUI(False)
+        self.capture_btn.SetLabel("Capture STOP")
         self.connect_btn.Disable()
         self.capture_btn.Enable()
         # self.capture_status_timer.Start(10000, oneShot=True)
@@ -1128,10 +1121,14 @@ class CameraController(wx.Panel):
  
     def StopCapture(self):
         self.capture_on = False
+        self.current_step = 0
         if self.capture_thread_obj.is_alive() is True:
             self.capture_thread_obj.join()
 
         self.EnableGUI(True)
+        self.capture_btn.SetLabel("Capture START")
+        self.current_state.SetLabel("Current state: idle")
+        self.connect_btn.Enable()
 
     def capture_thread(self):
         # Indefinite capture mode
