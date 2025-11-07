@@ -10,6 +10,8 @@ import datetime
 import time
 import threading
 from pypylon import pylon
+import nidaqmx
+from nidaqmx.constants import AcquisitionType
 import wx.lib.agw.floatspin as FS
 import csv
 from VideoRecordingSession import VideoRecordingSession
@@ -311,6 +313,21 @@ class SystemControl(wx.Frame):
             self.system_capture_btn.SetLabel("Start System Capture")
             self.EnableSystemControls(value=True, preview=False)          
     
+    def trigger_thread(self):
+        if self.trigger_mode is True:
+            while self.preview_thread_obj.is_alive() is True or self.capture_thread_obj.is_alive() is True:   
+                with nidaqmx.Task() as ao_task:
+                    ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
+                    ao_task.timing.cfg_samp_clk_timing(self.nidaq_samp_rate, sample_mode=AcquisitionType.CONTINUOUS)
+                    pulse = self.GenPulse(self.nidaq_samp_rate)
+                    ao_task.write(pulse)
+                    print(f"{pulse}")
+                    ao_task.start()
+            ao_task.close()
+            with nidaqmx.Task() as ao_end:
+                ao_end.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
+                ao_end.write(0.0)
+
     def get_config(self):
         APP_NAME = "BaslerCamGUI"  # any unique name
         # Stores under a per-user location (AppData on Windows, ~/.config on Linux, etc.)
