@@ -9,7 +9,7 @@ import numpy as np
 import cv2
 import datetime
 import time
-import threading
+import threading, multiprocessing
 from pypylon import pylon
 import nidaqmx
 from nidaqmx.constants import AcquisitionType
@@ -283,7 +283,8 @@ class SystemControl(wx.Frame):
     def GenPulse(self,samp_rate):
         for cam_panel in self.camera_panels:
             freq = cam_panel.framerate
-        t = np.linspace(0,1,samp_rate,endpoint=False)
+        print(f"Gen pulse at {freq} Hz")
+        t = np.linspace(0,3600,samp_rate,endpoint=False)
         return(5 * signal.square(2 * np.pi *freq * t,duty=0.2))
     
     def OnSystemPreview(self, event):
@@ -295,9 +296,10 @@ class SystemControl(wx.Frame):
                 cam_panel.StartPreview()
             self.system_preview_btn.SetLabel("Stop System Preview")
             self.EnableSystemControls(value=False, preview=True)
-            self.trigger_thread_obj = threading.Thread(target=self.trigger_thread)
+            self.trigger_thread_obj = multiprocessing.process(target=self.trigger_thread)
             self.trigger_thread_obj.start()
         else:
+            self.trigger_thread_obj.terminate()
             for cam_panel in self.camera_panels:
                 cam_panel.StopPreview()
             self.system_preview_btn.SetLabel("Start System Preview")
@@ -318,29 +320,49 @@ class SystemControl(wx.Frame):
                 cam_panel.StartCapture()
             self.system_capture_btn.SetLabel("Stop System Capture")
             self.EnableSystemControls(value=False, preview=False)
-            self.trigger_thread_obj = threading.Thread(target=self.trigger_thread)
+            self.system_capturing_on = True
+            self.trigger_thread_obj = multiprocessing.process(target=self.trigger_thread, arg=(self,))
             self.trigger_thread_obj.start()
         else:
+            self.system_capturing_on = False
+            self.trigger_thread_obj.terminate()
+            if self.trigger_thread_obj.is_alive() is True:
+                self.trigger_thread_obj.join()
             for cam_panel in self.camera_panels:
                 cam_panel.StopCapture()
             self.system_capture_btn.SetLabel("Start System Capture")
             self.EnableSystemControls(value=True, preview=False)          
     
+    
     def trigger_thread(self):
+
+        # def callback_func(ao_task, every_n_samples_event_type, number_of_samples, callback_data):
+        #     if callback_data is False:
+        #         ao_task.close()
+            
+        
         if any(cam_panel.trigger_mode is True for cam_panel in self.camera_panels):
             self.nidaq_samp_rate = 12000
-            while self.check_camera_preview_status() or self.check_camera_capture_status():
-                with nidaqmx.Task() as ao_task:
-                    ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
-                    ao_task.timing.cfg_samp_clk_timing(self.nidaq_samp_rate, sample_mode=AcquisitionType.CONTINUOUS)
-                    pulse = self.GenPulse(self.nidaq_samp_rate)
-                    ao_task.write(pulse)
-                    #print(f"{pulse}")
-                    ao_task.start()
-            ao_task.close()
-            with nidaqmx.Task() as ao_end:
-                ao_end.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
-                ao_end.write(0.0)
+            ao_task = nidaqmx.Task()
+            ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
+            ao_task.timing.cfg_samp_clk_timing(self.nidaq_samp_rate, sample_mode=AcquisitionType.FINITE,samps_per_chan=3600*self.nidaq_samp_rate)
+            # ao_task.register_every_n_samples_acquired_into_buffer_event(1000,callback_method=callback_func,callback_data=self.system_capturing_on)
+            pulse = self.GenPulse(self.nidaq_samp_rate)
+            ao_task.write(pulse, auto_start=True)
+            # ao_task.start()
+            # while self.check_camera_preview_status() or self.check_camera_capture_status():
+            #     if self.check_camera_preview_status is False or self.check_camera_capture_status is False:
+            #         print(f"Stopping the Nidaq...")
+            #         ao_task.stop()
+            #         ao_task.write(0.0)
+            #         ao_task.close()
+            #         break
+            #     else:
+            #         time.sleep(0.001)
+
+
+            # ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
+                
 
     def get_config(self):
         APP_NAME = "BaslerCamGUI"  # any unique name
