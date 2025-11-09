@@ -3,6 +3,7 @@ import wx
 import os
 from pathlib import Path
 from skimage.feature import graycomatrix, graycoprops
+from scipy import signal
 from scipy.optimize import curve_fit
 import numpy as np
 import cv2
@@ -34,7 +35,9 @@ class SystemControl(wx.Frame):
         else:
             print("Single camera mode activated.")
             self.is_multi_cam = False
-            
+        
+        trigger_thread_obj = None
+
         # Initialize UI
         self.InitSystemUI()
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
@@ -277,6 +280,12 @@ class SystemControl(wx.Frame):
                 return False
         return True
     
+    def GenPulse(self,samp_rate):
+        for cam_panel in self.camera_panels:
+            freq = cam_panel.framerate
+        t = np.linspace(0,1,samp_rate,endpoint=False)
+        return(5 * signal.square(2 * np.pi *freq * t,duty=0.2))
+    
     def OnSystemPreview(self, event):
         if not self.check_camera_connected_status():
             wx.MessageBox("Please connect all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
@@ -286,12 +295,14 @@ class SystemControl(wx.Frame):
                 cam_panel.StartPreview()
             self.system_preview_btn.SetLabel("Stop System Preview")
             self.EnableSystemControls(value=False, preview=True)
+            self.trigger_thread_obj = threading.Thread(target=self.trigger_thread)
+            self.trigger_thread_obj.start()
         else:
             for cam_panel in self.camera_panels:
                 cam_panel.StopPreview()
             self.system_preview_btn.SetLabel("Start System Preview")
             self.EnableSystemControls(value=True, preview=False)
-
+    
     def OnSystemCapture(self, event):
         if not self.check_camera_connected_status():
             wx.MessageBox("Please connect all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
@@ -307,6 +318,8 @@ class SystemControl(wx.Frame):
                 cam_panel.StartCapture()
             self.system_capture_btn.SetLabel("Stop System Capture")
             self.EnableSystemControls(value=False, preview=False)
+            self.trigger_thread_obj = threading.Thread(target=self.trigger_thread)
+            self.trigger_thread_obj.start()
         else:
             for cam_panel in self.camera_panels:
                 cam_panel.StopCapture()
@@ -314,14 +327,15 @@ class SystemControl(wx.Frame):
             self.EnableSystemControls(value=True, preview=False)          
     
     def trigger_thread(self):
-        if self.trigger_mode is True:
-            while self.preview_thread_obj.is_alive() is True or self.capture_thread_obj.is_alive() is True:   
+        if any(cam_panel.trigger_mode is True for cam_panel in self.camera_panels):
+            self.nidaq_samp_rate = 12000
+            while self.check_camera_preview_status() or self.check_camera_capture_status():
                 with nidaqmx.Task() as ao_task:
                     ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
                     ao_task.timing.cfg_samp_clk_timing(self.nidaq_samp_rate, sample_mode=AcquisitionType.CONTINUOUS)
                     pulse = self.GenPulse(self.nidaq_samp_rate)
                     ao_task.write(pulse)
-                    print(f"{pulse}")
+                    #print(f"{pulse}")
                     ao_task.start()
             ao_task.close()
             with nidaqmx.Task() as ao_end:

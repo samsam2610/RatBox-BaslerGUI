@@ -3,7 +3,6 @@ import wx
 import os
 from pathlib import Path
 from skimage.feature import graycomatrix, graycoprops
-from scipy import signal
 from scipy.optimize import curve_fit
 import numpy as np
 import cv2
@@ -87,7 +86,6 @@ class CameraController(wx.Panel):
     preview_thread_obj = None
     capture_thread_obj = None
     process_thread_obj = None
-    trigger_thread_obj = None
     max_contrast = 0.8
     
     video_session = VideoRecordingSession(cam_num=0)
@@ -103,7 +101,6 @@ class CameraController(wx.Panel):
         self.parent = parent
         self.trigger_mode = trigger_mode
         self.SetTriggerModeLabel()
-        self.nidaq_samp_rate = 12000
         super().__init__(parent)
 
     def InitUI(self):
@@ -960,11 +957,6 @@ class CameraController(wx.Panel):
             
         
         self.height_ctrl.SetValue(self.frame_height)
-
-    def GenPulse(self,samp_rate):
-        freq = self.framerate
-        t = np.linspace(0,1,samp_rate,endpoint=False)
-        return(5 * signal.square(2 * np.pi *freq * t,duty=0.2))
     
     def StartPreview(self):
         self.preview_on = True
@@ -1005,7 +997,7 @@ class CameraController(wx.Panel):
                 grabResult = self.camera.RetrieveResult(100,
                                                     pylon.TimeoutHandling_ThrowException)
             except pylon.TimeoutException:
-                print("Timeout occurred while waiting for image.")
+                #print("Timeout occurred while waiting for image.")
                 continue
             if grabResult.GrabSucceeded():
                 current_time = int(round(time.time() * 1000))
