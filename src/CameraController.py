@@ -918,6 +918,8 @@ class CameraController(wx.Panel):
 
     def OnSetOffsetX(self, event):
         new_offset_x = self.offset_x_ctrl.GetValue()
+        if new_offset_x == self.offset_x:
+            return
         # Check if the new offset + width is divisible by 2
         new_width = new_offset_x + self.frame_width
         new_width = int(16 * round(new_width / 16)) if new_width % 16 != 0 else new_width
@@ -938,6 +940,8 @@ class CameraController(wx.Panel):
 
     def OnSetOffsetY(self, event):
         new_offset_y = self.offset_y_ctrl.GetValue()
+        if new_offset_y == self.offset_y:
+            return
         # Check if the new offset + height is divisible by 2
         new_height = new_offset_y + self.frame_height
         new_height = int(4 * round(new_height / 4)) if new_height % 4 != 0 else new_height
@@ -958,6 +962,8 @@ class CameraController(wx.Panel):
 
     def OnSetWidth(self, event):
         new_width = self.width_ctrl.GetValue()
+        if new_width == self.frame_width:
+            return
         # Check if the new width is divisible by 2
         new_width = int(16 * round(new_width / 16)) if new_width % 16 != 0 else new_width
             
@@ -971,6 +977,8 @@ class CameraController(wx.Panel):
 
     def OnSetHeight(self, event):  
         new_height = self.height_ctrl.GetValue()
+        if new_height == self.frame_height:
+            return
         # Check if the new height is divisible by 2
         new_height = int(4 * round(new_height / 4)) if new_height % 4 != 0 else new_height
             
