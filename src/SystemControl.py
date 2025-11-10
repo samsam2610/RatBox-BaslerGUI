@@ -27,12 +27,20 @@ def GenPulse(sampling_rate, frequency):
 
 def trigger_start_process(nidaq_samp_rate=12000, frequency=200):
 
-    ao_task = nidaqmx.Task()
-    ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
-    ao_task.timing.cfg_samp_clk_timing(nidaq_samp_rate, sample_mode=AcquisitionType.FINITE, samps_per_chan=3600*nidaq_samp_rate)
-    # ao_task.register_every_n_samples_acquired_into_buffer_event(1000,callback_method=callback_func,callback_data=self.system_capturing_on)
-    pulse = GenPulse(nidaq_samp_rate, frequency)
-    ao_task.write(pulse, auto_start=True)    
+    print("Child: starting NI task")
+
+    # Context manager guarantees close()
+    with nidaqmx.Task() as ao_task:
+        ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
+        ao_task.timing.cfg_samp_clk_timing(
+            nidaq_samp_rate,
+            sample_mode=AcquisitionType.FINITE,
+            samps_per_chan=3600 * nidaq_samp_rate,
+        )
+
+        pulse = GenPulse(nidaq_samp_rate)
+        ao_task.write(pulse, auto_start=True)
+        ao_task.wait_until_done()
     # ao_task.wait_until_done()    
 
     # while self.check_camera_preview_status() or self.check_camera_capture_status():
