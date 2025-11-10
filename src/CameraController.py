@@ -925,9 +925,9 @@ class CameraController(wx.Panel):
         if (new_offset_x + self.frame_width) < self.max_frame_width:
             self.offset_x = int(new_offset_x)
             if self.preview_on is True:
-                self.camera.StopGrabbing()
+                self.StopPreview()
                 self.camera.OffsetX.SetValue(self.offset_x)
-                self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
+                self.StartPreview()
             else:
                 self.camera.OffsetX.SetValue(self.offset_x)
             self.offset_x_ctrl_label = wx.StaticText(self, label="Offset X (max {}):".format(self.max_frame_width - self.frame_width))
@@ -945,9 +945,9 @@ class CameraController(wx.Panel):
         if (new_offset_y + self.frame_height) < self.max_frame_height:
             self.offset_y = int(new_offset_y)
             if self.preview_on is True:
-                self.camera.StopGrabbing()
+                self.StopPreview()
                 self.camera.OffsetY.SetValue(self.offset_y)
-                self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
+                self.StartPreview()
             else:
                 self.camera.OffsetY.SetValue(self.offset_y)
             self.offset_y_ctrl_label = wx.StaticText(self, label="Offset Y (max {}):".format(self.max_frame_height - self.frame_height))
