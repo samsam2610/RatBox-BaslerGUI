@@ -422,11 +422,17 @@ class SystemControl(wx.Frame):
         if self.check_camera_capture_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartCapture()
+            
             self.system_capture_btn.SetLabel("Stop System Capture")
             self.EnableSystemControls(value=False, preview=False)
             self.system_capturing_on = True
             time.sleep(0.5)  # Give some time for the cameras to start writing
             if self.trigger_on is True:
+                # Check to make sure both cameras are ready to reeceive triggers
+                print("Waiting for cameras to be ready for system capture...")
+                while self.check_camera_capture_status() is False:
+                    time.sleep(0.1)
+                print("Starting trigger process for system capture...")
                 self.proc = multiprocessing.Process(
                             target=trigger_start_process_continuous,
                             kwargs={"frequency": self.common_frame_rate},

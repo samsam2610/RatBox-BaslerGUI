@@ -1134,8 +1134,7 @@ class CameraController(wx.Panel):
         self.connect_btn.Enable()
 
     def capture_thread(self):
-        # Indefinite capture mode
-        self.capture_on = True
+
         
         # Create Image Windows to display live video while capturing
         imageWindow = pylon.PylonImageWindow()
@@ -1165,6 +1164,9 @@ class CameraController(wx.Panel):
         print(f'Capturing video started at: {current_date_and_time}')
         
         captured_frames = 0
+
+        # Indefinite capture mode
+        self.capture_on = True
         
         while (self.capture_on is True) or (self.camera.NumReadyBuffers.GetValue() > 0):
             try:
