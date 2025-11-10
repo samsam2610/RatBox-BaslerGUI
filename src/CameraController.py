@@ -922,7 +922,7 @@ class CameraController(wx.Panel):
             return
         # Check if the new offset + width is divisible by 2
         new_width = new_offset_x + self.frame_width
-        new_width = int(16 * round(new_width / 16)) if new_width % 16 != 0 else new_width
+        new_width = int(4 * round(new_width / 4)) if new_width % 4 != 0 else new_width
         
         new_offset_x = new_width - self.frame_width
         
