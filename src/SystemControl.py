@@ -12,7 +12,7 @@ import time
 import threading, multiprocessing
 from pypylon import pylon
 import nidaqmx
-from nidaqmx.constants import AcquisitionType
+from nidaqmx.constants import AcquisitionType, RegenerationMode
 import wx.lib.agw.floatspin as FS
 import csv
 from VideoRecordingSession import VideoRecordingSession
@@ -20,9 +20,9 @@ from InputEventHandler import ConfigurationEventPrinter
 from ImagePanel import ImagePanel
 from CameraController import CameraController
 
-def GenPulse(sampling_rate, frequency):
+def GenPulse(sampling_rate, frequency, duration=3600):
     print(f"Gen pulse at {frequency} Hz")
-    t = np.linspace(0, 3600, sampling_rate, endpoint=False)
+    t = np.linspace(0, duration, int(sampling_rate * duration), endpoint=False)
     return(5 * signal.square(2 * np.pi *frequency * t, duty=0.2))
 
 def trigger_start_process(nidaq_samp_rate=5000, frequency=200):
@@ -43,7 +43,40 @@ def trigger_start_process(nidaq_samp_rate=5000, frequency=200):
         ao_task.wait_until_done(timeout=nidaqmx.constants.WAIT_INFINITELY)
 
 
+def trigger_start_process_continuous(nidaq_samp_rate=12000, frequency=200, ao_chan="myDAQ1/ao1"):
+    """
+    Run a continuous AO pulse until the process is externally terminated.
+    Intended to be run in its OWN PROCESS.
+    """
+    print("[Child] Starting continuous NI-DAQ AO task")
 
+    # We do NOT catch terminate here; terminate() is a hard kill.
+    with nidaqmx.Task() as ao_task:
+        ao_task.ao_channels.add_ao_voltage_chan(ao_chan)
+
+        # Continuous sampling
+        ao_task.timing.cfg_samp_clk_timing(
+            rate=nidaq_samp_rate,
+            sample_mode=AcquisitionType.CONTINUOUS
+        )
+
+        # Allow DAQ to loop the buffer
+        ao_task.out_stream.regen_mode = RegenerationMode.ALLOW_REGENERATION
+
+        # Small buffer that repeats forever
+        pulse = GenPulse(nidaq_samp_rate, frequency=frequency, duration=0.1)
+
+        # Start continuous output
+        ao_task.write(pulse, auto_start=True)
+        print("[Child] AO continuous output running (Ctrl+C/terminate parent to stop)")
+
+        # Keep process alive so AO keeps running
+        try:
+            while True:
+                time.sleep(0.1)
+        finally:
+            # This only runs if process exits normally, not on terminate()
+            print("[Child] Cleaning up AO task")
 
 
 class SystemControl(wx.Frame):
@@ -334,7 +367,7 @@ class SystemControl(wx.Frame):
             self.EnableSystemControls(value=False, preview=True)
             if self.trigger_on is True:
                 self.proc = multiprocessing.Process(
-                            target=trigger_start_process,
+                            target=trigger_start_process_continuous,
                             daemon=True,
                             )
                 self.proc.start()
@@ -372,6 +405,7 @@ class SystemControl(wx.Frame):
             self.system_capture_btn.SetLabel("Stop System Capture")
             self.EnableSystemControls(value=False, preview=False)
             self.system_capturing_on = True
+            time.sleep(0.5)  # Give some time for the cameras to start writing
             if self.trigger_on is True:
                 self.proc = multiprocessing.Process(
                             target=trigger_start_process,
