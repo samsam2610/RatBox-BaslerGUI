@@ -336,7 +336,6 @@ class SystemControl(wx.Frame):
             if self.trigger_on is True:
                 self.proc = multiprocessing.Process(
                             target=trigger_start_process,
-                            kwargs={"nidaq_samp_rate": self.nidaq_samp_rate},
                             daemon=True,
                             )
                 self.proc.start()
