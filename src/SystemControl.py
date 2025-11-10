@@ -387,7 +387,7 @@ class SystemControl(wx.Frame):
             if self.trigger_on is True:
                 self.proc = multiprocessing.Process(
                             target=trigger_start_process_continuous,
-                            kwargs={"framequency"}
+                            kwargs={"frequency": self.common_frame_rate},
                             daemon=True,
                             )
                 self.proc.start()
@@ -429,6 +429,7 @@ class SystemControl(wx.Frame):
             if self.trigger_on is True:
                 self.proc = multiprocessing.Process(
                             target=trigger_start_process_continuous,
+                            kwargs={"frequency": self.common_frame_rate},
                             daemon=True,
                             )
                 self.proc.start()
