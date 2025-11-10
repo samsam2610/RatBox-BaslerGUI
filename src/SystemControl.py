@@ -20,6 +20,36 @@ from InputEventHandler import ConfigurationEventPrinter
 from ImagePanel import ImagePanel
 from CameraController import CameraController
 
+def GenPulse(sampling_rate, frequency):
+    print(f"Gen pulse at {frequency} Hz")
+    t = np.linspace(0, 3600, sampling_rate, endpoint=False)
+    return(5 * signal.square(2 * np.pi *frequency * t, duty=0.2))
+
+def trigger_start_process(nidaq_samp_rate=12000, frequency=200):
+
+    ao_task = nidaqmx.Task()
+    ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
+    ao_task.timing.cfg_samp_clk_timing(nidaq_samp_rate, sample_mode=AcquisitionType.FINITE, samps_per_chan=3600*nidaq_samp_rate)
+    # ao_task.register_every_n_samples_acquired_into_buffer_event(1000,callback_method=callback_func,callback_data=self.system_capturing_on)
+    pulse = GenPulse(nidaq_samp_rate, frequency)
+    ao_task.write(pulse, auto_start=True)    
+    ao_task.wait_until_done()    
+    ao_task.stop()
+    ao_task.close()
+    print("trigger_start_process finished.")
+
+    # while self.check_camera_preview_status() or self.check_camera_capture_status():
+    #     if self.check_camera_preview_status is False or self.check_camera_capture_status is False:
+    #         print(f"Stopping the Nidaq...")
+    #         ao_task.stop()
+    #         ao_task.write(0.0)
+    #         ao_task.close()
+    #         break
+    #     else:
+    #         time.sleep(0.001)
+
+
+
 class SystemControl(wx.Frame):
     def __init__(self, number_of_cameras=2, *args, **kwargs):
         super().__init__(None,*args, **kwargs)
@@ -269,6 +299,19 @@ class SystemControl(wx.Frame):
         all_capturing = all(panel.capture_on for panel in self.camera_panels)
         self.capturing_on = all_capturing
         return all_capturing
+    
+    def check_camera_trigger_status(self):
+        modes = [panel.trigger_mode for panel in self.camera_panels]
+
+        if not any(modes):
+            self.trigger_on = False
+        elif all(modes):
+            self.trigger_on = True
+        else:
+            wx.MessageBox("Not all cameras have the same trigger mode.", "Warning", wx.OK | wx.ICON_WARNING)
+            return
+    
+        return self.trigger_on
 
     def check_for_file_name_and_folder(self):
         # Check if all camera panels have export folder (exportfolder_ctrl) and filename set (exportfile_ctrl) are not empty
@@ -280,26 +323,45 @@ class SystemControl(wx.Frame):
                 return False
         return True
     
-    def GenPulse(self,samp_rate):
-        for cam_panel in self.camera_panels:
-            freq = cam_panel.framerate
-        print(f"Gen pulse at {freq} Hz")
-        t = np.linspace(0,3600,samp_rate,endpoint=False)
-        return(5 * signal.square(2 * np.pi *freq * t,duty=0.2))
-    
     def OnSystemPreview(self, event):
         if not self.check_camera_connected_status():
             wx.MessageBox("Please connect all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
             return
+        self.check_camera_trigger_status()
         if self.check_camera_preview_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartPreview()
             self.system_preview_btn.SetLabel("Stop System Preview")
             self.EnableSystemControls(value=False, preview=True)
-            self.trigger_thread_obj = multiprocessing.process(target=self.trigger_thread)
-            self.trigger_thread_obj.start()
+            if self.trigger_on is True:
+                self.proc = multiprocessing.Process(
+                            target=trigger_start_process,
+                            kwargs={"nidaq_samp_rate": self.nidaq_samp_rate},
+                            daemon=True,
+                            )
+                self.proc.start()
+                print(f"Spawned trigger process with PID {self.proc.pid}")
         else:
-            self.trigger_thread_obj.terminate()
+            if self.trigger_on is True:
+                if self.proc.is_alive():
+                    print(f"Terminating trigger process with PID {self.proc.pid}")
+                    self.proc.terminate()
+                    self.proc.join()  
+                else:
+                    print("Trigger process already terminated.")
+                try:
+                    import nidaqmx
+                    from nidaqmx.system import System
+
+                    system = System.local()
+                    dev = next(d for d in system.devices if d.name == self.device_name)
+                    dev.reset_device()
+                    print(f"Device {self.device_name} reset.")
+                except StopIteration:
+                    print(f"Device {self.device_name} not found; cannot reset.")
+                except Exception as e:
+                    print(f"Error while resetting device: {e}")
+ 
             for cam_panel in self.camera_panels:
                 cam_panel.StopPreview()
             self.system_preview_btn.SetLabel("Start System Preview")
@@ -334,32 +396,6 @@ class SystemControl(wx.Frame):
             self.EnableSystemControls(value=True, preview=False)          
     
     
-    def trigger_thread(self):
-
-        # def callback_func(ao_task, every_n_samples_event_type, number_of_samples, callback_data):
-        #     if callback_data is False:
-        #         ao_task.close()
-            
-        
-        if any(cam_panel.trigger_mode is True for cam_panel in self.camera_panels):
-            self.nidaq_samp_rate = 12000
-            ao_task = nidaqmx.Task()
-            ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
-            ao_task.timing.cfg_samp_clk_timing(self.nidaq_samp_rate, sample_mode=AcquisitionType.FINITE,samps_per_chan=3600*self.nidaq_samp_rate)
-            # ao_task.register_every_n_samples_acquired_into_buffer_event(1000,callback_method=callback_func,callback_data=self.system_capturing_on)
-            pulse = self.GenPulse(self.nidaq_samp_rate)
-            ao_task.write(pulse, auto_start=True)
-            # ao_task.start()
-            # while self.check_camera_preview_status() or self.check_camera_capture_status():
-            #     if self.check_camera_preview_status is False or self.check_camera_capture_status is False:
-            #         print(f"Stopping the Nidaq...")
-            #         ao_task.stop()
-            #         ao_task.write(0.0)
-            #         ao_task.close()
-            #         break
-            #     else:
-            #         time.sleep(0.001)
-
 
             # ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
                 
