@@ -212,8 +212,8 @@ class CameraController(wx.Panel):
 
         
         
-        offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
-        sizer.Add(offset_x_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+        self.offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
+        sizer.Add(self.offset_x_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.offset_x_ctrl = FS.FloatSpin(panel, -1,  min_val=1, max_val=self.frame_width,
                                           size=(140, -1), increment=4, value=1, digits=0,
@@ -224,8 +224,8 @@ class CameraController(wx.Panel):
         self.offset_x_ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnSetOffsetX)
         self.row_pos += 1 # Current row position = 13
 
-        offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
-        sizer.Add(offset_y_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+        self.offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
+        sizer.Add(self.offset_y_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.offset_y_ctrl = FS.FloatSpin(panel, -1,  min_val=1, max_val=self.frame_height,
                                     size=(140, -1), increment=4, value=1, digits=0,
@@ -236,8 +236,8 @@ class CameraController(wx.Panel):
         self.offset_y_ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnSetOffsetY)
         self.row_pos += 1 # Current row position = 14
 
-        width_ctrl_label = wx.StaticText(panel, label="Width:")
-        sizer.Add(width_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+        self.width_ctrl_label = wx.StaticText(panel, label="Width:")
+        sizer.Add(self.width_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.width_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_width,
                                         size=(140, -1), increment=4, value=128, digits=0,
@@ -247,8 +247,8 @@ class CameraController(wx.Panel):
         self.width_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetWidth)
         self.row_pos += 1 # Current row position = 15
 
-        height_ctrl_label = wx.StaticText(panel, label="Height:")
-        sizer.Add(height_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+        self.height_ctrl_label = wx.StaticText(panel, label="Height:")
+        sizer.Add(self.height_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.height_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_height,
                                         size=(140, -1), increment=4, value=128, digits=0,
