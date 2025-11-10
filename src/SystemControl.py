@@ -343,8 +343,8 @@ class SystemControl(wx.Frame):
         elif all(modes):
             self.trigger_on = True
         else:
-            wx.MessageBox("Not all cameras have the same trigger mode.", "Warning", wx.OK | wx.ICON_WARNING)
-            self.trigger_on = None
+            wx.MessageBox("Not all cameras have the same trigger mode. Setting system-wide trigger mode based on first camera.", "Warning", wx.OK | wx.ICON_WARNING)
+            self.trigger_on = self.camera_panels[0].trigger_mode  # Default to first camera's mode
     
         return self.trigger_on
 

@@ -878,8 +878,7 @@ class CameraController(wx.Panel):
             self.trigger_mode = True
         else:
             self.trigger_mode = False
-        self.SetTriggerMode()
-        self.SetTriggerModeLabel()
+        self.SetTriggerMode(self.trigger_mode)
          
     def SetTriggerModeLabel(self):
         if self.trigger_mode is True:
@@ -887,19 +886,23 @@ class CameraController(wx.Panel):
         else:
             self.trigger_mode_label = 1
     
-    def SetTriggerMode(self):
-        if self.trigger_mode is True:
+    def SetTriggerMode(self, trigger_mode: bool):
+        self.trigger_mode = trigger_mode
+        self.SetTriggerModeLabel()
+        if trigger_mode is True:
+            self.trigger_mode = True
             self.camera.TriggerMode.Value = "On"
             self.camera.TriggerSelector.Value = "FrameStart"
             self.camera.TriggerSource.Value = "Line4"
             self.camera.TriggerActivation.Value = "RisingEdge"
             self.camera.AcquisitionFrameRateEnable.SetValue(False)
-            # resulting_framerate = self.camera.ResultingFrameRate.GetValue()
-            # self.camera.AcquisitionFrameRate.SetValue(resulting_framerate)
         else:
+            self.trigger_mode = False
             self.camera.TriggerMode.Value = "Off"
             self.camera.AcquisitionFrameRateEnable.SetValue(True)
             self.SetFrameRate(self.framerate)
+    
+        
 
     def SetAppendDate(self, value):
         self.append_date.SetValue(value)
