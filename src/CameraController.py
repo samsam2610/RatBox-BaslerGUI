@@ -970,7 +970,7 @@ class CameraController(wx.Panel):
         if (self.offset_x + new_width) < self.max_frame_width:
             self.frame_width = int(new_width)
             self.camera.Width.SetValue(self.frame_width)
-            self.offset_x_ctrl.SetMax(self.sensor_width - self.frame_width)
+            self.offset_x_ctrl.SetMax(self.max_frame_width - self.frame_width)
             self.offset_x_ctrl_label.SetLabel("Offset X (max {}):".format(self.max_frame_width - self.frame_width))
         
         self.width_ctrl.SetValue(self.frame_width)
