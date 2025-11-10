@@ -34,9 +34,6 @@ def trigger_start_process(nidaq_samp_rate=12000, frequency=200):
     pulse = GenPulse(nidaq_samp_rate, frequency)
     ao_task.write(pulse, auto_start=True)    
     ao_task.wait_until_done()    
-    ao_task.stop()
-    ao_task.close()
-    print("trigger_start_process finished.")
 
     # while self.check_camera_preview_status() or self.check_camera_capture_status():
     #     if self.check_camera_preview_status is False or self.check_camera_capture_status is False:
