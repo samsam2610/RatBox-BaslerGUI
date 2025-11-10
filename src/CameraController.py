@@ -215,7 +215,7 @@ class CameraController(wx.Panel):
         self.offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
         sizer.Add(self.offset_x_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.offset_x_ctrl = FS.FloatSpin(panel, -1,  min_val=1, max_val=self.frame_width,
+        self.offset_x_ctrl = FS.FloatSpin(panel, -1,  min_val=1, max_val=self.sensor_width - self.frame_width,
                                           size=(140, -1), increment=4, value=1, digits=0,
                                           agwStyle=FS.FS_LEFT)
         sizer.Add(self.offset_x_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
@@ -227,7 +227,7 @@ class CameraController(wx.Panel):
         self.offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
         sizer.Add(self.offset_y_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.offset_y_ctrl = FS.FloatSpin(panel, -1,  min_val=1, max_val=self.frame_height,
+        self.offset_y_ctrl = FS.FloatSpin(panel, -1,  min_val=1, max_val=self.sensor_height - self.frame_height,
                                     size=(140, -1), increment=4, value=1, digits=0,
                                     agwStyle=FS.FS_LEFT)
         sizer.Add(self.offset_y_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
@@ -239,7 +239,7 @@ class CameraController(wx.Panel):
         self.width_ctrl_label = wx.StaticText(panel, label="Width:")
         sizer.Add(self.width_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.width_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_width,
+        self.width_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.sensor_width,
                                         size=(140, -1), increment=4, value=128, digits=0,
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.width_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
@@ -250,7 +250,7 @@ class CameraController(wx.Panel):
         self.height_ctrl_label = wx.StaticText(panel, label="Height:")
         sizer.Add(self.height_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.height_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_height,
+        self.height_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.sensor_height,
                                         size=(140, -1), increment=4, value=128, digits=0,
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.height_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
@@ -633,6 +633,8 @@ class CameraController(wx.Panel):
                         # Get the current frame width, height and offset
                         self.frame_width = self.camera.Width.GetValue()
                         self.frame_height = self.camera.Height.GetValue()
+                        self.sensor_width = self.camera.SensorWidth.GetValue()
+                        self.sensor_height = self.camera.SensorHeight.GetValue()
                         self.offset_x = self.camera.OffsetX.GetValue()
                         self.offset_y = self.camera.OffsetY.GetValue()
                         
@@ -970,8 +972,8 @@ class CameraController(wx.Panel):
         if (self.offset_x + new_width) < self.max_frame_width:
             self.frame_width = int(new_width)
             self.camera.Width.SetValue(self.frame_width)
-            self.offset_x_ctrl.SetMax(self.max_frame_width - self.frame_width)
-            self.offset_x_ctrl_label.SetLabel("Offset X (max {}):".format(self.max_frame_width - self.frame_width))
+            self.offset_x_ctrl.SetMax(self.sensor_width - self.frame_width)
+            self.offset_x_ctrl_label.SetLabel("Offset X (max {}):".format(self.sensor_width - self.frame_width))
         
         self.width_ctrl.SetValue(self.frame_width)
 
@@ -985,8 +987,8 @@ class CameraController(wx.Panel):
         if (self.offset_y + new_height) < self.max_frame_height:
             self.frame_height = int(new_height)
             self.camera.Height.SetValue(self.frame_height)
-            self.offset_y_ctrl.SetMax(self.max_frame_height - self.frame_height)
-            self.offset_y_ctrl_label.SetLabel("Offset Y (max {}):".format(self.max_frame_height - self.frame_height))
+            self.offset_y_ctrl.SetMax(self.sensor_height - self.frame_height)
+            self.offset_y_ctrl_label.SetLabel("Offset Y (max {}):".format(self.sensor_height - self.frame_height))
             
         
         self.height_ctrl.SetValue(self.frame_height)
