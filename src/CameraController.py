@@ -1013,7 +1013,7 @@ class CameraController(wx.Panel):
         IsWindowVisible = user32.IsWindowVisible
         # Create Image Windows to display live video while capturing
         imageWindow = pylon.PylonImageWindow()
-        imageWindow.Create(self.cam_index, 0, 0, 640, 480)
+        imageWindow.Create(self.cam_index, 0, 0, self.frame_width, self.frame_height)
         hwnd = imageWindow.GetWindowHandle()  # HWND
         
         self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
