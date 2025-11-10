@@ -408,7 +408,7 @@ class SystemControl(wx.Frame):
             time.sleep(0.5)  # Give some time for the cameras to start writing
             if self.trigger_on is True:
                 self.proc = multiprocessing.Process(
-                            target=trigger_start_process,
+                            target=trigger_start_process_continuous,
                             daemon=True,
                             )
                 self.proc.start()
