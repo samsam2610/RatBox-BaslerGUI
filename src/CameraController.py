@@ -965,7 +965,7 @@ class CameraController(wx.Panel):
             self.frame_width = int(new_width)
             self.camera.Width.SetValue(self.frame_width)
             self.offset_x_ctrl.SetMax(self.max_frame_width - self.frame_width)
-            self.offset_x_ctrl_label = wx.StaticText(self, label="Offset X (max {}):".format(self.max_frame_width - self.frame_width))
+            self.offset_x_ctrl_label.SetLabel("Offset X (max {}):".format(self.max_frame_width - self.frame_width))
         
         self.width_ctrl.SetValue(self.frame_width)
 
@@ -978,6 +978,7 @@ class CameraController(wx.Panel):
             self.frame_height = int(new_height)
             self.camera.Height.SetValue(self.frame_height)
             self.offset_y_ctrl.SetMax(self.max_frame_height - self.frame_height)
+            self.offset_y_ctrl_label.SetLabel("Offset Y (max {}):".format(self.max_frame_height - self.frame_height))
             
         
         self.height_ctrl.SetValue(self.frame_height)
