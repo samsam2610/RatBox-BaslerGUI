@@ -215,7 +215,7 @@ class CameraController(wx.Panel):
         self.offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
         sizer.Add(self.offset_x_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.offset_x_ctrl = FS.FloatSpin(panel, -1,  min_val=1, max_val=self.sensor_width - self.frame_width,
+        self.offset_x_ctrl = FS.FloatSpin(panel, -1,  min_val=1, max_val=self.max_frame_width - self.frame_width,
                                           size=(140, -1), increment=4, value=1, digits=0,
                                           agwStyle=FS.FS_LEFT)
         sizer.Add(self.offset_x_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
@@ -227,7 +227,7 @@ class CameraController(wx.Panel):
         self.offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
         sizer.Add(self.offset_y_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.offset_y_ctrl = FS.FloatSpin(panel, -1,  min_val=1, max_val=self.sensor_height - self.frame_height,
+        self.offset_y_ctrl = FS.FloatSpin(panel, -1,  min_val=1, max_val=self.max_frame_height - self.frame_height,
                                     size=(140, -1), increment=4, value=1, digits=0,
                                     agwStyle=FS.FS_LEFT)
         sizer.Add(self.offset_y_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
