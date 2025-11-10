@@ -279,11 +279,20 @@ class SystemControl(wx.Frame):
             wx.MessageBox("Please enter an export file name.", "Error", wx.OK | wx.ICON_ERROR)
             return
         self.set_last_filename(export_name)
+
+        if self.check_camera_frame_rate_status() is False:
+            wx.MessageBox("Not all cameras have the same frame rate, setting system-wide framerate based on first camera.", "Warning", wx.OK | wx.ICON_WARNING)
+
         for cam_panel in self.camera_panels:
             cam_panel.SetExportFolder(export_folder)
             cam_panel.SetAutoIndex(self.auto_index.GetValue())
             cam_panel.SetAppendDate(self.append_date.GetValue())
             cam_panel.SetFileName(export_name)
+            if self.frame_rate_consistent:
+                cam_panel.SetFrameRate(self.common_frame_rate)
+            else:
+                cam_panel.SetFrameRate(self.camera_panels[0].framerate)
+    
 
     def EnableSystemControls(self, value, preview=True, startup=False):
         if value is True:
@@ -341,6 +350,19 @@ class SystemControl(wx.Frame):
             self.trigger_on = None
     
         return self.trigger_on
+
+    def check_camera_frame_rate_status(self):
+        frame_rates = [panel.framerate for panel in self.camera_panels]
+
+        if all(rate == frame_rates[0] for rate in frame_rates):
+            self.frame_rate_consistent = True
+            self.common_frame_rate = frame_rates[0]
+        else:
+            wx.MessageBox("Not all cameras have the same frame rate.", "Warning", wx.OK | wx.ICON_WARNING)
+            self.frame_rate_consistent = False
+            self.common_frame_rate = None
+
+        return self.frame_rate_consistent
 
     def check_for_file_name_and_folder(self):
         # Check if all camera panels have export folder (exportfolder_ctrl) and filename set (exportfile_ctrl) are not empty
