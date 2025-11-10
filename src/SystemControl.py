@@ -41,17 +41,8 @@ def trigger_start_process(nidaq_samp_rate=12000, frequency=200):
         pulse = GenPulse(nidaq_samp_rate, frequency)
         ao_task.write(pulse, auto_start=True)
         ao_task.wait_until_done(timeout=nidaqmx.constants.WAIT_INFINITELY)
-    # ao_task.wait_until_done()    
 
-    # while self.check_camera_preview_status() or self.check_camera_capture_status():
-    #     if self.check_camera_preview_status is False or self.check_camera_capture_status is False:
-    #         print(f"Stopping the Nidaq...")
-    #         ao_task.stop()
-    #         ao_task.write(0.0)
-    #         ao_task.close()
-    #         break
-    #     else:
-    #         time.sleep(0.001)
+
 
 
 
@@ -356,19 +347,7 @@ class SystemControl(wx.Frame):
                     self.proc.join()  
                 else:
                     print("Trigger process already terminated.")
-                try:
-                    import nidaqmx
-                    from nidaqmx.system import System
 
-                    system = System.local()
-                    dev = next(d for d in system.devices if d.name == self.device_name)
-                    dev.reset_device()
-                    print(f"Device {self.device_name} reset.")
-                except StopIteration:
-                    print(f"Device {self.device_name} not found; cannot reset.")
-                except Exception as e:
-                    print(f"Error while resetting device: {e}")
- 
             for cam_panel in self.camera_panels:
                 cam_panel.StopPreview()
             self.system_preview_btn.SetLabel("Start System Preview")
@@ -381,6 +360,9 @@ class SystemControl(wx.Frame):
         if self.check_camera_preview_status():
             wx.MessageBox("Please stop all camera previews before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
             return
+        if self.check_camera_trigger_status() is None:
+            wx.MessageBox("Please set the same trigger mode for all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
+            return
         if not self.check_for_file_name_and_folder():
             wx.MessageBox("Please set export folder and file name for all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
             return
@@ -390,13 +372,23 @@ class SystemControl(wx.Frame):
             self.system_capture_btn.SetLabel("Stop System Capture")
             self.EnableSystemControls(value=False, preview=False)
             self.system_capturing_on = True
-            self.trigger_thread_obj = multiprocessing.process(target=self.trigger_thread, arg=(self,))
-            self.trigger_thread_obj.start()
+            if self.trigger_on is True:
+                self.proc = multiprocessing.Process(
+                            target=trigger_start_process,
+                            daemon=True,
+                            )
+                self.proc.start()
+                print(f"Spawned trigger process with PID {self.proc.pid}")
         else:
             self.system_capturing_on = False
-            self.trigger_thread_obj.terminate()
-            if self.trigger_thread_obj.is_alive() is True:
-                self.trigger_thread_obj.join()
+            if self.trigger_on is True:
+                if self.proc.is_alive():
+                    print(f"Terminating trigger process with PID {self.proc.pid}")
+                    self.proc.terminate()
+                    self.proc.join()  
+                else:
+                    print("Trigger process already terminated.")
+            time.sleep(0.5)  # Give some time for the cameras to finalize writing
             for cam_panel in self.camera_panels:
                 cam_panel.StopCapture()
             self.system_capture_btn.SetLabel("Start System Capture")
