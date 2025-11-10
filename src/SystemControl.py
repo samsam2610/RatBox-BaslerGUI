@@ -38,7 +38,7 @@ def trigger_start_process(nidaq_samp_rate=12000, frequency=200):
             samps_per_chan=3600 * nidaq_samp_rate,
         )
 
-        pulse = GenPulse(nidaq_samp_rate)
+        pulse = GenPulse(nidaq_samp_rate, frequency)
         ao_task.write(pulse, auto_start=True)
         ao_task.wait_until_done()
     # ao_task.wait_until_done()    
