@@ -633,8 +633,6 @@ class CameraController(wx.Panel):
                         # Get the current frame width, height and offset
                         self.frame_width = self.camera.Width.GetValue()
                         self.frame_height = self.camera.Height.GetValue()
-                        self.sensor_width = self.camera.SensorWidth.GetValue()
-                        self.sensor_height = self.camera.SensorHeight.GetValue()
                         self.offset_x = self.camera.OffsetX.GetValue()
                         self.offset_y = self.camera.OffsetY.GetValue()
                         
@@ -973,7 +971,7 @@ class CameraController(wx.Panel):
             self.frame_width = int(new_width)
             self.camera.Width.SetValue(self.frame_width)
             self.offset_x_ctrl.SetMax(self.sensor_width - self.frame_width)
-            self.offset_x_ctrl_label.SetLabel("Offset X (max {}):".format(self.sensor_width - self.frame_width))
+            self.offset_x_ctrl_label.SetLabel("Offset X (max {}):".format(self.max_frame_width - self.frame_width))
         
         self.width_ctrl.SetValue(self.frame_width)
 
@@ -988,9 +986,8 @@ class CameraController(wx.Panel):
             self.frame_height = int(new_height)
             self.camera.Height.SetValue(self.frame_height)
             self.offset_y_ctrl.SetMax(self.sensor_height - self.frame_height)
-            self.offset_y_ctrl_label.SetLabel("Offset Y (max {}):".format(self.sensor_height - self.frame_height))
+            self.offset_y_ctrl_label.SetLabel("Offset Y (max {}):".format(self.max_frame_height - self.frame_height))
             
-        
         self.height_ctrl.SetValue(self.frame_height)
     
     def StartPreview(self):
