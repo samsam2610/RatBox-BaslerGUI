@@ -33,7 +33,7 @@ def trigger_start_process(nidaq_samp_rate=12000, frequency=200):
     # ao_task.register_every_n_samples_acquired_into_buffer_event(1000,callback_method=callback_func,callback_data=self.system_capturing_on)
     pulse = GenPulse(nidaq_samp_rate, frequency)
     ao_task.write(pulse, auto_start=True)    
-    ao_task.wait_until_done()    
+    # ao_task.wait_until_done()    
 
     # while self.check_camera_preview_status() or self.check_camera_capture_status():
     #     if self.check_camera_preview_status is False or self.check_camera_capture_status is False:
@@ -327,7 +327,7 @@ class SystemControl(wx.Frame):
         if self.check_camera_trigger_status() is None:
             wx.MessageBox("Please set the same trigger mode for all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
             return
-        
+            
         if self.check_camera_preview_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartPreview()
