@@ -25,7 +25,7 @@ def GenPulse(sampling_rate, frequency):
     t = np.linspace(0, 3600, sampling_rate, endpoint=False)
     return(5 * signal.square(2 * np.pi *frequency * t, duty=0.2))
 
-def trigger_start_process(nidaq_samp_rate=12000, frequency=200):
+def trigger_start_process(nidaq_samp_rate=5000, frequency=200):
 
     print("Child: starting NI task")
 
