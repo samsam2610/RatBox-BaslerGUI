@@ -306,7 +306,7 @@ class SystemControl(wx.Frame):
             self.trigger_on = True
         else:
             wx.MessageBox("Not all cameras have the same trigger mode.", "Warning", wx.OK | wx.ICON_WARNING)
-            return
+            self.trigger_on = None
     
         return self.trigger_on
 
@@ -324,7 +324,10 @@ class SystemControl(wx.Frame):
         if not self.check_camera_connected_status():
             wx.MessageBox("Please connect all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
             return
-        self.check_camera_trigger_status()
+        if self.check_camera_trigger_status() is None:
+            wx.MessageBox("Please set the same trigger mode for all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        
         if self.check_camera_preview_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartPreview()
