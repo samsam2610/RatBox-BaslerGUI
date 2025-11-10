@@ -740,13 +740,23 @@ class CameraController(wx.Panel):
     def FramerteSliderScroll(self, event):
         obj = event.GetEventObject()
         val = obj.GetValue()
-        self.framerate = val
+        self.SetFrameRate(val)
+
+    def SetFrameRate(self, value: int):
         if self.camera_connected is True:
-            self.camera.AcquisitionFrameRate.SetValue(self.framerate)
-            resulting_framerate = self.camera.ResultingFrameRate.GetValue()
-            if (resulting_framerate != self.framerate):
-                self.framerate = int(resulting_framerate)
-                self.framerate_slider.SetValue(self.framerate)
+            if self.trigger_mode is True:
+                self.camera.AcquisitionFrameRateEnable.SetValue(False)
+                self.framerate = value
+                self.framerate_slider.SetValue(self.framerate) 
+            else:
+                self.camera.AcquisitionFrameRate.SetValue(value)
+                resulting_framerate = self.camera.ResultingFrameRate.GetValue()
+                if (resulting_framerate != value):
+                    self.framerate = int(resulting_framerate)
+                    self.framerate_slider.SetValue(self.framerate)
+    
+    def GetFrameRate(self):
+        return self.framerate
 
     def ExposureSliderScroll(self, event):
         obj = event.GetEventObject()
@@ -889,11 +899,7 @@ class CameraController(wx.Panel):
         else:
             self.camera.TriggerMode.Value = "Off"
             self.camera.AcquisitionFrameRateEnable.SetValue(True)
-            self.camera.AcquisitionFrameRate.SetValue(200.0)
-            resulting_framerate = self.camera.ResultingFrameRate.GetValue()
-            if (resulting_framerate != self.framerate):
-                self.framerate = resulting_framerate
-                self.framerate_slider.SetValue(self.framerate)
+            self.SetFrameRate(self.framerate)
 
     def SetAppendDate(self, value):
         self.append_date.SetValue(value)

@@ -280,18 +280,14 @@ class SystemControl(wx.Frame):
             return
         self.set_last_filename(export_name)
 
-        if self.check_camera_frame_rate_status() is False:
-            wx.MessageBox("Not all cameras have the same frame rate, setting system-wide framerate based on first camera.", "Warning", wx.OK | wx.ICON_WARNING)
+        self.check_camera_frame_rate_status()
 
         for cam_panel in self.camera_panels:
             cam_panel.SetExportFolder(export_folder)
             cam_panel.SetAutoIndex(self.auto_index.GetValue())
             cam_panel.SetAppendDate(self.append_date.GetValue())
             cam_panel.SetFileName(export_name)
-            if self.frame_rate_consistent:
-                cam_panel.SetFrameRate(self.common_frame_rate)
-            else:
-                cam_panel.SetFrameRate(self.camera_panels[0].framerate)
+            cam_panel.SetFrameRate(self.common_frame_rate)
     
 
     def EnableSystemControls(self, value, preview=True, startup=False):
@@ -352,15 +348,15 @@ class SystemControl(wx.Frame):
         return self.trigger_on
 
     def check_camera_frame_rate_status(self):
-        frame_rates = [panel.framerate for panel in self.camera_panels]
+        frame_rates = [panel.GetFrameRate() for panel in self.camera_panels]
 
         if all(rate == frame_rates[0] for rate in frame_rates):
             self.frame_rate_consistent = True
             self.common_frame_rate = frame_rates[0]
         else:
-            wx.MessageBox("Not all cameras have the same frame rate.", "Warning", wx.OK | wx.ICON_WARNING)
+            wx.MessageBox("Not all cameras have the same frame rate. Setting system-wide frame rate based on first camera.", "Warning", wx.OK | wx.ICON_WARNING)
+            self.common_frame_rate = frame_rates[0]
             self.frame_rate_consistent = False
-            self.common_frame_rate = None
 
         return self.frame_rate_consistent
 
@@ -390,6 +386,7 @@ class SystemControl(wx.Frame):
             if self.trigger_on is True:
                 self.proc = multiprocessing.Process(
                             target=trigger_start_process_continuous,
+                            kwargs={"framequency"}
                             daemon=True,
                             )
                 self.proc.start()
