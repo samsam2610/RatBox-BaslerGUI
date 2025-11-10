@@ -239,7 +239,7 @@ class CameraController(wx.Panel):
         self.width_ctrl_label = wx.StaticText(panel, label="Width:")
         sizer.Add(self.width_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.width_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.sensor_width,
+        self.width_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.max_frame_width,
                                         size=(140, -1), increment=4, value=128, digits=0,
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.width_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
@@ -250,7 +250,7 @@ class CameraController(wx.Panel):
         self.height_ctrl_label = wx.StaticText(panel, label="Height:")
         sizer.Add(self.height_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.height_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.sensor_height,
+        self.height_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.max_frame_height,
                                         size=(140, -1), increment=4, value=128, digits=0,
                                         agwStyle=FS.FS_LEFT)
         sizer.Add(self.height_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
