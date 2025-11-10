@@ -281,15 +281,16 @@ class SystemControl(wx.Frame):
         self.set_last_filename(export_name)
 
         self.check_camera_frame_rate_status()
+        self.check_camera_trigger_status()
 
         for cam_panel in self.camera_panels:
             cam_panel.SetExportFolder(export_folder)
             cam_panel.SetAutoIndex(self.auto_index.GetValue())
             cam_panel.SetAppendDate(self.append_date.GetValue())
             cam_panel.SetFileName(export_name)
+            cam_panel.SetTriggerMode(self.trigger_on)
             cam_panel.SetFrameRate(self.common_frame_rate)
     
-
     def EnableSystemControls(self, value, preview=True, startup=False):
         if value is True:
             self.exportfile_ctrl.Enable()
