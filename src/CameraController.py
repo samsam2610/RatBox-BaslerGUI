@@ -210,8 +210,6 @@ class CameraController(wx.Panel):
         self.set_auto_gain.Bind(wx.EVT_CHECKBOX, self.OnEnableAutoGain)
         self.row_pos += 1 # Current row position = 12
 
-        
-        
         self.offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
         sizer.Add(self.offset_x_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
@@ -223,6 +221,13 @@ class CameraController(wx.Panel):
         self.offset_x_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetOffsetX)
         self.offset_x_ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnSetOffsetX)
         self.row_pos += 1 # Current row position = 13
+
+        # self.offset_x_ctrl_slider = wx.Slider(panel, value=1, minValue=1, maxValue=self.max_frame_width - self.frame_width,
+        #                                      style=wx.SL_HORIZONTAL)
+        # sizer.Add(self.offset_x_ctrl_slider, pos=(self.row_pos, self.column_pos), span=(1, 2),
+        #           flag=wx.EXPAND | wx.ALL, border=5)
+        # self.offset_x_ctrl_slider.Bind(wx.EVT_SLIDER, self.OnSetOffsetX)
+        # self.row_pos += 1 # Current row position = 14
 
         self.offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
         sizer.Add(self.offset_y_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),

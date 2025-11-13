@@ -19,7 +19,7 @@ from VideoRecordingSession import VideoRecordingSession
 from InputEventHandler import ConfigurationEventPrinter
 from ImagePanel import ImagePanel
 from CameraController import CameraController
-
+# Testing system
 def GenPulse(sampling_rate, frequency, duration=3600):
     print(f"Gen pulse at {frequency} Hz")
     t = np.linspace(0, duration, int(sampling_rate * duration), endpoint=False)
