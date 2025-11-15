@@ -141,8 +141,7 @@ class SystemControl(wx.Frame):
 
                 self.camera_panels.append(camera_panel)
             
-            self.column_pos = 0
-            self.row_pos = 0
+
             
             # Adding another StaticBoxSizer for system-wide controls
             system_box = wx.StaticBox(self.outer_panel, label="System Controls")
@@ -151,43 +150,44 @@ class SystemControl(wx.Frame):
             self.system_panel = wx.Panel(self.outer_panel)
             
             sizer = wx.GridBagSizer(5, 5)
+            column_pos= 0
+            row_pos= 0
             exportfile_ctrl_label = wx.StaticText(self.system_panel, label="Export file name:")
-            sizer.Add(exportfile_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+            sizer.Add(exportfile_ctrl_label, pos=(row_pos, column_pos), span=(1, 1),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.exportfile_ctrl = wx.TextCtrl(self.system_panel)
-            sizer.Add(self.exportfile_ctrl, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
+            sizer.Add(self.exportfile_ctrl, pos=(row_pos, column_pos+ 1), span=(1, 1),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.exportfile_ctrl.SetValue(self.get_last_filename())
-            self.row_pos += 1 # Current row position = 1
+            row_pos += 1 # Current row position = 1
 
             exportfolder_ctrl_label = wx.StaticText(self.system_panel, label="Export directory:")
-            sizer.Add(exportfolder_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
+            sizer.Add(exportfolder_ctrl_label, pos=(row_pos, column_pos), span=(1, 1),
                     flag=wx.EXPAND | wx.ALL, border=5)
 
             self.select_folder_btn = wx.Button(self.system_panel, label="Select folder")
             self.select_folder_btn.Bind(wx.EVT_BUTTON, self.OnSelectFolder)
-            sizer.Add(self.select_folder_btn, pos=(self.row_pos, self.column_pos + 1),
+            sizer.Add(self.select_folder_btn, pos=(row_pos, column_pos+ 1),
                     flag=wx.EXPAND | wx.ALL, border=5)
-            self.row_pos += 1 # Current row position = 2
-
+            row_pos += 1 # Current row position = 2
             
             self.exportfolder_ctrl = wx.TextCtrl(self.system_panel)
-            sizer.Add(self.exportfolder_ctrl, pos=(self.row_pos, self.column_pos), span=(1, 2),
+            sizer.Add(self.exportfolder_ctrl, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.exportfolder_ctrl.Disable()
             self.exportfolder_ctrl.SetValue(self.get_last_dir())
-            self.row_pos += 1 # Current row position = 3
+            row_pos += 1 # Current row position = 3
 
             self.append_date = wx.CheckBox(self.system_panel, label="Append date and time")
-            sizer.Add(self.append_date, pos=(self.row_pos, self.column_pos), span=(1, 1),
+            sizer.Add(self.append_date, pos=(row_pos, column_pos), span=(1, 1),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.append_date.SetBackgroundColour(wx.NullColour)
             self.append_date.Bind(wx.EVT_CHECKBOX, self.OnAppendDate)
             self.append_date.SetValue(True)  
-            self.row_pos += 1 # Current row position = 4
+            row_pos += 1 # Current row position = 4
 
             self.auto_index = wx.CheckBox(self.system_panel, label="Auto index")
-            sizer.Add(self.auto_index, pos=(self.row_pos, self.column_pos), span=(1, 1),
+            sizer.Add(self.auto_index, pos=(row_pos, column_pos), span=(1, 1),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.auto_index.SetBackgroundColour(wx.NullColour)
             self.auto_index.Bind(wx.EVT_CHECKBOX, self.OnAutoIndex)
@@ -195,26 +195,26 @@ class SystemControl(wx.Frame):
 
             self.index_ctrl = wx.TextCtrl(self.system_panel)
             self.index_ctrl.SetValue(str(1))
-            sizer.Add(self.index_ctrl, pos=(self.row_pos, self.column_pos + 1), flag=wx.EXPAND | wx.ALL, border=5)
-            self.row_pos += 1 # Current row position = 5
+            sizer.Add(self.index_ctrl, pos=(row_pos, column_pos+ 1), flag=wx.EXPAND | wx.ALL, border=5)
+            row_pos += 1 # Current row position = 5
             
             self.set_config_btn = wx.Button(self.system_panel, label="Set configuration system-wide")
-            sizer.Add(self.set_config_btn, pos=(self.row_pos, self.column_pos), span=(1, 2),
+            sizer.Add(self.set_config_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.set_config_btn.Bind(wx.EVT_BUTTON, self.SetFolderAndFileConfigurationSystemWide)
-            self.row_pos += 1 # Current row position = 6
+            row_pos += 1 # Current row position = 6
            
             self.system_preview_btn = wx.Button(self.system_panel, label="Start System Preview")
-            sizer.Add(self.system_preview_btn, pos=(self.row_pos, self.column_pos), span=(1, 2),
+            sizer.Add(self.system_preview_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5) 
             self.system_preview_btn.Bind(wx.EVT_BUTTON, self.OnSystemPreview)
-            self.row_pos += 1 # Current row position = 7
+            row_pos += 1 # Current row position = 7
             
             self.system_capture_btn = wx.Button(self.system_panel, label="Start System Capture")
-            sizer.Add(self.system_capture_btn, pos=(self.row_pos, self.column_pos), span=(1, 2),
+            sizer.Add(self.system_capture_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5) 
             self.system_capture_btn.Bind(wx.EVT_BUTTON, self.OnSystemCapture)
-            self.row_pos += 1 # Current row position = 8
+            row_pos += 1 # Current row position = 8
             
             
             self.system_panel.SetSizer(sizer)
@@ -223,6 +223,15 @@ class SystemControl(wx.Frame):
             # Add to the main horizontal layout
             system_sizer.Add(self.system_panel, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
             hbox.Add(system_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+
+            calibration_box = wx.StaticBox(self.outer_panel, label="Calibration Controls")
+            calibration_sizer = wx.StaticBoxSizer(calibration_box, wx.VERTICAL)
+            self.calibration_panel = wx.Panel(self.outer_panel)
+            sizer = wx.GridBagSizer(5, 5)
+            self.calibration_status_label = wx.StaticText(self.calibration_panel, label="Calibration Status: Not started")
+            sizer.Add(self.calibration_status_label, pos=(0, 0), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            
 
         self.outer_panel.SetSizer(hbox)
         hbox.Layout()
@@ -455,10 +464,162 @@ class SystemControl(wx.Frame):
             self.system_capture_btn.SetLabel("Start System Capture")
             self.EnableSystemControls(value=True, preview=False)          
     
-    
-
             # ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
-                
+
+    def OnSystemCalibrate(self, event):
+        pass  # Placeholder for future implementation
+
+    def load_calibration_settings(self, draw_calibration_board=False):
+        from utils import load_config, get_calibration_board
+        from pathlib import Path
+        
+        calibration_stats_message = 'Looking for config.toml directory ...'
+        self.calibration_process_stats.set(calibration_stats_message)
+        print(calibration_stats_message)
+        
+        path = Path(os.path.realpath(__file__))
+        # Navigate to the outer parent directory and join the filename
+        config_toml_path = os.path.normpath(str(path.parents[2] / 'config-files' / 'config.toml'))
+        config_anipose = load_config(config_toml_path)
+        calibration_stats_message = 'Found config.toml directory. Loading config ...'
+        print(calibration_stats_message)
+        
+        calibration_stats_message = 'Successfully found and loaded config. Determining calibration board ...'
+        self.calibration_process_stats.set(calibration_stats_message)
+        print(calibration_stats_message)
+        
+        self.board_calibration = get_calibration_board(config=config_anipose)
+        calibration_stats_message = 'Successfully determined calibration board. Initializing camera calibration objects ...'
+        self.calibration_process_stats.set(calibration_stats_message)
+        print(calibration_stats_message)
+
+        self.rows_fname = os.path.join(self.dir_output.get(), 'detections.pickle')
+        self.calibration_out = os.path.join(self.dir_output.get(), 'calibration.toml')
+        
+        board_dir = os.path.join(self.dir_output.get(), 'board.png')
+        if draw_calibration_board:
+            numx, numy = self.board_calibration.get_size()
+            size = numx*200, numy*200
+            img = self.board_calibration.draw(size)
+            cv2.imwrite(board_dir, img)
+        
+        return config_anipose
+    
+    def setup_calibration(self, override=False):
+        """
+        Method: setup_calibration
+
+        This method initializes the calibration process. It performs the following steps:
+
+        1. Initializes the calibration process by updating the status text.
+        2. Looks for the config.toml directory if debug_mode is enabled.
+        3. Loads the config file and determines the calibration board.
+        4. Initializes camera calibration objects.
+        5. Records frame sizes and initializes camera objects.
+        6. Configures calibration buttons and toggle statuses.
+        7. Clears previous calibration files.
+        8. Sets calibration duration parameter.
+        9. Creates a shared queue to store frames.
+        10. Updates the boolean flag for detection updates.
+        11. Synchronizes camera capture time using threading.Barrier.
+        12. Creates output file names for the calibration videos.
+        13. Sets frame sizes for the cameras.
+        14. Starts the calibration process by recording frames, processing markers, and calibrating.
+
+        Parameters:
+        - None
+
+        Return Type:
+        - None
+        """
+        self.calibration_process_stats.set('Initializing calibration process...')
+        config_anipose = self.load_calibration_settings()
+        
+        self.calibration_process_stats.set('Initializing camera calibration objects ...')
+        from src.aniposelib.cameras import CameraGroup
+        import re
+        
+        # Get cam names from the config file
+        cam_regex = config_anipose['triangulation']['cam_regex']
+        cam_names = []
+        for name in self.cam_names:
+            match = re.match(cam_regex, name)
+            if match:
+                cam_names.append(match.groups()[0])
+        
+        self.cgroup = CameraGroup.from_names(cam_names)
+        self.calibration_process_stats.set('Initialized camera object.')
+        self.frame_count = []
+        self.all_rows = []
+
+        self.calibration_process_stats.set('Cameras found. Recording the frame sizes')
+        self.set_calibration_buttons_group(state='normal')
+        
+        self.calibration_capture_toggle_status = False
+        self.calibration_toggle_status = False
+        
+        frame_sizes = []
+        self.frame_times = []
+        self.previous_frame_count = []
+        self.current_frame_count = []
+        self.frame_process_threshold = 2
+        self.queue_frame_threshold = 1000
+        
+        if override:
+            # Check available detection file, if file available will delete it (for now)
+            self.clear_calibration_file(self.rows_fname)
+            self.clear_calibration_file(self.calibration_out)
+            self.rows_fname_available = False
+        else:
+            self.rows_fname_available = os.path.exists(self.rows_fname)
+            
+        # Set calibration parameter
+        result = self.set_calibration_duration()
+        if result == 0:
+            return
+        
+        self.error_list = []
+        # Create a shared queue to store frames
+        self.frame_queue = queue.Queue(maxsize=self.queue_frame_threshold)
+
+        # Boolean for detections.pickle is updated
+        self.detection_update = False
+
+        # create output file names
+        self.vid_file = []
+        self.base_name = []
+        self.cam_name_no_space = []
+
+        for i in range(len(self.cam)):
+            # write code to create a list of base names for the videos
+            self.cam_name_no_space.append(self.cam_name[i].replace(' ', ''))
+            self.base_name.append(self.cam_name_no_space[i] + '_' + 'calibration_' + self.setup_name.get() + '_')
+            self.vid_file.append(os.path.normpath(self.dir_output.get() +
+                                                    '/' +
+                                                    self.base_name[i] +
+                                                    self.attempt.get() +
+                                                    '.avi'))
+
+            frame_sizes.append(self.cam[i].get_image_dimensions())
+            self.frame_count.append(1)
+            self.all_rows.append([])
+            self.previous_frame_count.append(0)
+            self.current_frame_count.append(0)
+            self.frame_times.append([])
+
+        # check if file exists, ask to overwrite or change attempt number if it does
+        create_video_files(self, overwrite=override)
+        create_output_files(self, subject_name='Sam')
+
+        self.calibration_process_stats.set('Setting the frame sizes...')
+        self.cgroup.set_camera_sizes_images(frame_sizes=frame_sizes)
+        self.calibration_process_stats.set('Prepping done. Ready to capture calibration frames...')
+        self.calibration_status_label['bg'] = 'yellow'
+
+        self.vid_start_time = time.perf_counter()
+        
+        self.recording_threads = []
+        self.calibrating_thread = None
 
     def get_config(self):
         APP_NAME = "BaslerCamGUI"  # any unique name
