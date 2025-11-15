@@ -234,7 +234,9 @@ class SystemControl(wx.Frame):
             
             self.calibration_panel.SetSizer(sizer)
             self.calibration_panel.Layout()
-            
+            # Add to below the system controls
+            calibration_sizer.Add(self.calibration_panel, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+            hbox.Add(calibration_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
 
         self.outer_panel.SetSizer(hbox)
         hbox.Layout()
