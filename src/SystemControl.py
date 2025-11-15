@@ -222,7 +222,7 @@ class SystemControl(wx.Frame):
 
             # Add to the main horizontal layout
             system_sizer.Add(self.system_panel, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
-            hbox.Add(system_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+            # hbox.Add(system_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
 
             calibration_box = wx.StaticBox(self.outer_panel, label="Calibration Controls")
             calibration_sizer = wx.StaticBoxSizer(calibration_box, wx.VERTICAL)
