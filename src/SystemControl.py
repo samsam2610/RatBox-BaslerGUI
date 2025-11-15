@@ -238,7 +238,7 @@ class SystemControl(wx.Frame):
             calibration_sizer.Add(self.calibration_panel, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
             right_column = wx.BoxSizer(wx.VERTICAL)
             right_column.Add(system_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
-            right_column.Add(calibration_sizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=5)
+            right_column.Add(calibration_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
 
             # Add this single right column to your main hbox
             hbox.Add(right_column, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
