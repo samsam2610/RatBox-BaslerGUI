@@ -232,6 +232,9 @@ class SystemControl(wx.Frame):
             sizer.Add(self.calibration_status_label, pos=(0, 0), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             
+            self.calibration_panel.SetSizer(sizer)
+            self.calibration_panel.Layout()
+            
 
         self.outer_panel.SetSizer(hbox)
         hbox.Layout()
