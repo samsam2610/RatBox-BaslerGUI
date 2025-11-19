@@ -399,7 +399,6 @@ class SystemControl(wx.Frame):
         if self.check_camera_trigger_status() is None:
             wx.MessageBox("Please set the same trigger mode for all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
             return
-        self.load_calibration_settings()
         if self.check_camera_preview_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartPreview()
