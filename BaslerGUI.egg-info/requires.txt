@@ -1,0 +1,7 @@
+wxPython>=4.2.1
+pypylon
+numpy>=1.23
+opencv-python-headless>=4.8
+scikit-image>=0.21
+matplotlib>=3.7
+pillow>=10.0

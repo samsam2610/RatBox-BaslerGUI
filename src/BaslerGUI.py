@@ -1,6 +1,9 @@
 # import pandas as pd
 
+import queue
 import wx
+import os
+from pathlib import Path
 from skimage.feature import graycomatrix, graycoprops
 from scipy.optimize import curve_fit
 import numpy as np
@@ -13,27 +16,7 @@ import wx.lib.agw.floatspin as FS
 import csv
 from VideoRecordingSession import VideoRecordingSession
 from InputEventHandler import ConfigurationEventPrinter
-
-class ImagePanel(wx.Panel):
-
-    def __init__(self, parent, frame_height=480, frame_width=640):
-        wx.Panel.__init__(self, parent)
-        h, w = frame_height, frame_width
-        src = (255 * np.random.rand(h, w)).astype(np.uint8)
-        buf = src.repeat(3, 1).tobytes()
-        self.bitmap = wx.Image(w, h, buf).ConvertToBitmap()
-        self.SetDoubleBuffered(True)
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.Size = (frame_height, frame_width)
-        self.Fit()
-
-    def OnPaint(self, evt):
-        wx.BufferedPaintDC(self, self.bitmap)
-
-    def update(self, input_image):
-        self.bitmap = input_image
-        wx.BufferedDC(wx.ClientDC(self), self.bitmap)
-
+from ImagePanel import ImagePanel
 
 class BaslerGuiWindow(wx.Frame):
 
@@ -88,21 +71,6 @@ class BaslerGuiWindow(wx.Frame):
     capture_thread_obj = None
     process_thread_obj = None
     max_contrast = 0.8
-
-    # TODO: reorganize these variables to make it customizable
-    current_frame = np.zeros((frame_height, frame_width, 1), np.float32)
-    gray = np.zeros((frame_height, frame_width, 1), np.uint8)
-    mean_img_sq = np.zeros((frame_height, frame_width, 1), np.float32)
-    sq = np.zeros((frame_height, frame_width, 1), np.float32)
-    img = np.zeros((frame_height, frame_width, 1), np.float32)
-    mean_img = np.zeros((frame_height, frame_width, 1), np.float32)
-    sq_img_mean = np.zeros((frame_height, frame_width, 1), np.float32)
-    std = np.zeros((frame_height, frame_width, 1), np.float32)
-    LASCA = np.zeros((frame_height, frame_width, 1), np.uint8)
-    im_color = np.zeros((frame_height, frame_width, 3), np.uint8)
-    mask = np.zeros((frame_height, frame_width, 1), bool)
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)).astype(np.float32)
-    kernel /= np.sum(kernel)
     
     video_session = VideoRecordingSession(cam_num=0)
 
@@ -150,180 +118,122 @@ class BaslerGuiWindow(wx.Frame):
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         fourcc_label = wx.StaticText(panel, label="Fourcc Code:")
-        sizer.Add(fourcc_label, pos=(13, 0), flag=wx.EXPAND | wx.ALL, border=5)
+        sizer.Add(fourcc_label, pos=(21, 0), flag=wx.EXPAND | wx.ALL, border=5)
         fourcc_modes = ["MJPG", "DIVX", "XVID"]
         self.encoding_mode_combo = wx.ComboBox(panel, choices=fourcc_modes)
-        sizer.Add(self.encoding_mode_combo, pos=(13, 1), flag=wx.ALL, border=5)
+        sizer.Add(self.encoding_mode_combo, pos=(21, 1), flag=wx.ALL, border=5)
         self.encoding_mode_combo.Bind(wx.EVT_COMBOBOX, self.OnCapModeCombo)
         self.encoding_mode_combo.SetSelection(self.encoding_mode)
 
         interval_ctrl_label = wx.StaticText(panel, label="Measurement interval (sec):")
-        sizer.Add(interval_ctrl_label, pos=(14, 0),
+        sizer.Add(interval_ctrl_label, pos=(22, 0),
                   flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
         self.interval_ctrl = wx.TextCtrl(panel)
         self.interval_ctrl.SetValue(str(self.measurement_interval))
-        sizer.Add(self.interval_ctrl, pos=(14, 1),
+        sizer.Add(self.interval_ctrl, pos=(22, 1),
                   flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=5)
 
         sequence_ctrl_label = wx.StaticText(panel, label="Sequence length (num):")
-        sizer.Add(sequence_ctrl_label, pos=(15, 0),
+        sizer.Add(sequence_ctrl_label, pos=(23, 0),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.sequence_ctrl = wx.TextCtrl(panel)
         self.sequence_ctrl.SetValue(str(self.sequence_length))
-        sizer.Add(self.sequence_ctrl, pos=(15, 1),
+        sizer.Add(self.sequence_ctrl, pos=(23, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
-        mode_ctrl_label = wx.StaticText(panel, label="Preview mode:")
-        sizer.Add(mode_ctrl_label, pos=(3, 0), flag=wx.EXPAND | wx.ALL, border=5)
-        modes = ['RAW', 'LASCA', 'HISTOGRAM']
-        self.mode_combo = wx.ComboBox(panel, choices=modes)
-        sizer.Add(self.mode_combo, pos=(3, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.mode_combo.Bind(wx.EVT_COMBOBOX, self.OnModeCombo)
-        self.mode_combo.SetSelection(2)
+        self.Window = ImagePanel(panel)
+        # self.Window.SetSize((480, 360))
+        # self.Window.Fit()
+        sizer.Add(self.Window, pos=(3, 0), span=(4, 3),
+                  flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
 
         framescap_ctrl_label = wx.StaticText(panel, label="Video length (sec):")
-        sizer.Add(framescap_ctrl_label, pos=(16, 0),
+        sizer.Add(framescap_ctrl_label, pos=(24, 0),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.framescap_ctrl = wx.TextCtrl(panel)
         self.framescap_ctrl.SetValue(str(self.frames_to_capture))
-        sizer.Add(self.framescap_ctrl, pos=(16, 1),
+        sizer.Add(self.framescap_ctrl, pos=(24, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.capture_btn = wx.Button(panel, label="Capture START")
         self.capture_btn.Bind(wx.EVT_BUTTON, self.OnCapture)
-        sizer.Add(self.capture_btn, pos=(17, 0), span=(1, 2),
+        sizer.Add(self.capture_btn, pos=(25, 0), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.framerate_ctrl_label = wx.StaticText(panel, label="Framerate (Hz):")
-        sizer.Add(self.framerate_ctrl_label, pos=(4, 0), span=(1, 1),
+        sizer.Add(self.framerate_ctrl_label, pos=(8, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.framerate_slider = FS.FloatSpin(panel, -1,  min_val=0, max_val=1,
-                                             size=(140, -1), increment=1.0,
+        self.framerate_slider = FS.FloatSpin(panel, -1,  min_val=100, max_val=500,
+                                             size=(140, -1), increment=1.0, digits=0,
                                              value=0.1, agwStyle=FS.FS_LEFT)
-        self.framerate_slider.SetFormat("%f")
-        self.framerate_slider.SetDigits(2)
         self.framerate_slider.Bind(FS.EVT_FLOATSPIN, self.FramerteSliderScroll)
-        sizer.Add(self.framerate_slider, pos=(4, 1), span=(1, 1),
+        sizer.Add(self.framerate_slider, pos=(8, 1), span=(1, 1),
                   flag=wx.ALL, border=5)
 
         self.exposure_ctrl_label = wx.StaticText(panel, label="Exposure (us):")
-        sizer.Add(self.exposure_ctrl_label, pos=(5, 0),  span=(1, 1),
+        sizer.Add(self.exposure_ctrl_label, pos=(9, 0),  span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.exposure_slider = FS.FloatSpin(panel, -1,  min_val=0, max_val=1,
-                                            size=(140, -1), increment=1.0,
-                                            value=0.1, agwStyle=FS.FS_LEFT)
-        self.exposure_slider.SetFormat("%f")
-        self.exposure_slider.SetDigits(2)
+        self.exposure_slider = FS.FloatSpin(panel, -1,  min_val=1000, max_val=5000,
+                                            size=(140, -1), increment=100, digits=0,
+                                            value=1000, agwStyle=FS.FS_LEFT)
         self.exposure_slider.Bind(FS.EVT_FLOATSPIN, self.ExposureSliderScroll)
-        sizer.Add(self.exposure_slider, pos=(5, 1), span=(1, 1),
+        sizer.Add(self.exposure_slider, pos=(9, 1), span=(1, 1),
                   flag=wx.ALL, border=5)
 
         self.gain_ctrl_label = wx.StaticText(panel, label="Gain (dB):")
-        sizer.Add(self.gain_ctrl_label, pos=(6, 0), span=(1, 1),
+        sizer.Add(self.gain_ctrl_label, pos=(10, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.gain_slider = FS.FloatSpin(panel, -1,  min_val=0, max_val=1,
-                                        size=(140, -1), increment=0.01, value=0.1,
+                                        size=(140, -1), increment=0.01, value=0.1, digits=0,
                                         agwStyle=FS.FS_LEFT)
         self.gain_slider.Bind(FS.EVT_FLOATSPIN, self.GainSliderScroll)
         self.gain_slider.SetFormat("%f")
         self.gain_slider.SetDigits(3)
-        sizer.Add(self.gain_slider, pos=(6, 1), span=(1, 1),
-                  flag=wx.ALL, border=5)
+        sizer.Add(self.gain_slider, pos=(10, 1), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
 
         self.set_auto_exposure = wx.CheckBox(panel, label="Auto Exposure")
-        sizer.Add(self.set_auto_exposure, pos=(7, 0), span=(1, 1),
+        sizer.Add(self.set_auto_exposure, pos=(11, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.set_auto_exposure.SetBackgroundColour(wx.NullColour)
         self.set_auto_exposure.Bind(wx.EVT_CHECKBOX, self.OnEnableAutoExposure)
 
         self.set_auto_gain = wx.CheckBox(panel, label="Auto Gain")
-        sizer.Add(self.set_auto_gain, pos=(7, 1), span=(1, 1),
+        sizer.Add(self.set_auto_gain, pos=(11, 1), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.set_auto_gain.SetBackgroundColour(wx.NullColour)
         self.set_auto_gain.Bind(wx.EVT_CHECKBOX, self.OnEnableAutoGain)
 
-        self.set_roi = wx.CheckBox(panel, label="Set ROI")
-        sizer.Add(self.set_roi, pos=(15, 3), span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.set_roi.SetBackgroundColour(wx.NullColour)
-        self.set_roi.Bind(wx.EVT_CHECKBOX, self.OnEnableRoi)
-
-        offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
-        sizer.Add(offset_x_ctrl_label, pos=(16, 3), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.offset_x_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=self.frame_width,
-                                    size=(220, -1),
-                                    style=wx.SL_HORIZONTAL | wx.SL_LABELS)
-        sizer.Add(self.offset_x_ctrl, pos=(17, 3), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.offset_x_ctrl.Bind(wx.EVT_SCROLL, self.OnSetOffsetX)
-
-        offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
-        sizer.Add(offset_y_ctrl_label, pos=(18, 3), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.offset_y_ctrl = wx.Slider(panel, value=0, minValue=0, maxValue=self.frame_height,
-                                    size=(220, 20),
-                                    style=wx.SL_HORIZONTAL | wx.SL_LABELS)
-        sizer.Add(self.offset_y_ctrl, pos=(19, 3), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.offset_y_ctrl.Bind(wx.EVT_SCROLL, self.OnSetOffsetY)
-
-        width_ctrl_label = wx.StaticText(panel, label="Width:")
-        sizer.Add(width_ctrl_label, pos=(16, 4), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.width_ctrl = wx.Slider(panel, value=10, minValue=10,
-                                        maxValue=self.frame_width, size=(220, -1),
-                                        style=wx.SL_HORIZONTAL | wx.SL_LABELS)
-        sizer.Add(self.width_ctrl, pos=(17, 4), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.width_ctrl.Bind(wx.EVT_SCROLL, self.OnSetWidth)
-
-        height_ctrl_label = wx.StaticText(panel, label="Height:")
-        sizer.Add(height_ctrl_label, pos=(18, 4), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.height_ctrl = wx.Slider(panel, value=10, minValue=10,
-                                         maxValue=self.frame_height, size=(220, 20),
-                                         style=wx.SL_HORIZONTAL | wx.SL_LABELS)
-        sizer.Add(self.height_ctrl, pos=(19, 4), span=(1, 1),
-                  flag=wx.ALL | wx.ALIGN_CENTER, border=0)
-        self.height_ctrl.Bind(wx.EVT_SCROLL, self.OnSetHeight)
-
-        self.offset_x_ctrl.Disable()
-        self.offset_y_ctrl.Disable()
-        self.width_ctrl.Disable()
-        self.height_ctrl.Disable()
-
         exportfile_ctrl_label = wx.StaticText(panel, label="Export file name:")
-        sizer.Add(exportfile_ctrl_label, pos=(8, 0), span=(1, 1),
+        sizer.Add(exportfile_ctrl_label, pos=(16, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.exportfile_ctrl = wx.TextCtrl(panel)
-        sizer.Add(self.exportfile_ctrl, pos=(8, 1), span=(1, 1),
+        sizer.Add(self.exportfile_ctrl, pos=(16, 1), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         exportfolder_ctrl_label = wx.StaticText(panel, label="Export directory:")
-        sizer.Add(exportfolder_ctrl_label, pos=(9, 0), span=(1, 1),
+        sizer.Add(exportfolder_ctrl_label, pos=(17, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.select_folder_btn = wx.Button(panel, label="Select folder")
         self.select_folder_btn.Bind(wx.EVT_BUTTON, self.OnSelectFolder)
-        sizer.Add(self.select_folder_btn, pos=(9, 1),
+        sizer.Add(self.select_folder_btn, pos=(17, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
 
         self.exportfolder_ctrl = wx.TextCtrl(panel)
-        sizer.Add(self.exportfolder_ctrl, pos=(10, 0), span=(1, 2),
+        sizer.Add(self.exportfolder_ctrl, pos=(18, 0), span=(1, 2),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.exportfolder_ctrl.Disable()
 
         self.append_date = wx.CheckBox(panel, label="Append date and time")
-        sizer.Add(self.append_date, pos=(11, 0), span=(1, 1),
+        sizer.Add(self.append_date, pos=(19, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.append_date.SetBackgroundColour(wx.NullColour)
         self.append_date.Bind(wx.EVT_CHECKBOX, self.OnAppendDate)
         self.append_date.SetValue(True)  
 
         self.auto_index = wx.CheckBox(panel, label="Auto index")
-        sizer.Add(self.auto_index, pos=(12, 0), span=(1, 1),
+        sizer.Add(self.auto_index, pos=(20, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.auto_index.SetBackgroundColour(wx.NullColour)
         self.auto_index.Bind(wx.EVT_CHECKBOX, self.OnAutoIndex)
@@ -331,57 +241,73 @@ class BaslerGuiWindow(wx.Frame):
 
         self.index_ctrl = wx.TextCtrl(panel)
         self.index_ctrl.SetValue(str(1))
-        sizer.Add(self.index_ctrl, pos=(12, 1), flag=wx.EXPAND | wx.ALL, border=5)
-
-        self.current_state = wx.StaticText(panel, label="Cuttent state: idle")
-        sizer.Add(self.current_state, pos=(18, 0), span=(1, 2),
+        sizer.Add(self.index_ctrl, pos=(20, 1), flag=wx.EXPAND | wx.ALL, border=5)
+        
+        offset_x_ctrl_label = wx.StaticText(panel, label="Offset X:")
+        sizer.Add(offset_x_ctrl_label, pos=(12, 0), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
+        self.offset_x_ctrl = FS.FloatSpin(panel, -1,  min_val=0, max_val=self.frame_width,
+                                          size=(140, -1), increment=0.1, value=0.1, digits=0,
+                                          agwStyle=FS.FS_LEFT)
+        sizer.Add(self.offset_x_ctrl, pos=(12, 1), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.offset_x_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetOffsetX)
+
+        offset_y_ctrl_label = wx.StaticText(panel, label="Offset Y:")
+        sizer.Add(offset_y_ctrl_label, pos=(13, 0), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.offset_y_ctrl = FS.FloatSpin(panel, -1,  min_val=0, max_val=self.frame_height,
+                                    size=(140, -1), increment=0.1, value=0.1, digits=0,
+                                    agwStyle=FS.FS_LEFT)
+        sizer.Add(self.offset_y_ctrl, pos=(13, 1), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.offset_y_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetOffsetY)
+
+        width_ctrl_label = wx.StaticText(panel, label="Width:")
+        sizer.Add(width_ctrl_label, pos=(14, 0), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.width_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_width,
+                                        size=(140, -1), increment=4, value=128, digits=0,
+                                        agwStyle=FS.FS_LEFT)
+        sizer.Add(self.width_ctrl, pos=(14, 1), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.width_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetWidth)
+
+        height_ctrl_label = wx.StaticText(panel, label="Height:")
+        sizer.Add(height_ctrl_label, pos=(15, 0), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.height_ctrl = FS.FloatSpin(panel, -1,  min_val=128, max_val=self.frame_height,
+                                        size=(140, -1), increment=4, value=128, digits=0,
+                                        agwStyle=FS.FS_LEFT)
+        sizer.Add(self.height_ctrl, pos=(15, 1), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.height_ctrl.Bind(FS.EVT_FLOATSPIN, self.OnSetHeight)
+
+        self.current_state = wx.StaticText(panel, label="Current state: idle")
+        sizer.Add(self.current_state, pos=(26, 0), span=(1, 2),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+
+        self.offset_x_ctrl.Disable()
+        self.offset_y_ctrl.Disable()
+        self.width_ctrl.Disable()
+        self.height_ctrl.Disable()
+        
+        # Text field to enter the queue
+        self.note_label = wx.StaticText(panel, label="Notes (Press Enter to send):")
+        sizer.Add(self.note_label, pos=(27, 0), span=(1, 1),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+        self.note_ctrl = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
+        sizer.Add(self.note_ctrl, pos=(27, 1), span=(1, 2),
+                  flag=wx.EXPAND | wx.ALL, border=5)
+
+        self.next_note_q = queue.Queue(maxsize=1)
+        self.note_ctrl.Bind(wx.EVT_TEXT_ENTER, self.OnNoteEnter)
 
         self.frame = np.zeros([self.frame_height, self.frame_width, 3], dtype=np.uint8)
         self.frame[:] = 255
 
         self.display_frame = np.zeros([self.frame_height, self.frame_width, 3], dtype=np.uint8)
         self.display_frame[:] = 255
-
-        self.Window = ImagePanel(panel)
-        self.Window.SetSize((640, 480))
-        self.Window.Fit()
-        sizer.Add(self.Window, pos=(0, 3), span=(15, 3),
-                  flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
-
-        lasca_filter_label = wx.StaticText(panel, label="LASCA filter size:")
-        sizer.Add(lasca_filter_label, pos=(16, 5),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        modes = ['3x3', '5x5', '7x7', '9x9', '11x11']
-        self.lasca_combo = wx.ComboBox(panel, choices=modes)
-        sizer.Add(self.lasca_combo, pos=(17, 5), flag=wx.ALL, border=5)
-        self.lasca_combo.Bind(wx.EVT_COMBOBOX, self.OnLascaCombo)
-        self.lasca_combo.SetSelection(2)
-
-        self.max_contrast_label = wx.StaticText(panel, label="Max contrast:")
-        sizer.Add(self.max_contrast_label, pos=(18, 5),  span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.contrast_slider = FS.FloatSpin(panel, -1,  min_val=0.01,
-                                            max_val=1, size=(140, -1),
-                                            increment=0.01, value=0.8,
-                                            agwStyle=FS.FS_LEFT)
-        self.contrast_slider.SetFormat("%f")
-        self.contrast_slider.SetDigits(2)
-        self.contrast_slider.Bind(FS.EVT_FLOATSPIN, self.ContrastSliderScroll)
-        sizer.Add(self.contrast_slider, pos=(19, 5), span=(1, 1),
-                  flag=wx.ALL, border=5)
-
-        self.min_gray_label = wx.StaticText(panel, label="Min gray:")
-        sizer.Add(self.min_gray_label, pos=(16, 6),  span=(1, 1),
-                  flag=wx.EXPAND | wx.ALL, border=5)
-        self.gray_slider = FS.FloatSpin(panel, -1,  min_val=0,
-                                        max_val=255, size=(140, -1),
-                                        increment=1, value=5,
-                                        agwStyle=FS.FS_LEFT)
-        self.gray_slider.SetFormat("%f")
-        self.gray_slider.SetDigits(2)
-        self.gray_slider.Bind(FS.EVT_FLOATSPIN, self.GraySliderScroll)
-        sizer.Add(self.gray_slider, pos=(17, 6), span=(1, 1), flag=wx.ALL,  border=5)
 
         self.preview_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.Draw, self.preview_timer)
@@ -401,38 +327,6 @@ class BaslerGuiWindow(wx.Frame):
         self.capture_thread_obj = threading.Thread(target=self.capture_thread)
         self.EnableGUI(False)
 
-    def AllocateMemory(self):
-        self.gray = np.zeros((self.frame_height, self.frame_width), np.uint8)
-        self.mean_img_sq = np.zeros((self.frame_height, self.frame_width), np.float32)
-        self.sq = np.zeros((self.frame_height, self.frame_width), np.float32)
-        self.img = np.zeros((self.frame_height, self.frame_width), np.float32)
-        self.mean_img = np.zeros((self.frame_height, self.frame_width), np.float32)
-        self.sq_img_mean = np.zeros((self.frame_height, self.frame_width), np.float32)
-        self.std = np.zeros((self.frame_height, self.frame_width), np.float32)
-        self.LASCA = np.zeros((self.frame_height, self.frame_width), np.uint8)
-        self.im_color = np.zeros((self.frame_height, self.frame_width, 3), np.uint8)
-        self.mask = np.zeros((self.frame_height, self.frame_width), bool)
-
-    def CalculateLASCA(self):
-        self.img = self.frame.astype(np.float32, copy=False)
-        cv2.filter2D(self.img, dst=self.mean_img, ddepth=cv2.CV_32F,
-                     kernel=self.kernel)
-        np.multiply(self.mean_img, self.mean_img, out=self.mean_img_sq)
-        np.multiply(self.img, self.img, out=self.sq)
-        cv2.filter2D(self.sq, dst=self.sq_img_mean, ddepth=cv2.CV_32F,
-                     kernel=self.kernel)
-        cv2.subtract(self.sq_img_mean, self.mean_img_sq, dst=self.std)
-        cv2.sqrt(self.std, dst=self.std)
-        self.mask = self.mean_img < self.min_gray_val
-        cv2.pow(self.mean_img, power=-1.0, dst=self.mean_img)
-        cv2.multiply(self.std, self.mean_img, dst=self.mean_img,
-                     scale=255.0/self.max_contrast, dtype=cv2.CV_32F)
-        self.mean_img[self.mean_img > 255.0] = 255.0
-        self.LASCA = self.mean_img.astype(np.uint8)
-        self.LASCA = 255 - self.LASCA
-        self.LASCA[self.mask] = 0
-        cv2.filter2D(self.LASCA, dst=self.LASCA, ddepth=cv2.CV_8U, kernel=self.kernel)
-
     def Draw(self, evt):
 
         self.lock.acquire()
@@ -442,15 +336,15 @@ class BaslerGuiWindow(wx.Frame):
             print("LASCA")
 
         if (self.selected_mode == 2):
-            self.im_color = self.DrawHistogram(self.frame,
-                                                   (640, 480),
-                                                   (255, 255, 255),
-                                                   (250, 155, 0))
+            w, h = self.Window.GetClientSize()
+            w = max(1, w); h = max(1, h)
+            rgb = self.DrawHistogram(self.frame, (w, h),
+                                     (255, 255, 255), (250, 155, 0))
+            # Fast, correct width/height order (w = cols, h = rows):
+            self.bitmap = wx.Bitmap.FromBuffer(w, h, np.ascontiguousarray(rgb))
+            self.Window.update_bitmap(self.bitmap)
 
-            self.bitmap = wx.Image(640, 480,
-                                   self.im_color.tobytes()).ConvertToBitmap()
-
-        self.Window.update(self.bitmap)
+        # self.Window.update(self.bitmap)
 
         if self.preview_on is True:
             self.preview_timer.Start(50, oneShot=True)
@@ -469,7 +363,6 @@ class BaslerGuiWindow(wx.Frame):
             self.cam_combo.Disable()
             self.encoding_mode_combo.Enable()
             self.preview_btn.Enable()
-            self.set_roi.Enable()
             self.select_folder_btn.Enable()
             self.capture_btn.Enable()
             self.append_date.Enable()
@@ -516,7 +409,6 @@ class BaslerGuiWindow(wx.Frame):
             self.offset_y_ctrl.Disable()
             self.width_ctrl.Disable()
             self.height_ctrl.Disable()
-            self.set_roi.Disable()
             self.select_folder_btn.Disable()
             self.capture_btn.Disable()
             self.append_date.Enable()
@@ -538,7 +430,6 @@ class BaslerGuiWindow(wx.Frame):
             self.offset_y_ctrl.Disable()
             self.width_ctrl.Disable()
             self.height_ctrl.Disable()
-            self.set_roi.Disable()
             self.select_folder_btn.Disable()
             self.capture_btn.Disable()
             self.append_date.Enable()
@@ -558,7 +449,6 @@ class BaslerGuiWindow(wx.Frame):
             self.mode_combo.Enable()
             self.capmode_combo.Enable()
             self.preview_btn.Enable()
-            self.set_roi.Enable()
             self.select_folder_btn.Enable()
             self.append_date.Enable()
             self.connect_btn.Enable()
@@ -603,7 +493,6 @@ class BaslerGuiWindow(wx.Frame):
             self.offset_y_ctrl.Disable()
             self.width_ctrl.Disable()
             self.height_ctrl.Disable()
-            self.set_roi.Disable()
             self.select_folder_btn.Disable()
             self.append_date.Disable()
             self.connect_btn.Disable()
@@ -615,22 +504,27 @@ class BaslerGuiWindow(wx.Frame):
 
     def OnConnect(self, event):
         if self.camera_connected is False:
+            # # Load json for camera settings
+            # path = Path(os.path.realpath(__file__))
+            # # Navigate to the outer parent directory and join the filename
+            # dets_file = os.path.normpath(str(path.parents[2] / 'config-files' / 'camera_details.json'))
+
+            # with open(dets_file) as f:
+            #     self.cam_details = json.load(f)
             tlFactory = pylon.TlFactory.GetInstance()
             devices = tlFactory.EnumerateDevices()
-            if len(devices) == 0:
-                raise pylon.RuntimeException("No camera present.")
 
             device_name = self.cameras_list[self.selected_camera]["name"]
             device_serial = self.cameras_list[self.selected_camera]["serial"]
-
             for i, device in enumerate(devices):
 
                 if device.GetModelName() == device_name:
                     if device.GetSerialNumber() == device_serial:
 
+
                         self.camera = pylon.InstantCamera(tlFactory.CreateDevice(devices[i]))
                         self.camera.Open()
-                         
+                    
                         # Configure GPIO Pin 3 (Line3) as Input and Enable Event
                         self.camera.LineSelector.Value = "Line3"  # Select GPIO Pin 3
                         self.camera.LineMode.Value = "Input"  # Configure as Input
@@ -690,7 +584,6 @@ class BaslerGuiWindow(wx.Frame):
                         self.cam_combo.Disable()
                         self.camera_connected = True
 
-                        self.AllocateMemory()
                         self.EnableGUI(True)
                         return
 
@@ -792,7 +685,7 @@ class BaslerGuiWindow(wx.Frame):
             self.camera.AcquisitionFrameRate.SetValue(self.framerate)
             resulting_framerate = self.camera.ResultingFrameRate.GetValue()
             if (resulting_framerate != self.framerate):
-                self.framerate = resulting_framerate
+                self.framerate = int(resulting_framerate)
                 self.framerate_slider.SetValue(self.framerate)
 
     def ExposureSliderScroll(self, event):
@@ -803,7 +696,7 @@ class BaslerGuiWindow(wx.Frame):
             self.camera.ExposureTime.SetValue(self.exposure)
             resulting_framerate = self.camera.ResultingFrameRate.GetValue()
             if (resulting_framerate != self.framerate):
-                self.framerate = resulting_framerate
+                self.framerate = int(resulting_framerate)
                 self.framerate_slider.SetValue(self.framerate)
 
     def OnAutoIndex(self, event):
@@ -832,13 +725,24 @@ class BaslerGuiWindow(wx.Frame):
         if self.camera_connected is True:
             self.camera.Gain.SetValue(self.gain)
 
-    def OnLascaCombo(self, event):
-        current_selection = self.lasca_combo.GetSelection()
-        filter_size = int(2*(current_selection+2) - 1)
-        self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,
-                                                (filter_size, filter_size)).astype(np.float32)
-        self.kernel /= np.sum(self.kernel)
+    def OnNoteEnter(self, event):
+        text = self.note_ctrl.GetValue().strip()
+        if not text:
+            return
+        # Keep only the most recent pending note
+        try:
+            self.next_note_q.put_nowait(text)
+        except queue.Full:
+            try:
+                _ = self.next_note_q.get_nowait()
+            except queue.Empty:
+                pass
+            self.next_note_q.put_nowait(text)
 
+        self.note_ctrl.Clear()
+        # (optional) give quick UI feedback
+        # wx.LogMessage(f"Queued note for next frame: {text!r}")
+        
     def OnCamCombo(self, event):
         self.selected_camera = self.cam_combo.GetSelection()
 
@@ -865,38 +769,27 @@ class BaslerGuiWindow(wx.Frame):
 
     def DrawHistogram(self, image, size, bcg_color, bin_color):
         histogram_data = self.GetHistogram(image)
-        histogram_image = np.ones((256, 256, 3), np.uint8)*240
+
+        # draw base 256x256 histogram (OpenCV draws in BGR)
+        hist = np.full((256, 256, 3), 240, np.uint8)
         R, G, B = bcg_color
-        histogram_image[:, :, 0] = B
-        histogram_image[:, :, 1] = G
-        histogram_image[:, :, 2] = R
+        hist[:, :, 0] = B; hist[:, :, 1] = G; hist[:, :, 2] = R
 
-        for column in range(0, len(histogram_data)):
-            column_height = int(np.floor((histogram_data[column]/100)*256))
-            if column_height > 1:
-                R, G, B = bin_color
-                color = (B, G, R)
-                cv2.line(histogram_image, (column, 255),
-                         (column, 255-column_height), color, 1)
+        for x in range(256):
+            col_pct = float(np.ravel(histogram_data[x])[0])
+            h = int(np.floor(col_pct * 2.56))
+            h = 0 if h < 0 else (255 if h > 255 else h)
+            if h > 1:
+                r, g, b = bin_color
+                cv2.line(hist, (x, 255), (x, 255 - h), (b, g, r), 1)
 
-        resized = cv2.resize(histogram_image, size, interpolation=cv2.INTER_AREA)
-        return resized
+        w, h = size  # NOTE: OpenCV wants (width, height)
+        hist = cv2.resize(hist, (w, h), interpolation=cv2.INTER_AREA)
+        rgb = cv2.cvtColor(hist, cv2.COLOR_BGR2RGB)
+        return rgb
 
     def OnAppendDate(self, event):
         self.append_date_flag = self.append_date.GetValue()
-
-    def OnEnableRoi(self, event):
-        self.roi_on = self.set_roi.GetValue()
-        if self.roi_on is True:
-            self.offset_x_ctrl.Enable()
-            self.offset_y_ctrl.Enable()
-            self.width_ctrl.Enable()
-            self.height_ctrl.Enable()
-        else:
-            self.offset_x_ctrl.Disable()
-            self.offset_y_ctrl.Disable()
-            self.width_ctrl.Disable()
-            self.height_ctrl.Disable()
 
     def OnSetOffsetX(self, event):
         new_offset_x = self.offset_x_ctrl.GetValue()
@@ -907,8 +800,9 @@ class BaslerGuiWindow(wx.Frame):
         new_offset_x = new_width - self.frame_width
         
         if (new_offset_x + self.frame_width) < self.max_frame_width:
-            self.offset_x = new_offset_x
+            self.offset_x = int(new_offset_x)
             self.camera.OffsetX.SetValue(self.offset_x)
+            self.offset_x_ctrl_label = wx.StaticText(self, label="Offset X (max {}):".format(self.max_frame_width - self.frame_width))
         
         self.offset_x_ctrl.SetValue(self.offset_x)
 
@@ -921,9 +815,10 @@ class BaslerGuiWindow(wx.Frame):
         new_offset_y = new_height - self.frame_height
         
         if (new_offset_y + self.frame_height) < self.max_frame_height:
-            self.offset_y = new_offset_y
+            self.offset_y = int(new_offset_y)
             self.camera.OffsetY.SetValue(self.offset_y)
-        
+            self.offset_y_ctrl_label = wx.StaticText(self, label="Offset Y (max {}):".format(self.max_frame_height - self.frame_height))
+
         self.offset_y_ctrl.SetValue(self.offset_y)
 
     def OnSetWidth(self, event):
@@ -932,9 +827,10 @@ class BaslerGuiWindow(wx.Frame):
         new_width = int(16 * round(new_width / 16)) if new_width % 16 != 0 else new_width
             
         if (self.offset_x + new_width) < self.max_frame_width:
-            self.frame_width = new_width
+            self.frame_width = int(new_width)
             self.camera.Width.SetValue(self.frame_width)
             self.offset_x_ctrl.SetMax(self.max_frame_width - self.frame_width)
+            self.offset_x_ctrl_label = wx.StaticText(self, label="Offset X (max {}):".format(self.max_frame_width - self.frame_width))
         
         self.width_ctrl.SetValue(self.frame_width)
 
@@ -944,9 +840,10 @@ class BaslerGuiWindow(wx.Frame):
         new_height = int(4 * round(new_height / 4)) if new_height % 4 != 0 else new_height
             
         if (self.offset_y + new_height) < self.max_frame_height:
-            self.frame_height = new_height
+            self.frame_height = int(new_height)
             self.camera.Height.SetValue(self.frame_height)
             self.offset_y_ctrl.SetMax(self.max_frame_height - self.frame_height)
+            
         
         self.height_ctrl.SetValue(self.frame_height)
 
@@ -1164,7 +1061,14 @@ class BaslerGuiWindow(wx.Frame):
                 frame_line_status = grabResult.ChunkLineStatusAll.Value
                 captured_frames += 1
 
-                self.video_session.acquire_frame(frame, frame_timestamp, captured_frames, frame_line_status)
+                # Pull one pending note if any (non-blocking, single-shot)
+                note = None
+                try:
+                    note = self.next_note_q.get_nowait()
+                except queue.Empty:
+                    pass
+
+                self.video_session.acquire_frame(frame, frame_timestamp, captured_frames, frame_line_status, note)
                 
                 if (timestamp - last_display_time) > display_interval:
                     line_status = self.camera.LineStatus.GetValue()  # Retrieve line status

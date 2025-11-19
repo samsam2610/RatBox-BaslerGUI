@@ -4,7 +4,7 @@ from pypylon import pylon
 from VideoRecordingSession import VideoRecordingSession
 from InputEventHandler import ConfigurationEventPrinter
 
-class BaslerModel:
+class CameraModel:
     def __init__(self):
         self.camera_connected = False
         self.camera = None

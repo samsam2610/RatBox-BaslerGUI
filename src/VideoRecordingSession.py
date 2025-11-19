@@ -5,6 +5,8 @@ from collections import deque
 from pypylon import pylon
 import datetime
 import csv
+import typing
+# import keyboard
 
 
 class VideoRecordingSession:
@@ -20,6 +22,7 @@ class VideoRecordingSession:
         self.dim = None
         self.fourcc = None
         self.fps = None
+        self.first_frame_time = None
 
     def set_params(self, video_file, fourcc, fps, dim):
         self.video_file = video_file
@@ -37,13 +40,13 @@ class VideoRecordingSession:
         self.csv_file = video_file.replace('.avi', '.csv')
         self.csv_file_handle = open(self.csv_file, mode='w', newline='')
         self.csv_writer = csv.writer(self.csv_file_handle)
-        self.csv_writer.writerow(['timestamp', 'frame_number', 'frame_line_status'])
+        self.csv_writer.writerow(['timestamp', 'frame_number', 'frame_line_status', 'note'])
         print(f"Cam {self.cam_num}: CSV writer initialized with {self.csv_file}")
 
-    def acquire_frame(self, frame, timestamp, frame_number, frame_line_status):
+    def acquire_frame(self, frame, timestamp, frame_number, frame_line_status, note: typing.Optional[str]=None):
         if self.recording_status:
             with self.buffer_lock:
-                self.frame_buffer.append((frame, timestamp, frame_number, frame_line_status))
+                self.frame_buffer.append((frame, timestamp, frame_number, frame_line_status, note))
 
     def start_recording(self):
         self.recording_status = True
@@ -67,6 +70,7 @@ class VideoRecordingSession:
             print(f"Cam {self.cam_num}: Closing CSV file")
             self.csv_file_handle.close()
         print(f"Cam {self.cam_num}: Recording stopped.")
+        self.first_frame_time = None
 
     def write_remaining_frames(self):
         print(f"Remaining frames: {len(self.frame_buffer)}")
@@ -80,18 +84,21 @@ class VideoRecordingSession:
         while self.recording_status:
             if len(self.frame_buffer) > 0:
                 self._write_frame()
-            # else:
-            #     time.sleep(0.001)
+            else:
+                time.sleep(0.001)
         
         print(f"Cam {self.cam_num}: Frame processing stopped")
     
     def _write_frame(self):
-        frame, timestamp, frame_number, frame_line_status = self.frame_buffer.popleft()    
+
+        frame, timestamp, frame_number, frame_line_status, note = self.frame_buffer.popleft()    
+        if frame_number is 1:
+            self.first_frame_time = timestamp
         self.vid_out.write(frame)
         self.frame_count += 1
         
         # Write to CSV
-        self.csv_writer.writerow([timestamp, frame_number, frame_line_status])
+        self.csv_writer.writerow([(timestamp-self.first_frame_time)/1_000_000_000, frame_number, frame_line_status, note])
         
         if self.frame_count % 1000 == 0:
             print(f"Cam {self.cam_num}: Recorded {self.frame_count} frames. Remaining: {len(self.frame_buffer)}")

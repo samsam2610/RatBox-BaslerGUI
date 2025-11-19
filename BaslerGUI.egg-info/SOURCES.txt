@@ -1,0 +1,8 @@
+README.md
+setup.py
+BaslerGUI.egg-info/PKG-INFO
+BaslerGUI.egg-info/SOURCES.txt
+BaslerGUI.egg-info/dependency_links.txt
+BaslerGUI.egg-info/entry_points.txt
+BaslerGUI.egg-info/requires.txt
+BaslerGUI.egg-info/top_level.txt
