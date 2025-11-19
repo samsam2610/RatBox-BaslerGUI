@@ -399,7 +399,7 @@ class SystemControl(wx.Frame):
         if self.check_camera_trigger_status() is None:
             wx.MessageBox("Please set the same trigger mode for all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
             return
-            
+        self.load_calibration_settings(self, draw_calibration_board=False)
         if self.check_camera_preview_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartPreview()
@@ -485,14 +485,19 @@ class SystemControl(wx.Frame):
         from utils import load_config, get_calibration_board
         from pathlib import Path
         
+        if self.check_for_file_name_and_folder() is False:
+            wx.MessageBox("Please set export folder and file name for all cameras before starting calibration.", "Error", wx.OK | wx.ICON_ERROR)
+            return None
         calibration_stats_message = 'Looking for config.toml directory ...'
         self.calibration_status_label.SetLabel(calibration_stats_message)
         print(calibration_stats_message)
         
         # Get current folder of this script
         path = Path(os.path.realpath(__file__))
+        config_folder_path = Path(path.parent, 'config-files')
         # Navigate to the outer parent directory and join the filename
-        config_toml_path = os.path.normpath(str(path.parents[2] / 'config-files' / 'config.toml'))
+        config_toml_path = Path(config_folder_path, 'config.toml')
+        # config_toml_path = os.path.normpath(str(path.parents/ 'config-files' / 'config.toml'))
         config_anipose = load_config(config_toml_path)
         calibration_stats_message = 'Found config.toml directory. Loading config ...'
         print(calibration_stats_message)
@@ -500,16 +505,16 @@ class SystemControl(wx.Frame):
         calibration_stats_message = 'Successfully found and loaded config. Determining calibration board ...'
         self.calibration_status_label.SetLabel(calibration_stats_message)
         print(calibration_stats_message)
-        
+
         self.board_calibration = get_calibration_board(config=config_anipose)
         calibration_stats_message = 'Successfully determined calibration board. Initializing camera calibration objects ...'
         self.calibration_status_label.SetLabel(calibration_stats_message)
         print(calibration_stats_message)
 
-        self.rows_fname = os.path.join(self.dir_output.get(), 'detections.pickle')
-        self.calibration_out = os.path.join(self.dir_output.get(), 'calibration.toml')
+        self.rows_fname = os.path.join(self.exportfolder_ctrl.get(), 'detections.pickle')
+        self.calibration_out = os.path.join(self.exportfolder_ctrl.get(), 'calibration.toml')
         
-        board_dir = os.path.join(self.dir_output.get(), 'board.png')
+        board_dir = os.path.join(config_folder_path, 'board.png')
         if draw_calibration_board:
             numx, numy = self.board_calibration.get_size()
             size = numx*200, numy*200
