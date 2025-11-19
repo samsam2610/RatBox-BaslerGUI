@@ -105,6 +105,8 @@ class SystemControl(wx.Frame):
         self.Fit()
         self.Centre()
         self.Show()
+        path = Path(os.path.realpath(__file__))
+        print(f"SystemControl.py location: {path.parent}")  # Print the directory of SystemControl.py
  
         
     def InitSystemUI(self):
@@ -484,9 +486,10 @@ class SystemControl(wx.Frame):
         from pathlib import Path
         
         calibration_stats_message = 'Looking for config.toml directory ...'
-        self.calibration_process_stats.set(calibration_stats_message)
+        self.calibration_status_label.SetLabel(calibration_stats_message)
         print(calibration_stats_message)
         
+        # Get current folder of this script
         path = Path(os.path.realpath(__file__))
         # Navigate to the outer parent directory and join the filename
         config_toml_path = os.path.normpath(str(path.parents[2] / 'config-files' / 'config.toml'))
@@ -495,12 +498,12 @@ class SystemControl(wx.Frame):
         print(calibration_stats_message)
         
         calibration_stats_message = 'Successfully found and loaded config. Determining calibration board ...'
-        self.calibration_process_stats.set(calibration_stats_message)
+        self.calibration_status_label.SetLabel(calibration_stats_message)
         print(calibration_stats_message)
         
         self.board_calibration = get_calibration_board(config=config_anipose)
         calibration_stats_message = 'Successfully determined calibration board. Initializing camera calibration objects ...'
-        self.calibration_process_stats.set(calibration_stats_message)
+        self.calibration_status_label.SetLabel(calibration_stats_message)
         print(calibration_stats_message)
 
         self.rows_fname = os.path.join(self.dir_output.get(), 'detections.pickle')
@@ -542,10 +545,10 @@ class SystemControl(wx.Frame):
         Return Type:
         - None
         """
-        self.calibration_process_stats.set('Initializing calibration process...')
+        self.calibration_status_label.SetLabel('Initializing calibration process...')
         config_anipose = self.load_calibration_settings()
         
-        self.calibration_process_stats.set('Initializing camera calibration objects ...')
+        self.calibration_status_label.SetLabel('Initializing camera calibration objects ...')
         from src.aniposelib.cameras import CameraGroup
         import re
         
@@ -558,11 +561,11 @@ class SystemControl(wx.Frame):
                 cam_names.append(match.groups()[0])
         
         self.cgroup = CameraGroup.from_names(cam_names)
-        self.calibration_process_stats.set('Initialized camera object.')
+        self.calibration_status_label.SetLabel('Initialized camera object.')
         self.frame_count = []
         self.all_rows = []
 
-        self.calibration_process_stats.set('Cameras found. Recording the frame sizes')
+        self.calibration_status_label.SetLabel('Cameras found. Recording the frame sizes')
         self.set_calibration_buttons_group(state='normal')
         
         self.calibration_capture_toggle_status = False
@@ -621,9 +624,9 @@ class SystemControl(wx.Frame):
         create_video_files(self, overwrite=override)
         create_output_files(self, subject_name='Sam')
 
-        self.calibration_process_stats.set('Setting the frame sizes...')
+        self.calibration_status_label.SetLabel('Setting the frame sizes...')
         self.cgroup.set_camera_sizes_images(frame_sizes=frame_sizes)
-        self.calibration_process_stats.set('Prepping done. Ready to capture calibration frames...')
+        self.calibration_status_label.SetLabel('Prepping done. Ready to capture calibration frames...')
         self.calibration_status_label['bg'] = 'yellow'
 
         self.vid_start_time = time.perf_counter()
