@@ -511,8 +511,8 @@ class SystemControl(wx.Frame):
         self.calibration_status_label.SetLabel(calibration_stats_message)
         print(calibration_stats_message)
 
-        self.rows_fname = os.path.join(self.exportfolder_ctrl.get(), 'detections.pickle')
-        self.calibration_out = os.path.join(self.exportfolder_ctrl.get(), 'calibration.toml')
+        self.rows_fname = os.path.join(self.exportfolder_ctrl.GetValue(), 'detections.pickle')
+        self.calibration_out = os.path.join(self.exportfolder_ctrl.GetValue(), 'calibration.toml')
         
         board_dir = os.path.join(config_folder_path, 'board.png')
         if draw_calibration_board:
