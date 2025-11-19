@@ -554,7 +554,7 @@ class SystemControl(wx.Frame):
         config_anipose = self.load_calibration_settings()
         
         self.calibration_status_label.SetLabel('Initializing camera calibration objects ...')
-        from src.aniposelib.cameras import CameraGroup
+        from aniposelib.cameras import CameraGroup
         import re
         
         # Get cam names from the config file

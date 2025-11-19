@@ -12,7 +12,7 @@ from pathlib import Path
 import json
 
 
-from src.aniposelib.boards import CharucoBoard, Checkerboard
+from aniposelib.boards import CharucoBoard, Checkerboard
 
 ARUCO_DICTS = {
     (4, 50): aruco.DICT_4X4_50,
