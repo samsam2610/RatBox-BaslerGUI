@@ -129,6 +129,7 @@ class SystemControl(wx.Frame):
 
             self.camera_panels.append(self.camera_panel)
         else:
+            self.cam_names = []
             for i in range(self.number_of_cameras):
                 print(f"Initializing camera {i + 1} UI...")
                 camera_panel = CameraController(self.outer_panel, cam_index=i, cam_details=f"Camera {i + 1}", multi_cam=True, column_pos=i, row_pos=0)
@@ -144,6 +145,7 @@ class SystemControl(wx.Frame):
                 hbox.Add(static_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
 
                 self.camera_panels.append(camera_panel)
+                self.cam_names.append(f"cam{i}")
             
 
             

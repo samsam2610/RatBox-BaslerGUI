@@ -44,7 +44,7 @@ scheme = [
 [triangulation]
 triangulate = true
 reference_point = "bot_spot"
-cam_regex = 'cam([1-9])'
+cam_regex = 'cam([0-9])'
 ransac = false
 optim = true
 
