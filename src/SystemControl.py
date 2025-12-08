@@ -567,7 +567,10 @@ class SystemControl(wx.Frame):
             for idx, cam_panel in enumerate(self.camera_panels):
                 cam_panel.StopCalibrateCapture()
                 self.recording_threads_status[idx] = False
+            
             if self.process_marker_thread.is_alive() is True:
+                thread_status = any(thread is True for thread in self.recording_threads_status)
+                print(f"Recording threads still active: {thread_status}")
                 print("Waiting for marker processing thread to finish...")
                 self.process_marker_thread.join()
                 
