@@ -541,7 +541,7 @@ class SystemControl(wx.Frame):
                 print("Starting trigger process for system capture...")
                 self.proc = multiprocessing.Process(
                             target=trigger_start_process_continuous,
-                            kwargs={"frequency": self.common_frame_rate},
+                            kwargs={"frequency": 30}, # using 30 Hz for calibration
                             daemon=True,
                             )
                 self.proc.start()
@@ -552,6 +552,7 @@ class SystemControl(wx.Frame):
             self.process_marker_thread.daemon = True
             self.process_marker_thread.start()
         else:
+            print("Stopping system calibration...")
             self.system_capturing_calibration_on = False
             if self.trigger_on is True:
                 if self.proc.is_alive():
@@ -565,6 +566,9 @@ class SystemControl(wx.Frame):
                 cam_panel.StopCalibrateCapture()
             if self.process_marker_thread.is_alive():
                 self.process_marker_thread.join()
+
+            print("Start calibration computation...")
+            self.calibrate_on_thread()
             self.system_capture_calibration_btn.SetLabel("Start System Calibration")
             self.EnableSystemControls(value=True, preview=False)
 
