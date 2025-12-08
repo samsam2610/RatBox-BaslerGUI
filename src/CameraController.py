@@ -18,6 +18,7 @@ from typing import Callable, Optional, List, Dict
 from ImagePanel import ImagePanel
 
 from dataclasses import dataclass
+from aniposelib.boards import CharucoBoard
 
 @dataclass
 class CameraSettings:
@@ -90,7 +91,7 @@ class CameraController(wx.Panel):
     
     video_session = VideoRecordingSession(cam_num=0)
 
-    def __init__(self, parent, cam_index, cam_details, multi_cam=False, column_pos=0, row_pos=0, trigger_mode: bool=False, *args, **kwargs):
+    def __init__(self, parent, cam_index, cam_details, multi_cam=False, column_pos=0, row_pos=0, trigger_mode: bool=True, *args, **kwargs):
 
         self.cam_index = cam_index
         self.selected_camera = cam_index
@@ -1255,7 +1256,7 @@ class CameraController(wx.Panel):
             return 0
     
     # ############### Calibration functions
-    def SetupCalibration(self, board_calibration, all_rows, current_all_rows):
+    def SetupCalibration(self, board_calibration: CharucoBoard, all_rows, current_all_rows):
         ### This function should only be called by the SystemController
 
         self.board_calibration = board_calibration
@@ -1378,7 +1379,7 @@ class CameraController(wx.Panel):
         self.video_session.start_recording()
         
         # Start the camera grabbing
-        self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
+        self.camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
 
         current_date_and_time = str(datetime.datetime.now())
         last_display_time = time.time()
@@ -1410,7 +1411,7 @@ class CameraController(wx.Panel):
                 captured_frames += 1
                 # detect the marker as the frame is acquired
                 corners, ids = self.board_calibration.detect_image(frame)
-                if corners is not None:
+                if corners is not None and len(corners) > 0:
                     key = captured_frames - 1
                     row = {
                         'framenum': key,
@@ -1421,20 +1422,13 @@ class CameraController(wx.Panel):
                     row = self.board_calibration.fill_points_rows([row])
                     self.all_rows[num].extend(row)
                     self.current_all_rows[num].extend(row)
-                    print(f'Marker detected on cam {num} at frame {captured_frames}: {len(self.all_rows[num])}; {len(corners)} corners')
                     # self.board_detected_count_label[num]['text'] = f'{len(self.all_rows[num])}; {len(corners)}'
                     # if num == 0:
                         # self.calibration_current_duration_value.set(f'{time.perf_counter()-start_time:.2f}')
                 else:
                     print(f'No marker detected on cam {num} at frame {captured_frames}')
-                    
-                # Pull one pending note if any (non-blocking, single-shot)
-                note = None
-                try:
-                    note = self.next_note_q.get_nowait()
-                except queue.Empty:
-                    pass
 
+                note = None
                 self.video_session.acquire_frame(frame, frame_timestamp, captured_frames, frame_line_status, note)
                 if (timestamp - last_display_time) > display_interval:
                     line_status = self.camera.LineStatus.GetValue()  # Retrieve line status

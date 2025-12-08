@@ -20,6 +20,8 @@ from InputEventHandler import ConfigurationEventPrinter
 from ImagePanel import ImagePanel
 from CameraController import CameraController
 import pickle
+from aniposelib.boards import CharucoBoard, Checkerboard
+import copy
 
 # Testing system
 def GenPulse(sampling_rate, frequency, duration=3600):
