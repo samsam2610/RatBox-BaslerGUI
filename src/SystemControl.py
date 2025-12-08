@@ -1,4 +1,5 @@
 import queue
+import traceback
 import wx
 import os
 from pathlib import Path
