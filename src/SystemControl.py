@@ -681,7 +681,7 @@ class SystemControl(wx.Frame):
         self.previous_frame_count = []
         self.current_frame_count = []
         self.frame_process_threshold = 2
-        self.queue_frame_threshold = 50 
+        self.queue_frame_threshold = 10000 
         
         if override:
             # Check available detection file, if file available will delete it (for now)
@@ -718,6 +718,7 @@ class SystemControl(wx.Frame):
             self.current_all_rows.append([])
 
             cam_panel.SetupCalibration(board_calibration=self.board_calibration,
+                                       frame_queue=self.frame_queue,
                                        all_rows=self.all_rows,
                                        current_all_rows=self.current_all_rows)
 

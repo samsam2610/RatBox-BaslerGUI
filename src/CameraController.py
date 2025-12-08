@@ -1256,10 +1256,11 @@ class CameraController(wx.Panel):
             return 0
     
     # ############### Calibration functions
-    def SetupCalibration(self, board_calibration: CharucoBoard, all_rows, current_all_rows):
+    def SetupCalibration(self, board_calibration: CharucoBoard, frame_queue: queue.Queue, all_rows, current_all_rows):
         ### This function should only be called by the SystemController
 
         self.board_calibration = board_calibration
+        self.frame_queue = frame_queue
         self.all_rows = all_rows
         self.current_all_rows = current_all_rows
 
@@ -1428,7 +1429,11 @@ class CameraController(wx.Panel):
                         # self.calibration_current_duration_value.set(f'{time.perf_counter()-start_time:.2f}')
                 # else:
                 #     print(f'No marker detected on cam {num} at frame {captured_frames}')
-
+                # putting frame into the frame queue along with following information
+                self.frame_queue.put((frame,  # the frame itself
+                                      num,  # the id of the capturing camera
+                                      self.frame_count[num],  # the current frame count
+                                      self.frame_times[num][-1]))  # captured time
                 note = None
                 self.video_session.acquire_frame(frame, frame_timestamp, captured_frames, frame_line_status, note)
                 if (timestamp - last_display_time) > display_interval:
