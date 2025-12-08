@@ -242,7 +242,7 @@ class SystemControl(wx.Frame):
             self.system_capture_calibration_btn = wx.Button(self.calibration_panel, label="Start System Calibration")
             sizer.Add(self.system_capture_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
-            self.system_capture_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemCaptureCalibration)
+            self.system_capture_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemCalibrate)
             
             self.calibration_panel.SetSizer(sizer)
             self.calibration_panel.Layout()
