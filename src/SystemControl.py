@@ -839,8 +839,8 @@ class SystemControl(wx.Frame):
             #     print('Loaded rows from detections.pickle with size: ', len(all_rows))
             
             # if self.update_calibration_status:
-            #     all_rows = copy.deepcopy(self.current_all_rows)
-            #     print('Loaded rows from current_all_rows')
+            all_rows = copy.deepcopy(self.current_all_rows)
+            print('Loaded rows from current_all_rows')
             
             if self.calibration_error is None or self.calibration_error > 0.1:
                 init_matrix = True
