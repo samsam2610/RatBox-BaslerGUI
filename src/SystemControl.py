@@ -712,7 +712,6 @@ class SystemControl(wx.Frame):
         self.calibration_status_label.SetLabel('Setting the frame sizes...')
         self.cgroup.set_camera_sizes_images(frame_sizes=frame_sizes)
         self.calibration_status_label.SetLabel('Prepping done. Ready to capture calibration frames...')
-        self.calibration_status_label['bg'] = 'yellow'
 
         self.vid_start_time = time.perf_counter()
         
