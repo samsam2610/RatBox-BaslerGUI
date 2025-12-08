@@ -516,14 +516,15 @@ class SystemControl(wx.Frame):
         if not self.check_for_file_name_and_folder():
             wx.MessageBox("Please set export folder and file name for all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
             return
-        # Setting capture toggle status
-        self.recording_threads_status = []
-        self.calibration_capture_toggle_status = True
-        
-        # Setup system calibration
-        self.setup_calibration()
+
         
         if self.check_camera_calibration_status() is False:
+            # Setting capture toggle status
+            self.recording_threads_status = []
+            self.calibration_capture_toggle_status = True
+            
+            # Setup system calibration
+            self.setup_calibration()
             for cam_panel in self.camera_panels:
                 cam_panel.StartCalibrateCapture()
                 self.recording_threads_status.append(True)
