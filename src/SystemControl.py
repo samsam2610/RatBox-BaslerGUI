@@ -456,7 +456,7 @@ class SystemControl(wx.Frame):
             wx.MessageBox("Please stop all camera previews before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
             return
         if self.check_camera_trigger_status() is None:
-            wx.MessageBox("Please set the same trigger mode for all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
+            wx.MessageBox("Please set the same trigger mode for all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
             return
         if not self.check_for_file_name_and_folder():
             wx.MessageBox("Please set export folder and file name for all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
@@ -501,31 +501,26 @@ class SystemControl(wx.Frame):
 
     # ------ Calibration methods ------
     def OnSystemCalibrate(self, event):
+        if not self.check_camera_connected_status():
+            wx.MessageBox("Please connect all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        if self.check_camera_preview_status():
+            wx.MessageBox("Please stop all camera previews before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        if self.check_camera_trigger_status() is None:
+            wx.MessageBox("Please set the same trigger mode for all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        if not self.check_for_file_name_and_folder():
+            wx.MessageBox("Please set export folder and file name for all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
         # Setting capture toggle status
         self.recording_threads_status = []
         self.calibration_capture_toggle_status = True
         
-        if self.toggle_continuous_mode.get() == 1:
-            for i in range(len(self.cam)):
-                self.cam[i].turn_on_continuous_mode()
-                
-        # Sync camera capture time using threading.Barrier
-        barrier = threading.Barrier(len(self.cam))
-        
-        for i in range(len(self.cam)):
-            thread_name = f"Cam {i + 1} thread"
-            self.recording_threads.append(threading.Thread(target=self.record_calibrate_on_thread, args=(i, barrier), name=thread_name))
-            self.recording_threads[-1].daemon = True
-            self.recording_threads[-1].start()
-            self.recording_threads_status.append(True)
-        thread_name = f"Marker processing thread"
-        self.recording_threads.append(threading.Thread(target=self.process_marker_on_thread, name=thread_name))
-        self.recording_threads[-1].daemon = True
-        self.recording_threads[-1].start()
-
         if self.check_camera_capture_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartCalibrateCapture()
+                self.recording_threads_status.append(True)
             
             self.system_capture_calibration_btn.SetLabel("Stop System Calibration")
             self.EnableSystemControls(value=False, preview=False)
@@ -544,6 +539,11 @@ class SystemControl(wx.Frame):
                             )
                 self.proc.start()
                 print(f"Spawned trigger process with PID {self.proc.pid}")
+            
+            thread_name = f"Marker processing thread" 
+            self.process_marker_thread = threading.Thread(target=self.process_marker_on_thread, name=thread_name)
+            self.process_marker_thread.daemon = True
+            self.process_marker_thread.start()
         else:
             self.system_capturing_calibration_on = False
             if self.trigger_on is True:
@@ -555,8 +555,10 @@ class SystemControl(wx.Frame):
                     print("Trigger process already terminated.")
             time.sleep(0.5)  # Give some time for the cameras to finalize writing
             for cam_panel in self.camera_panels:
-                cam_panel.StopCapture()
-            self.system_capture_btn.SetLabel("Start System Capture")
+                cam_panel.StopCalibrateCapture()
+            if self.process_marker_thread.is_alive():
+                self.process_marker_thread.join()
+            self.system_capture_calibration_btn.SetLabel("Start System Calibration")
             self.EnableSystemControls(value=True, preview=False)
 
     def load_calibration_settings(self, draw_calibration_board=False):
