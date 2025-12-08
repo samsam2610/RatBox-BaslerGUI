@@ -19,6 +19,7 @@ from VideoRecordingSession import VideoRecordingSession
 from InputEventHandler import ConfigurationEventPrinter
 from ImagePanel import ImagePanel
 from CameraController import CameraController
+
 # Testing system
 def GenPulse(sampling_rate, frequency, duration=3600):
     print(f"Gen pulse at {frequency} Hz")
@@ -203,7 +204,7 @@ class SystemControl(wx.Frame):
             self.set_config_btn = wx.Button(self.system_panel, label="Set configuration system-wide")
             sizer.Add(self.set_config_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
-            self.set_config_btn.Bind(wx.EVT_BUTTON, self.SetFolderAndFileConfigurationSystemWide)
+            self.set_config_btn.Bind(wx.EVT_BUTTON, self.SetFolderAndFileConfigurationSystemWideButton)
             row_pos += 1 # Current row position = 6
            
             self.system_preview_btn = wx.Button(self.system_panel, label="Start System Preview")
@@ -230,9 +231,18 @@ class SystemControl(wx.Frame):
             calibration_sizer = wx.StaticBoxSizer(calibration_box, wx.VERTICAL)
             self.calibration_panel = wx.Panel(self.outer_panel)
             sizer = wx.GridBagSizer(5, 5)
+            column_pos= 0
+            row_pos= 0
+
             self.calibration_status_label = wx.StaticText(self.calibration_panel, label="Calibration Status: Not started")
-            sizer.Add(self.calibration_status_label, pos=(0, 0), span=(1, 2),
+            sizer.Add(self.calibration_status_label, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
+            row_pos += 1 # Current row position = 1
+            
+            self.system_capture_calibration_btn = wx.Button(self.calibration_panel, label="Start System Calibration")
+            sizer.Add(self.system_capture_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.system_capture_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemCaptureCalibration)
             
             self.calibration_panel.SetSizer(sizer)
             self.calibration_panel.Layout()
@@ -283,7 +293,10 @@ class SystemControl(wx.Frame):
             else:
                 self.index_ctrl.Enable()
 
-    def SetFolderAndFileConfigurationSystemWide(self, event):
+    def SetFolderAndFileConfigurationSystemWideButton(self, event):
+        self.set_folder_and_file_configuration_system_wide()
+
+    def set_folder_and_file_configuration_system_wide(self, calibration=False):
         # Check if the cameras are busy
         if self.check_camera_preview_status() is True or self.check_camera_capture_status() is True:
             wx.MessageBox("Please stop all camera previews and captures before setting system-wide configuration.", "Error", wx.OK | wx.ICON_ERROR)
@@ -295,11 +308,15 @@ class SystemControl(wx.Frame):
             wx.MessageBox("Please select an export folder.", "Error", wx.OK | wx.ICON_ERROR)
             return
         
-        export_name = self.exportfile_ctrl.GetValue()
-        if not export_name:
-            wx.MessageBox("Please enter an export file name.", "Error", wx.OK | wx.ICON_ERROR)
-            return
-        self.set_last_filename(export_name)
+        if calibration:
+            export_name = "calib"
+        else:
+            export_name = self.exportfile_ctrl.GetValue()
+            if not export_name:
+                wx.MessageBox("Please enter an export file name.", "Error", wx.OK | wx.ICON_ERROR)
+                return
+            
+        self.set_last_filename(export_name) # persist for next time
 
         self.check_camera_frame_rate_status()
         self.check_camera_trigger_status()
@@ -311,7 +328,7 @@ class SystemControl(wx.Frame):
             cam_panel.SetFileName(export_name)
             cam_panel.SetTriggerMode(self.trigger_on)
             cam_panel.SetFrameRate(self.common_frame_rate)
-    
+            
     def EnableSystemControls(self, value, preview=True, startup=False):
         if value is True:
             self.exportfile_ctrl.Enable()
@@ -355,6 +372,11 @@ class SystemControl(wx.Frame):
         all_capturing = all(panel.capture_on for panel in self.camera_panels)
         self.capturing_on = all_capturing
         return all_capturing
+    
+    def check_camera_calibration_status(self):
+        all_calibrating = all(panel.calibration_on for panel in self.camera_panels)
+        self.calibrating_on = all_calibrating
+        return all_calibrating
     
     def check_camera_trigger_status(self):
         modes = [panel.trigger_mode for panel in self.camera_panels]
@@ -477,8 +499,65 @@ class SystemControl(wx.Frame):
     
             # ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
 
+    # ------ Calibration methods ------
     def OnSystemCalibrate(self, event):
-        pass  # Placeholder for future implementation
+        # Setting capture toggle status
+        self.recording_threads_status = []
+        self.calibration_capture_toggle_status = True
+        
+        if self.toggle_continuous_mode.get() == 1:
+            for i in range(len(self.cam)):
+                self.cam[i].turn_on_continuous_mode()
+                
+        # Sync camera capture time using threading.Barrier
+        barrier = threading.Barrier(len(self.cam))
+        
+        for i in range(len(self.cam)):
+            thread_name = f"Cam {i + 1} thread"
+            self.recording_threads.append(threading.Thread(target=self.record_calibrate_on_thread, args=(i, barrier), name=thread_name))
+            self.recording_threads[-1].daemon = True
+            self.recording_threads[-1].start()
+            self.recording_threads_status.append(True)
+        thread_name = f"Marker processing thread"
+        self.recording_threads.append(threading.Thread(target=self.process_marker_on_thread, name=thread_name))
+        self.recording_threads[-1].daemon = True
+        self.recording_threads[-1].start()
+
+        if self.check_camera_capture_status() is False:
+            for cam_panel in self.camera_panels:
+                cam_panel.StartCalibrateCapture()
+            
+            self.system_capture_calibration_btn.SetLabel("Stop System Calibration")
+            self.EnableSystemControls(value=False, preview=False)
+            self.system_capturing_calibration_on = True
+            time.sleep(0.5)  # Give some time for the cameras to start writing
+            if self.trigger_on is True:
+                # Check to make sure both cameras are ready to reeceive triggers
+                print("Waiting for cameras to be ready for system capture...")
+                while self.check_camera_capture_status() is False:
+                    time.sleep(0.1)
+                print("Starting trigger process for system capture...")
+                self.proc = multiprocessing.Process(
+                            target=trigger_start_process_continuous,
+                            kwargs={"frequency": self.common_frame_rate},
+                            daemon=True,
+                            )
+                self.proc.start()
+                print(f"Spawned trigger process with PID {self.proc.pid}")
+        else:
+            self.system_capturing_calibration_on = False
+            if self.trigger_on is True:
+                if self.proc.is_alive():
+                    print(f"Terminating trigger process with PID {self.proc.pid}")
+                    self.proc.terminate()
+                    self.proc.join()  
+                else:
+                    print("Trigger process already terminated.")
+            time.sleep(0.5)  # Give some time for the cameras to finalize writing
+            for cam_panel in self.camera_panels:
+                cam_panel.StopCapture()
+            self.system_capture_btn.SetLabel("Start System Capture")
+            self.EnableSystemControls(value=True, preview=False)
 
     def load_calibration_settings(self, draw_calibration_board=False):
         from utils import load_config, get_calibration_board
@@ -517,8 +596,9 @@ class SystemControl(wx.Frame):
         if draw_calibration_board:
             numx, numy = self.board_calibration.get_size()
             size = numx*200, numy*200
-            img = self.board_calibration.draw(size)
-            cv2.imwrite(board_dir, img)
+            board = get_calibration_board(config_anipose)
+            board_image = board.board.generateImage(size)
+            cv2.imwrite(board_dir, board_image)
         
         return config_anipose
     
@@ -570,7 +650,6 @@ class SystemControl(wx.Frame):
         self.all_rows = []
 
         self.calibration_status_label.SetLabel('Cameras found. Recording the frame sizes')
-        self.set_calibration_buttons_group(state='normal')
         
         self.calibration_capture_toggle_status = False
         self.calibration_toggle_status = False
@@ -606,28 +685,20 @@ class SystemControl(wx.Frame):
         self.vid_file = []
         self.base_name = []
         self.cam_name_no_space = []
-
-        for i in range(len(self.cam)):
-            # write code to create a list of base names for the videos
-            self.cam_name_no_space.append(self.cam_name[i].replace(' ', ''))
-            self.base_name.append(self.cam_name_no_space[i] + '_' + 'calibration_' + self.setup_name.get() + '_')
-            self.vid_file.append(os.path.normpath(self.dir_output.get() +
-                                                    '/' +
-                                                    self.base_name[i] +
-                                                    self.attempt.get() +
-                                                    '.avi'))
-
-            frame_sizes.append(self.cam[i].get_image_dimensions())
+        for cam_panel in self.camera_panels:
+            frame_sizes.append(cam_panel.get_image_dimensions()) # change thi
             self.frame_count.append(1)
             self.all_rows.append([])
             self.previous_frame_count.append(0)
             self.current_frame_count.append(0)
             self.frame_times.append([])
 
-        # check if file exists, ask to overwrite or change attempt number if it does
-        create_video_files(self, overwrite=override)
-        create_output_files(self, subject_name='Sam')
+            cam_panel.SetupCalibration(board_calibration=self.board_calibration,
+                                       all_rows=self.all_rows,
+                                       current_all_rows=self.current_all_rows)
 
+        self.set_folder_and_file_configuration_system_wide(calibration=True)             
+ 
         self.calibration_status_label.SetLabel('Setting the frame sizes...')
         self.cgroup.set_camera_sizes_images(frame_sizes=frame_sizes)
         self.calibration_status_label.SetLabel('Prepping done. Ready to capture calibration frames...')
@@ -638,6 +709,90 @@ class SystemControl(wx.Frame):
         self.recording_threads = []
         self.calibrating_thread = None
 
+    def process_marker_on_thread(self):
+        """
+        Process marker on a separate thread.
+
+        This method retrieves frame information from the frame queue and processes it. The frames are grouped by thread ID
+        and stored in a dictionary called frame_groups. The method continuously loops until the calibration_capture_toggle_status
+        is True or the frame queue is not empty.
+
+        Parameters:
+        - self: The current instance of the class.
+
+        Returns:
+        This method does not return any value.
+
+        Raises:
+        This method may raise an exception when an error occurs during processing.
+
+        Example usage:
+        process_marker_on_thread()
+        """
+        from src.aniposelib.boards import extract_points, merge_rows, reverse_extract_points, reverse_merge_rows
+        
+        frame_groups = {}  # Dictionary to store frame groups by thread_id
+        frame_counts = {}  # array to store frame counts for each thread_id
+        
+        try:
+            while any(thread is True for thread in self.recording_threads_status):
+                # Retrieve frame information from the queue
+                frame, thread_id, frame_count, capture_time = self.frame_queue.get()
+                if thread_id not in frame_groups:
+                    frame_groups[thread_id] = []  # Create a new group for the thread_id if it doesn't exist
+                    frame_counts[thread_id] = 0
+
+                # Append frame information to the corresponding group
+                frame_groups[thread_id].append((frame, frame_count, capture_time))
+                frame_counts[thread_id] += 1
+                self.frame_acquired_count_label[thread_id]['text'] = f'{frame_count}'
+                self.vid_out[thread_id].write(frame)
+                
+                # Process the frame group (frames with the same thread_id)
+                # dumping the mix and match rows into detections.pickle to be pickup by calibrate_on_thread
+                if all(count >= self.frame_process_threshold for count in frame_counts.values()):
+                    with open(self.rows_fname, 'wb') as file:
+                        pickle.dump(self.all_rows, file)
+                    self.rows_fname_available = True
+                    # Clear the processed frames from the group
+                    frame_groups = {}
+                    frame_count = {}
+            
+            # Process the remaining frames in the queue
+            while not self.frame_queue.empty():
+                print('Processing remaining frames in the queue')
+                frame, thread_id, frame_count, capture_time = self.frame_queue.get()
+                if thread_id not in frame_groups:
+                    frame_groups[thread_id] = []
+                    frame_counts[thread_id] = 0
+                frame_groups[thread_id].append((frame, frame_count, capture_time))
+                frame_counts[thread_id] += 1
+                self.frame_acquired_count_label[thread_id]['text'] = f'{frame_count}'
+                self.vid_out[thread_id].write(frame)
+                
+                if all(count >= self.frame_process_threshold for count in frame_counts.values()):
+                    with open(self.rows_fname, 'wb') as file:
+                        pickle.dump(self.all_rows, file)
+                    self.rows_fname_available = True
+                    print('Dumped rows into detections.pickle')
+                    
+                    frame_groups = {}
+                    frame_count = {}
+            
+            # Clear the frame queue
+            self.frame_queue.queue.clear()
+            print('Cleared frame queue')
+            
+            if all(thread is False for thread in self.recording_threads_status):
+                print('Terminating thread')
+                self.toggle_calibration_capture(termination=True)
+                
+        except Exception as e:
+            print("Exception occurred:", type(e).__name__, "| Exception value:", e, "| Thread ID:", thread_id,
+                  "| Frame count:", frame_count, "| Capture time:", capture_time, "| Traceback:",
+                  ''.join(traceback.format_tb(e.__traceback__)))
+
+    ## ------ Configuration persistence methods ------
     def get_config(self):
         APP_NAME = "BaslerCamGUI"  # any unique name
         # Stores under a per-user location (AppData on Windows, ~/.config on Linux, etc.)
