@@ -100,6 +100,7 @@ class CameraController(wx.Panel):
         self.is_multi_cam = multi_cam
         self.parent = parent
         self.trigger_mode = trigger_mode
+        self.calibration_on = False
         self.SetTriggerModeLabel()
         super().__init__(parent)
 
@@ -1339,6 +1340,7 @@ class CameraController(wx.Panel):
         self.SetupCalibration()
 
         # Start the capture and display threads
+        self.calibration_on = True
         self.calibrate_thread_obj = threading.Thread(target=self.record_calibrate_thread)
         self.calibrate_thread_obj.start()
         self.EnableGUI(False)
