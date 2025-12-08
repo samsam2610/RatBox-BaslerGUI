@@ -818,8 +818,7 @@ class SystemControl(wx.Frame):
                 self.toggle_calibration_capture(termination=True)
                 
         except Exception as e:
-            print("Exception occurred:", type(e).__name__, "| Exception value:", e, "| Thread ID:", thread_id,
-                  "| Frame count:", frame_count, "| Capture time:", capture_time, "| Traceback:",
+            print("Exception occurred in process_marker_on_thread:", type(e).__name__, "| Exception value:", e,
                   ''.join(traceback.format_tb(e.__traceback__)))
     
     def calibrate_on_thread(self):
