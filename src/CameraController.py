@@ -1256,6 +1256,8 @@ class CameraController(wx.Panel):
     
     # ############### Calibration functions
     def SetupCalibration(self, board_calibration, all_rows, current_all_rows):
+        ### This function should only be called by the SystemController
+
         self.board_calibration = board_calibration
         self.all_rows = all_rows
         self.current_all_rows = current_all_rows
@@ -1337,7 +1339,6 @@ class CameraController(wx.Panel):
 
     def StartCalibrateCapture(self):
         self.StopPreview()
-        self.SetupCalibration()
 
         # Start the capture and display threads
         self.calibration_on = True
