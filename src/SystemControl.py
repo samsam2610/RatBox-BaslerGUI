@@ -566,6 +566,7 @@ class SystemControl(wx.Frame):
             time.sleep(0.5)  # Give some time for the cameras to finalize writing
             for cam_panel in self.camera_panels:
                 cam_panel.StopCalibrateCapture()
+                self.recording_threads_status[self.camera_panels.index(cam_panel)] = False
             if self.process_marker_thread.is_alive():
                 self.process_marker_thread.join()
 
