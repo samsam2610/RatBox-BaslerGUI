@@ -761,7 +761,12 @@ class SystemControl(wx.Frame):
             print('Starting marker processing thread...')
             while any(thread is True for thread in self.recording_threads_status) is True:
                 # Retrieve frame information from the queue
-                frame, thread_id, frame_count, capture_time = self.frame_queue.get()
+                try:
+                    # This prevents the thread from blocking forever if cameras stop sending frames
+                    frame, thread_id, frame_count, capture_time = self.frame_queue.get(timeout=0.1)
+                except queue.Empty:
+                    # If queue is empty, loop back to check 'recording_threads_status'
+                    continue
                 if thread_id not in frame_groups:
                     frame_groups[thread_id] = []  # Create a new group for the thread_id if it doesn't exist
                     frame_counts[thread_id] = 0
@@ -782,8 +787,6 @@ class SystemControl(wx.Frame):
                     frame_groups = {}
                     frame_count = {}
                 
-                time.sleep(0.01)  # Small delay to prevent busy-waiting
-
             print('Exiting marker processing thread...')
             # Process the remaining frames in the queue
             while not self.frame_queue.empty():
