@@ -781,6 +781,8 @@ class SystemControl(wx.Frame):
                     # Clear the processed frames from the group
                     frame_groups = {}
                     frame_count = {}
+                
+                time.sleep(0.01)  # Small delay to prevent busy-waiting
 
             print('Exiting marker processing thread...')
             # Process the remaining frames in the queue
@@ -879,6 +881,18 @@ class SystemControl(wx.Frame):
             print("Exception occurred:", type(e).__name__, "| Exception value:", e,
                   ''.join(traceback.format_tb(e.__traceback__)))
 
+    @staticmethod
+    def clear_calibration_file(file_name):
+        """_summary_
+
+        Args:
+            file_name (directory): directory to the calibration files: calibration.toml and detections.pickles
+        """
+        if os.path.exists(file_name):
+            os.remove(file_name)
+            print(f"Deleted calibration file: {file_name}")
+        else:
+            print(f"Calibration file '{file_name}' does not exist.")
 
     ## ------ Configuration persistence methods ------
     def get_config(self):
