@@ -861,7 +861,7 @@ class SystemControl(wx.Frame):
             self.cgroup.metadata['adjusted'] = False
             if self.calibration_error is not None:
                 self.cgroup.metadata['error'] = float(self.calibration_error)
-                self.calibration_error_value.set(f'{self.calibration_error:.5f}')
+                # self.calibration_error_value.set(f'{self.calibration_error:.5f}')
                 self.error_list.append(self.calibration_error)
                 print(f'Calibration error: {self.calibration_error}')
             else:
