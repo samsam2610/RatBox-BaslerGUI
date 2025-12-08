@@ -768,8 +768,8 @@ class SystemControl(wx.Frame):
                 # Append frame information to the corresponding group
                 frame_groups[thread_id].append((frame, frame_count, capture_time))
                 frame_counts[thread_id] += 1
-                self.frame_acquired_count_label[thread_id]['text'] = f'{frame_count}'
-                self.vid_out[thread_id].write(frame)
+                # self.frame_acquired_count_label[thread_id]['text'] = f'{frame_count}'
+                # self.vid_out[thread_id].write(frame)
                 
                 # Process the frame group (frames with the same thread_id)
                 # dumping the mix and match rows into detections.pickle to be pickup by calibrate_on_thread
@@ -791,8 +791,8 @@ class SystemControl(wx.Frame):
                     frame_counts[thread_id] = 0
                 frame_groups[thread_id].append((frame, frame_count, capture_time))
                 frame_counts[thread_id] += 1
-                self.frame_acquired_count_label[thread_id]['text'] = f'{frame_count}'
-                self.vid_out[thread_id].write(frame)
+                # self.frame_acquired_count_label[thread_id]['text'] = f'{frame_count}'
+                # self.vid_out[thread_id].write(frame)
                 
                 if all(count >= self.frame_process_threshold for count in frame_counts.values()):
                     with open(self.rows_fname, 'wb') as file:
