@@ -680,7 +680,7 @@ class SystemControl(wx.Frame):
         self.previous_frame_count = []
         self.current_frame_count = []
         self.frame_process_threshold = 2
-        self.queue_frame_threshold = 1000
+        self.queue_frame_threshold = 50 
         
         if override:
             # Check available detection file, if file available will delete it (for now)
@@ -758,7 +758,7 @@ class SystemControl(wx.Frame):
         
         try:
             print('Starting marker processing thread...')
-            while any(thread is True for thread in self.recording_threads_status):
+            while any(thread is True for thread in self.recording_threads_status) is True:
                 # Retrieve frame information from the queue
                 frame, thread_id, frame_count, capture_time = self.frame_queue.get()
                 if thread_id not in frame_groups:
@@ -780,6 +780,7 @@ class SystemControl(wx.Frame):
                     # Clear the processed frames from the group
                     frame_groups = {}
                     frame_count = {}
+
             print('Exiting marker processing thread...')
             # Process the remaining frames in the queue
             while not self.frame_queue.empty():
