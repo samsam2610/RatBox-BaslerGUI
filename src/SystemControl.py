@@ -19,6 +19,7 @@ from VideoRecordingSession import VideoRecordingSession
 from InputEventHandler import ConfigurationEventPrinter
 from ImagePanel import ImagePanel
 from CameraController import CameraController
+import pickle
 
 # Testing system
 def GenPulse(sampling_rate, frequency, duration=3600):
@@ -517,7 +518,10 @@ class SystemControl(wx.Frame):
         self.recording_threads_status = []
         self.calibration_capture_toggle_status = True
         
-        if self.check_camera_capture_status() is False:
+        # Setup system calibration
+        self.setup_calibration()
+        
+        if self.check_camera_calibration_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartCalibrateCapture()
                 self.recording_threads_status.append(True)
@@ -528,8 +532,8 @@ class SystemControl(wx.Frame):
             time.sleep(0.5)  # Give some time for the cameras to start writing
             if self.trigger_on is True:
                 # Check to make sure both cameras are ready to reeceive triggers
-                print("Waiting for cameras to be ready for system capture...")
-                while self.check_camera_capture_status() is False:
+                print("Waiting for cameras to be ready for system calibration...")
+                while self.check_camera_calibration_status() is False:
                     time.sleep(0.1)
                 print("Starting trigger process for system capture...")
                 self.proc = multiprocessing.Process(
