@@ -757,6 +757,7 @@ class SystemControl(wx.Frame):
         frame_counts = {}  # array to store frame counts for each thread_id
         
         try:
+            print('Starting marker processing thread...')
             while any(thread is True for thread in self.recording_threads_status):
                 # Retrieve frame information from the queue
                 frame, thread_id, frame_count, capture_time = self.frame_queue.get()
@@ -779,7 +780,7 @@ class SystemControl(wx.Frame):
                     # Clear the processed frames from the group
                     frame_groups = {}
                     frame_count = {}
-            
+            print('Exiting marker processing thread...')
             # Process the remaining frames in the queue
             while not self.frame_queue.empty():
                 print('Processing remaining frames in the queue')
