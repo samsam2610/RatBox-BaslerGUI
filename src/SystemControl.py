@@ -678,9 +678,9 @@ class SystemControl(wx.Frame):
             self.rows_fname_available = os.path.exists(self.rows_fname)
             
         # Set calibration parameter
-        result = self.set_calibration_duration()
-        if result == 0:
-            return
+        # result = self.set_calibration_duration()
+        # if result == 0:
+            # return
         
         self.error_list = []
         # Create a shared queue to store frames
