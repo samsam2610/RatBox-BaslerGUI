@@ -564,11 +564,13 @@ class SystemControl(wx.Frame):
                 else:
                     print("Trigger process already terminated.")
             time.sleep(0.5)  # Give some time for the cameras to finalize writing
-            for cam_panel in self.camera_panels:
+            for idx, cam_panel in enumerate(self.camera_panels):
                 cam_panel.StopCalibrateCapture()
-                self.recording_threads_status[self.camera_panels.index(cam_panel)] = False
+                self.recording_threads_status[idx] = False
             if self.process_marker_thread.is_alive():
+                print("Waiting for marker processing thread to finish...")
                 self.process_marker_thread.join()
+                print("Marker processing thread has finished.")
 
             print("Start calibration computation...")
             self.calibrate_on_thread()
