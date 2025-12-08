@@ -551,7 +551,7 @@ class SystemControl(wx.Frame):
             
             thread_name = f"Marker processing thread" 
             self.process_marker_thread = threading.Thread(target=self.process_marker_on_thread, name=thread_name)
-            self.process_marker_thread.daemon = True
+            # self.process_marker_thread.daemon = True
             self.process_marker_thread.start()
         else:
             print("Stopping system calibration...")
@@ -567,10 +567,10 @@ class SystemControl(wx.Frame):
             for idx, cam_panel in enumerate(self.camera_panels):
                 cam_panel.StopCalibrateCapture()
                 self.recording_threads_status[idx] = False
-            if self.process_marker_thread.is_alive():
+            if self.process_marker_thread.is_alive() is True:
                 print("Waiting for marker processing thread to finish...")
                 self.process_marker_thread.join()
-                print("Marker processing thread has finished.")
+                
 
             print("Start calibration computation...")
             self.calibrate_on_thread()
