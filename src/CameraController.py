@@ -1432,8 +1432,8 @@ class CameraController(wx.Panel):
                 # putting frame into the frame queue along with following information
                 self.frame_queue.put((frame,  # the frame itself
                                       num,  # the id of the capturing camera
-                                      self.frame_count[num],  # the current frame count
-                                      self.frame_times[num][-1]))  # captured time
+                                      captured_frames,  # the current frame count
+                                      frame_timestamp))  # captured time
                 note = None
                 self.video_session.acquire_frame(frame, frame_timestamp, captured_frames, frame_line_status, note)
                 if (timestamp - last_display_time) > display_interval:
