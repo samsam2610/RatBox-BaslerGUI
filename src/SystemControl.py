@@ -812,10 +812,6 @@ class SystemControl(wx.Frame):
             # Clear the frame queue
             self.frame_queue.queue.clear()
             print('Cleared frame queue')
-            
-            if all(thread is False for thread in self.recording_threads_status):
-                print('Terminating thread')
-                self.toggle_calibration_capture(termination=True)
                 
         except Exception as e:
             print("Exception occurred in process_marker_on_thread:", type(e).__name__, "| Exception value:", e,
