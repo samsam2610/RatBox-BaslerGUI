@@ -693,6 +693,7 @@ class SystemControl(wx.Frame):
         self.vid_file = []
         self.base_name = []
         self.cam_name_no_space = []
+        self.current_all_rows = []
         for cam_panel in self.camera_panels:
             frame_sizes.append(cam_panel.get_image_dimensions()) # change thi
             self.frame_count.append(1)
@@ -700,6 +701,7 @@ class SystemControl(wx.Frame):
             self.previous_frame_count.append(0)
             self.current_frame_count.append(0)
             self.frame_times.append([])
+            self.current_all_rows.append([])
 
             cam_panel.SetupCalibration(board_calibration=self.board_calibration,
                                        all_rows=self.all_rows,
