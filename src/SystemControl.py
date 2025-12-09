@@ -699,6 +699,8 @@ class SystemControl(wx.Frame):
         self.error_list = []
         # Create a shared queue to store frames
         self.frame_queue = queue.Queue(maxsize=self.queue_frame_threshold)
+        self.barrier = threading.Barrier(parties=len(self.camera_panels))
+        self.frame_count_sync = []
 
         # Boolean for detections.pickle is updated
         self.detection_update = False
@@ -716,11 +718,14 @@ class SystemControl(wx.Frame):
             self.current_frame_count.append(0)
             self.frame_times.append([])
             self.current_all_rows.append([])
+            self.frame_count_sync.append(0)
 
             cam_panel.SetupCalibration(board_calibration=self.board_calibration,
                                        frame_queue=self.frame_queue,
                                        all_rows=self.all_rows,
-                                       current_all_rows=self.current_all_rows)
+                                       current_all_rows=self.current_all_rows,
+                                       barrier=self.barrier,
+                                       frame_count_sync=self.frame_count_sync)
 
         self.set_folder_and_file_configuration_system_wide(calibration=True)             
  

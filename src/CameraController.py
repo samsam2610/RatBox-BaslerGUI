@@ -1256,11 +1256,19 @@ class CameraController(wx.Panel):
             return 0
     
     # ############### Calibration functions
-    def SetupCalibration(self, board_calibration: CharucoBoard, frame_queue: queue.Queue, all_rows, current_all_rows):
+    def SetupCalibration(self,
+                         board_calibration: CharucoBoard,
+                         frame_queue: queue.Queue,
+                         frame_count_sync,
+                         all_rows,
+                         current_all_rows,
+                         barrier: threading.Barrier = None):
         ### This function should only be called by the SystemController
 
         self.board_calibration = board_calibration
         self.frame_queue = frame_queue
+        self.barrier = barrier
+        self.frame_count_sync = frame_count_sync
         self.all_rows = all_rows
         self.current_all_rows = current_all_rows
 
@@ -1409,11 +1417,11 @@ class CameraController(wx.Panel):
                 timestamp = time.time()
                 frame_timestamp = grabResult.ChunkTimestamp.Value
                 frame_line_status = grabResult.ChunkLineStatusAll.Value
-                captured_frames += 1
+                
                 # detect the marker as the frame is acquired
                 corners, ids = self.board_calibration.detect_image(frame)
                 if corners is not None and len(corners) > 0:
-                    key = captured_frames - 1
+                    key = captured_frames
                     row = {
                         'framenum': key,
                         'corners': corners,
@@ -1441,6 +1449,18 @@ class CameraController(wx.Panel):
                     imageWindow.SetImage(grabResult)
                     imageWindow.Show()
                     last_display_time = time.time()
+                
+                self.frame_count_sync[num] = captured_frames
+                captured_frames += 1
+                
+                # Check frame_count_sync to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
+                if self.barrier is not None:
+                    # If other cameras are behind, wait at the barrier
+                    if any(self.frame_count_sync[other_num] < captured_frames for other_num in self.frame_count_sync if other_num != num):
+                        try:
+                            self.barrier.wait(timeout=1)
+                        except threading.BrokenBarrierError:
+                            print(f'Barrier broken for cam {num}. Proceeding...')
                 
             grabResult.Release()
                  
