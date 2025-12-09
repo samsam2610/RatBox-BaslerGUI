@@ -1408,7 +1408,7 @@ class CameraController(wx.Panel):
         
         while (self.calibration_on is True) or (self.camera.NumReadyBuffers.GetValue() > 0):
             # Check frame_count_sync to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
-            if self.barrier is not None:
+            if self.barrier is not None and captured_frames > 0:
                 # If other cameras are behind, wait at the barrier:
                 while captured_frames > min(self.frame_count_sync) and self.calibration_on is True:
                     try:
