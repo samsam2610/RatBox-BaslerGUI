@@ -1459,7 +1459,6 @@ class CameraController(wx.Panel):
                 # Check frame_count_sync to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
                 if self.barrier is not None:
                     # If other cameras are behind, wait at the barrier:
-                    print(f'Camera {num}: captured frames = {captured_frames}, frame_count_sync = {self.frame_count_sync}')
                     while captured_frames > min(self.frame_count_sync) and self.calibration_on is True:
                         try:
                             time.sleep(0.0001)  # small sleep to allow other threads to catch up
