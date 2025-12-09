@@ -1456,7 +1456,7 @@ class CameraController(wx.Panel):
                 # Check frame_count_sync to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
                 if self.barrier is not None:
                     # If other cameras are behind, wait at the barrier
-                    if any(frame_count < captured_frames-1 for frame_count in self.frame_count_sync.values()):
+                    if any(frame_count < captured_frames-1 for frame_count in self.frame_count_sync):
                         try:
                             self.barrier.wait(timeout=1)
                         except threading.BrokenBarrierError:
@@ -1467,6 +1467,7 @@ class CameraController(wx.Panel):
         self.camera.StopGrabbing()
         imageWindow.Close()
         self.video_session.stop_recording()
+        self.barrier.abort()
 
         print(f'Capturing and calibration finished after grabbing {captured_frames} frames')
         
