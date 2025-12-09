@@ -1456,7 +1456,7 @@ class CameraController(wx.Panel):
                 # Check frame_count_sync to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
                 if self.barrier is not None:
                     # If other cameras are behind, wait at the barrier
-                    if any(self.frame_count_sync[other_num] < captured_frames for other_num in self.frame_count_sync if other_num != num):
+                    if any(self.frame_count_sync[num] < captured_frames for num in self.frame_count_sync):
                         try:
                             self.barrier.wait(timeout=1)
                         except threading.BrokenBarrierError:
