@@ -1431,7 +1431,7 @@ class CameraController(wx.Panel):
                     row = self.board_calibration.fill_points_rows([row])
                     self.all_rows[num].extend(row)
                     self.current_all_rows[num].extend(row)
-                    print(f'Camera {num}: Detected marker at frame {key} with {len(corners)} corners.')
+                    # print(f'Camera {num}: Detected marker at frame {key} with {len(corners)} corners.')
                     # self.board_detected_count_label[num]['text'] = f'{len(self.all_rows[num])}; {len(corners)}'
                     # if num == 0:
                         # self.calibration_current_duration_value.set(f'{time.perf_counter()-start_time:.2f}')
@@ -1456,7 +1456,7 @@ class CameraController(wx.Panel):
                 # Check frame_count_sync to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
                 if self.barrier is not None:
                     # If other cameras are behind, wait at the barrier
-                    if any(frame_count < captured_frames-1 for frame_count in self.frame_count_sync):
+                    if any(frame_count < captured_frames-1 for frame_count in self.frame_count_sync.values()):
                         try:
                             self.barrier.wait(timeout=1)
                         except threading.BrokenBarrierError:
