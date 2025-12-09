@@ -1385,7 +1385,7 @@ class CameraController(wx.Panel):
         # Enable line status chunks.
         self.camera.ChunkSelector.Value = "LineStatusAll"
         self.camera.ChunkEnable.Value = True
-        self.camera.MaxNumBuffer = 1
+        self.camera.MaxNumBuffer = 2
         self.camera.OutputQueueSize.Value = 1
         
         # Start the video recording session
