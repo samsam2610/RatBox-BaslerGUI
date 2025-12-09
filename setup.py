@@ -7,7 +7,7 @@ setup(
     name="BaslerGUI",
     version=__version__,
     author="Sam Tran",
-    author_email="sam@example.com",
+    author_email="quocsam93@gmail.com",
     description="Basler camera control and image acquisition GUI using wxPython and pypylon.",
     long_description=open("README.md").read() if os.path.exists("README.md") else "",
     long_description_content_type="text/markdown",

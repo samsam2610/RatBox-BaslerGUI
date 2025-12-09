@@ -341,7 +341,7 @@ class SystemControl(wx.Frame):
             cam_panel.SetTriggerMode(self.trigger_on)
             cam_panel.SetFrameRate(self.common_frame_rate)
             
-    def EnableSystemControls(self, value, preview=True, startup=False, calibration=False, setup_calibration=False):
+    def EnableSystemControls(self, value, preview=False, calibration=False, setup_calibration=False):
         if value is True:
             self.exportfile_ctrl.Enable()
             self.select_folder_btn.Enable()
