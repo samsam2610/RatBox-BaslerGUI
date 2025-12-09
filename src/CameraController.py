@@ -1428,7 +1428,7 @@ class CameraController(wx.Panel):
                 grabResult = self.camera.RetrieveResult(100, pylon.TimeoutHandling_ThrowException)
             except pylon.TimeoutException:
                 time.sleep(0.001)
-                print("Timeout occurred while waiting for a frame.")
+                print(f"Cam {num} - Timeout occurred while waiting for a frame.")
                 continue
 
             if self.camera.NumReadyBuffers.GetValue() > 0:
@@ -1473,8 +1473,6 @@ class CameraController(wx.Panel):
                     last_display_time = time.time()
                 
                 self.frame_count_sync[num] = captured_frames
-                
-
                 
             grabResult.Release()
                  
