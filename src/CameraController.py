@@ -1385,8 +1385,8 @@ class CameraController(wx.Panel):
         # Enable line status chunks.
         self.camera.ChunkSelector.Value = "LineStatusAll"
         self.camera.ChunkEnable.Value = True
-        self.camera.MaxNumBuffer = 0
-        self.camera.OutputQueueSize.Value = 0
+        self.camera.MaxNumBuffer = 1
+        self.camera.OutputQueueSize.Value = 1
         
         # Start the video recording session
         self.video_session.start_recording()
@@ -1420,7 +1420,9 @@ class CameraController(wx.Panel):
                 # while captured_frames > min(self.frame_count_sync) and self.calibration_on is True:
                 try:
                     # time.sleep(0.0001)  # small sleep to allow other threads to catch up
-                    self.barrier.wait(timeout=1)
+                    self.barrier.wait()
+                    if self.calibration_on is False:
+                        break
                 except threading.BrokenBarrierError:
                     print(f'Barrier broken for cam {num}. Proceeding...')
             try:
