@@ -1445,7 +1445,7 @@ class CameraController(wx.Panel):
                 except threading.BrokenBarrierError:
                     break
             
-            all_cameras_succeeded = all(self.grab_success.values())
+            all_cameras_succeeded = all(self.frame_count_sync.values())
 
             if not all_cameras_succeeded:
                 # If I succeeded but my partner failed, I must discard my frame
