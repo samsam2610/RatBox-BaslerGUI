@@ -1416,7 +1416,7 @@ class CameraController(wx.Panel):
                     except threading.BrokenBarrierError:
                         print(f'Barrier broken for cam {num}. Proceeding...')
             try:
-                grabResult = self.camera.RetrieveResult(100, pylon.TimeoutHandling_ThrowException)
+                grabResult = self.camera.RetrieveResult(1000, pylon.TimeoutHandling_ThrowException)
             except pylon.TimeoutException:
                 # print("Timeout occurred while waiting for a frame.")
                 continue
