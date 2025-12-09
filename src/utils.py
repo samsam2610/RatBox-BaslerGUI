@@ -12,7 +12,7 @@ from pathlib import Path
 import json
 
 
-from src.aniposelib.boards import CharucoBoard, Checkerboard
+from aniposelib.boards import CharucoBoard, Checkerboard
 
 ARUCO_DICTS = {
     (4, 50): aruco.DICT_4X4_50,
@@ -155,6 +155,7 @@ def get_calibration_board(config):
             calib['board_marker_bits'],
             calib['board_marker_dict_number'],
             manually_verify=manually_verify)
+        print(f"Using Charuco board with marker dict {calib['board_marker_dict_number']}")
 
 
 

@@ -1,4 +1,5 @@
 import queue
+import traceback
 import wx
 import os
 from pathlib import Path
@@ -19,6 +20,10 @@ from VideoRecordingSession import VideoRecordingSession
 from InputEventHandler import ConfigurationEventPrinter
 from ImagePanel import ImagePanel
 from CameraController import CameraController
+import pickle
+from aniposelib.boards import CharucoBoard, Checkerboard
+import copy
+
 # Testing system
 def GenPulse(sampling_rate, frequency, duration=3600):
     print(f"Gen pulse at {frequency} Hz")
@@ -105,6 +110,8 @@ class SystemControl(wx.Frame):
         self.Fit()
         self.Centre()
         self.Show()
+        path = Path(os.path.realpath(__file__))
+        print(f"SystemControl.py location: {path.parent}")  # Print the directory of SystemControl.py
  
         
     def InitSystemUI(self):
@@ -125,6 +132,7 @@ class SystemControl(wx.Frame):
 
             self.camera_panels.append(self.camera_panel)
         else:
+            self.cam_names = []
             for i in range(self.number_of_cameras):
                 print(f"Initializing camera {i + 1} UI...")
                 camera_panel = CameraController(self.outer_panel, cam_index=i, cam_details=f"Camera {i + 1}", multi_cam=True, column_pos=i, row_pos=0)
@@ -140,6 +148,7 @@ class SystemControl(wx.Frame):
                 hbox.Add(static_sizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
 
                 self.camera_panels.append(camera_panel)
+                self.cam_names.append(f"cam{i}")
             
 
             
@@ -201,7 +210,7 @@ class SystemControl(wx.Frame):
             self.set_config_btn = wx.Button(self.system_panel, label="Set configuration system-wide")
             sizer.Add(self.set_config_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
-            self.set_config_btn.Bind(wx.EVT_BUTTON, self.SetFolderAndFileConfigurationSystemWide)
+            self.set_config_btn.Bind(wx.EVT_BUTTON, self.SetFolderAndFileConfigurationSystemWideButton)
             row_pos += 1 # Current row position = 6
            
             self.system_preview_btn = wx.Button(self.system_panel, label="Start System Preview")
@@ -228,9 +237,24 @@ class SystemControl(wx.Frame):
             calibration_sizer = wx.StaticBoxSizer(calibration_box, wx.VERTICAL)
             self.calibration_panel = wx.Panel(self.outer_panel)
             sizer = wx.GridBagSizer(5, 5)
+            column_pos= 0
+            row_pos= 0
+
             self.calibration_status_label = wx.StaticText(self.calibration_panel, label="Calibration Status: Not started")
-            sizer.Add(self.calibration_status_label, pos=(0, 0), span=(1, 2),
+            sizer.Add(self.calibration_status_label, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
+            row_pos += 1 # Current row position = 1
+
+            self.system_setup_calibration_btn = wx.Button(self.calibration_panel, label="Load Calibration Settings")
+            sizer.Add(self.system_setup_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.system_setup_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemSetupCalibration)
+            row_pos += 1 # Current row position = 2
+            
+            self.system_capture_calibration_btn = wx.Button(self.calibration_panel, label="Start System Calibration")
+            sizer.Add(self.system_capture_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.system_capture_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemCalibrate)
             
             self.calibration_panel.SetSizer(sizer)
             self.calibration_panel.Layout()
@@ -281,7 +305,10 @@ class SystemControl(wx.Frame):
             else:
                 self.index_ctrl.Enable()
 
-    def SetFolderAndFileConfigurationSystemWide(self, event):
+    def SetFolderAndFileConfigurationSystemWideButton(self, event):
+        self.set_folder_and_file_configuration_system_wide()
+
+    def set_folder_and_file_configuration_system_wide(self, calibration=False):
         # Check if the cameras are busy
         if self.check_camera_preview_status() is True or self.check_camera_capture_status() is True:
             wx.MessageBox("Please stop all camera previews and captures before setting system-wide configuration.", "Error", wx.OK | wx.ICON_ERROR)
@@ -293,11 +320,15 @@ class SystemControl(wx.Frame):
             wx.MessageBox("Please select an export folder.", "Error", wx.OK | wx.ICON_ERROR)
             return
         
-        export_name = self.exportfile_ctrl.GetValue()
-        if not export_name:
-            wx.MessageBox("Please enter an export file name.", "Error", wx.OK | wx.ICON_ERROR)
-            return
-        self.set_last_filename(export_name)
+        if calibration:
+            export_name = "calib"
+        else:
+            export_name = self.exportfile_ctrl.GetValue()
+            if not export_name:
+                wx.MessageBox("Please enter an export file name.", "Error", wx.OK | wx.ICON_ERROR)
+                return
+            
+        self.set_last_filename(export_name) # persist for next time
 
         self.check_camera_frame_rate_status()
         self.check_camera_trigger_status()
@@ -309,8 +340,8 @@ class SystemControl(wx.Frame):
             cam_panel.SetFileName(export_name)
             cam_panel.SetTriggerMode(self.trigger_on)
             cam_panel.SetFrameRate(self.common_frame_rate)
-    
-    def EnableSystemControls(self, value, preview=True, startup=False):
+            
+    def EnableSystemControls(self, value, preview=True, startup=False, calibration=False, setup_calibration=False):
         if value is True:
             self.exportfile_ctrl.Enable()
             self.select_folder_btn.Enable()
@@ -320,6 +351,8 @@ class SystemControl(wx.Frame):
             self.set_config_btn.Enable()
             self.system_preview_btn.Enable()
             self.system_capture_btn.Enable()
+            self.system_setup_calibration_btn.Enable()
+            self.system_capture_calibration_btn.Disable()
         elif preview is True:
             self.exportfile_ctrl.Disable()
             self.select_folder_btn.Disable()
@@ -329,6 +362,30 @@ class SystemControl(wx.Frame):
             self.set_config_btn.Disable()
             self.system_preview_btn.Enable()
             self.system_capture_btn.Disable()
+            self.system_setup_calibration_btn.Disable()
+            self.system_capture_calibration_btn.Disable()
+        elif setup_calibration is True:
+            self.exportfile_ctrl.Enable()
+            self.select_folder_btn.Enable()
+            self.append_date.Enable()
+            self.auto_index.Enable()
+            self.index_ctrl.Enable()
+            self.set_config_btn.Enable()
+            self.system_preview_btn.Enable()
+            self.system_capture_btn.Enable()
+            self.system_setup_calibration_btn.Enable()
+            self.system_capture_calibration_btn.Enable()
+        elif calibration is True:
+            self.exportfile_ctrl.Disable()
+            self.select_folder_btn.Disable()
+            self.append_date.Disable()
+            self.auto_index.Disable()
+            self.index_ctrl.Disable()
+            self.set_config_btn.Disable()
+            self.system_preview_btn.Disable()
+            self.system_capture_btn.Disable()
+            self.system_setup_calibration_btn.Disable()
+            self.system_capture_calibration_btn.Enable()
         else:
             self.exportfile_ctrl.Disable()
             self.select_folder_btn.Disable()
@@ -353,6 +410,11 @@ class SystemControl(wx.Frame):
         all_capturing = all(panel.capture_on for panel in self.camera_panels)
         self.capturing_on = all_capturing
         return all_capturing
+    
+    def check_camera_calibration_status(self):
+        all_calibrating = all(panel.calibration_on for panel in self.camera_panels)
+        self.calibrating_on = all_calibrating
+        return all_calibrating
     
     def check_camera_trigger_status(self):
         modes = [panel.trigger_mode for panel in self.camera_panels]
@@ -397,7 +459,6 @@ class SystemControl(wx.Frame):
         if self.check_camera_trigger_status() is None:
             wx.MessageBox("Please set the same trigger mode for all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
             return
-            
         if self.check_camera_preview_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartPreview()
@@ -433,7 +494,7 @@ class SystemControl(wx.Frame):
             wx.MessageBox("Please stop all camera previews before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
             return
         if self.check_camera_trigger_status() is None:
-            wx.MessageBox("Please set the same trigger mode for all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
+            wx.MessageBox("Please set the same trigger mode for all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
             return
         if not self.check_for_file_name_and_folder():
             wx.MessageBox("Please set export folder and file name for all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
@@ -476,42 +537,129 @@ class SystemControl(wx.Frame):
     
             # ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
 
+    # ------ Calibration methods ------
+    def OnSystemSetupCalibration(self, event):
+        print("Setting folder and file configuration for calibration...")
+        self.set_folder_and_file_configuration_system_wide(calibration=True)
+        
+        # Setup system calibration
+        self.setup_calibration()
+
+        # Enable calibration capture button
+        self.EnableSystemControls(value=False, setup_calibration=True)
+    
     def OnSystemCalibrate(self, event):
-        pass  # Placeholder for future implementation
+        if not self.check_camera_connected_status():
+            wx.MessageBox("Please connect all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        if self.check_camera_preview_status():
+            wx.MessageBox("Please stop all camera previews before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        if self.check_camera_trigger_status() is None:
+            wx.MessageBox("Please set the same trigger mode for all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        if not self.check_for_file_name_and_folder():
+            wx.MessageBox("Please set export folder and file name for all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        
+        if self.check_camera_calibration_status() is False:
+            # Setting capture toggle status
+            self.recording_threads_status = []
+            self.calibration_capture_toggle_status = True
+            print("Starting system calibration...")
+            for cam_panel in self.camera_panels:
+                cam_panel.StartCalibrateCapture()
+                self.recording_threads_status.append(True)
+            
+            self.system_capture_calibration_btn.SetLabel("Stop System Calibration")
+            self.EnableSystemControls(value=False, calibration=True)
+            self.system_capturing_calibration_on = True
+            time.sleep(0.5)  # Give some time for the cameras to start writing
+            if self.trigger_on is True:
+                # Check to make sure both cameras are ready to reeceive triggers
+                print("Waiting for cameras to be ready for system calibration...")
+                while self.check_camera_calibration_status() is False:
+                    time.sleep(0.1)
+                print("Starting trigger process for system capture...")
+                self.proc = multiprocessing.Process(
+                            target=trigger_start_process_continuous,
+                            kwargs={"frequency": 120}, # using 30 Hz for calibration
+                            daemon=True,
+                            )
+                self.proc.start()
+                print(f"Spawned trigger process with PID {self.proc.pid}")
+            
+            thread_name = f"Marker processing thread" 
+            self.process_marker_thread = threading.Thread(target=self.process_marker_on_thread, name=thread_name)
+            # self.process_marker_thread.daemon = True
+            self.process_marker_thread.start()
+        else:
+            print("Stopping system calibration...")
+            self.system_capturing_calibration_on = False
+            if self.trigger_on is True:
+                if self.proc.is_alive():
+                    print(f"Terminating trigger process with PID {self.proc.pid}")
+                    self.proc.terminate()
+                    self.proc.join()  
+                else:
+                    print("Trigger process already terminated.")
+            time.sleep(0.5)  # Give some time for the cameras to finalize writing
+            for idx, cam_panel in enumerate(self.camera_panels):
+                cam_panel.StopCalibrateCapture()
+                self.recording_threads_status[idx] = False
+            
+            if self.process_marker_thread.is_alive() is True:
+                thread_status = any(thread is True for thread in self.recording_threads_status)
+                print(f"Recording threads still active: {thread_status}")
+                print("Waiting for marker processing thread to finish...")
+                self.process_marker_thread.join()
+                
+
+            print("Start calibration computation...")
+            self.calibrate_on_thread()
+            self.system_capture_calibration_btn.SetLabel("Start System Calibration")
+            self.EnableSystemControls(value=True, preview=False)
 
     def load_calibration_settings(self, draw_calibration_board=False):
         from utils import load_config, get_calibration_board
         from pathlib import Path
         
+        if self.check_for_file_name_and_folder() is False:
+            wx.MessageBox("Please set export folder and file name for all cameras before starting calibration.", "Error", wx.OK | wx.ICON_ERROR)
+            return None
         calibration_stats_message = 'Looking for config.toml directory ...'
-        self.calibration_process_stats.set(calibration_stats_message)
+        self.calibration_status_label.SetLabel(calibration_stats_message)
         print(calibration_stats_message)
         
+        # Get current folder of this script
         path = Path(os.path.realpath(__file__))
+        config_folder_path = Path(path.parent, 'config-files')
         # Navigate to the outer parent directory and join the filename
-        config_toml_path = os.path.normpath(str(path.parents[2] / 'config-files' / 'config.toml'))
+        config_toml_path = Path(config_folder_path, 'config.toml')
+        # config_toml_path = os.path.normpath(str(path.parents/ 'config-files' / 'config.toml'))
         config_anipose = load_config(config_toml_path)
         calibration_stats_message = 'Found config.toml directory. Loading config ...'
         print(calibration_stats_message)
         
         calibration_stats_message = 'Successfully found and loaded config. Determining calibration board ...'
-        self.calibration_process_stats.set(calibration_stats_message)
-        print(calibration_stats_message)
-        
-        self.board_calibration = get_calibration_board(config=config_anipose)
-        calibration_stats_message = 'Successfully determined calibration board. Initializing camera calibration objects ...'
-        self.calibration_process_stats.set(calibration_stats_message)
+        self.calibration_status_label.SetLabel(calibration_stats_message)
         print(calibration_stats_message)
 
-        self.rows_fname = os.path.join(self.dir_output.get(), 'detections.pickle')
-        self.calibration_out = os.path.join(self.dir_output.get(), 'calibration.toml')
+        self.board_calibration = get_calibration_board(config=config_anipose)
+        calibration_stats_message = 'Successfully determined calibration board. Initializing camera calibration objects ...'
+        self.calibration_status_label.SetLabel(calibration_stats_message)
+        print(calibration_stats_message)
+
+        self.rows_fname = os.path.join(self.exportfolder_ctrl.GetValue(), 'detections.pickle')
+        self.calibration_out = os.path.join(self.exportfolder_ctrl.GetValue(), 'calibration.toml')
         
-        board_dir = os.path.join(self.dir_output.get(), 'board.png')
+        board_dir = os.path.join(config_folder_path, 'board.png')
         if draw_calibration_board:
             numx, numy = self.board_calibration.get_size()
             size = numx*200, numy*200
-            img = self.board_calibration.draw(size)
-            cv2.imwrite(board_dir, img)
+            board = get_calibration_board(config_anipose)
+            board_image = board.board.generateImage(size)
+            cv2.imwrite(board_dir, board_image)
         
         return config_anipose
     
@@ -542,11 +690,11 @@ class SystemControl(wx.Frame):
         Return Type:
         - None
         """
-        self.calibration_process_stats.set('Initializing calibration process...')
+        self.calibration_status_label.SetLabel('Initializing calibration process...')
         config_anipose = self.load_calibration_settings()
         
-        self.calibration_process_stats.set('Initializing camera calibration objects ...')
-        from src.aniposelib.cameras import CameraGroup
+        self.calibration_status_label.SetLabel('Initializing camera calibration objects ...')
+        from aniposelib.cameras import CameraGroup
         import re
         
         # Get cam names from the config file
@@ -558,12 +706,11 @@ class SystemControl(wx.Frame):
                 cam_names.append(match.groups()[0])
         
         self.cgroup = CameraGroup.from_names(cam_names)
-        self.calibration_process_stats.set('Initialized camera object.')
+        self.calibration_status_label.SetLabel('Initialized camera object.')
         self.frame_count = []
         self.all_rows = []
 
-        self.calibration_process_stats.set('Cameras found. Recording the frame sizes')
-        self.set_calibration_buttons_group(state='normal')
+        self.calibration_status_label.SetLabel('Cameras found. Recording the frame sizes')
         
         self.calibration_capture_toggle_status = False
         self.calibration_toggle_status = False
@@ -573,7 +720,7 @@ class SystemControl(wx.Frame):
         self.previous_frame_count = []
         self.current_frame_count = []
         self.frame_process_threshold = 2
-        self.queue_frame_threshold = 1000
+        self.queue_frame_threshold = 10000 
         
         if override:
             # Check available detection file, if file available will delete it (for now)
@@ -584,13 +731,15 @@ class SystemControl(wx.Frame):
             self.rows_fname_available = os.path.exists(self.rows_fname)
             
         # Set calibration parameter
-        result = self.set_calibration_duration()
-        if result == 0:
-            return
+        # result = self.set_calibration_duration()
+        # if result == 0:
+            # return
         
         self.error_list = []
         # Create a shared queue to store frames
         self.frame_queue = queue.Queue(maxsize=self.queue_frame_threshold)
+        self.barrier = threading.Barrier(parties=len(self.camera_panels))
+        self.frame_count_sync = []
 
         # Boolean for detections.pickle is updated
         self.detection_update = False
@@ -599,38 +748,195 @@ class SystemControl(wx.Frame):
         self.vid_file = []
         self.base_name = []
         self.cam_name_no_space = []
-
-        for i in range(len(self.cam)):
-            # write code to create a list of base names for the videos
-            self.cam_name_no_space.append(self.cam_name[i].replace(' ', ''))
-            self.base_name.append(self.cam_name_no_space[i] + '_' + 'calibration_' + self.setup_name.get() + '_')
-            self.vid_file.append(os.path.normpath(self.dir_output.get() +
-                                                    '/' +
-                                                    self.base_name[i] +
-                                                    self.attempt.get() +
-                                                    '.avi'))
-
-            frame_sizes.append(self.cam[i].get_image_dimensions())
+        self.current_all_rows = []
+        for cam_panel in self.camera_panels:
+            frame_sizes.append(cam_panel.get_image_dimensions()) # change thi
             self.frame_count.append(1)
             self.all_rows.append([])
             self.previous_frame_count.append(0)
             self.current_frame_count.append(0)
             self.frame_times.append([])
+            self.current_all_rows.append([])
+            self.frame_count_sync.append(0)
 
-        # check if file exists, ask to overwrite or change attempt number if it does
-        create_video_files(self, overwrite=override)
-        create_output_files(self, subject_name='Sam')
+            cam_panel.SetupCalibration(board_calibration=self.board_calibration,
+                                       frame_queue=self.frame_queue,
+                                       all_rows=self.all_rows,
+                                       current_all_rows=self.current_all_rows,
+                                       barrier=self.barrier,
+                                       frame_count_sync=self.frame_count_sync)
 
-        self.calibration_process_stats.set('Setting the frame sizes...')
+        self.set_folder_and_file_configuration_system_wide(calibration=True)             
+ 
+        self.calibration_status_label.SetLabel('Setting the frame sizes...')
         self.cgroup.set_camera_sizes_images(frame_sizes=frame_sizes)
-        self.calibration_process_stats.set('Prepping done. Ready to capture calibration frames...')
-        self.calibration_status_label['bg'] = 'yellow'
+        self.calibration_status_label.SetLabel('Prepping done. Ready to capture calibration frames...')
 
         self.vid_start_time = time.perf_counter()
         
         self.recording_threads = []
         self.calibrating_thread = None
 
+    def process_marker_on_thread(self):
+        """
+        Process marker on a separate thread.
+
+        This method retrieves frame information from the frame queue and processes it. The frames are grouped by thread ID
+        and stored in a dictionary called frame_groups. The method continuously loops until the calibration_capture_toggle_status
+        is True or the frame queue is not empty.
+
+        Parameters:
+        - self: The current instance of the class.
+
+        Returns:
+        This method does not return any value.
+
+        Raises:
+        This method may raise an exception when an error occurs during processing.
+
+        Example usage:
+        process_marker_on_thread()
+        """
+        from aniposelib.boards import extract_points, merge_rows, reverse_extract_points, reverse_merge_rows
+        
+        frame_groups = {}  # Dictionary to store frame groups by thread_id
+        frame_counts = {}  # array to store frame counts for each thread_id
+        
+        try:
+            print('Starting marker processing thread...')
+            while any(thread is True for thread in self.recording_threads_status) is True:
+                # Retrieve frame information from the queue
+                try:
+                    # This prevents the thread from blocking forever if cameras stop sending frames
+                    frame, thread_id, frame_count, capture_time = self.frame_queue.get(timeout=0.1)
+                except queue.Empty:
+                    # If queue is empty, loop back to check 'recording_threads_status'
+                    continue
+                if thread_id not in frame_groups:
+                    frame_groups[thread_id] = []  # Create a new group for the thread_id if it doesn't exist
+                    frame_counts[thread_id] = 0
+
+                # Append frame information to the corresponding group
+                frame_groups[thread_id].append((frame, frame_count, capture_time))
+                frame_counts[thread_id] += 1
+                # self.frame_acquired_count_label[thread_id]['text'] = f'{frame_count}'
+                # self.vid_out[thread_id].write(frame)
+                
+                # Process the frame group (frames with the same thread_id)
+                # dumping the mix and match rows into detections.pickle to be pickup by calibrate_on_thread
+                if all(count >= self.frame_process_threshold for count in frame_counts.values()):
+                    with open(self.rows_fname, 'wb') as file:
+                        pickle.dump(self.all_rows, file)
+                    self.rows_fname_available = True
+                    # Clear the processed frames from the group
+                    frame_groups = {}
+                    frame_count = {}
+                
+            print('Exiting marker processing thread...')
+            # Process the remaining frames in the queue
+            while not self.frame_queue.empty():
+                print('Processing remaining frames in the queue')
+                frame, thread_id, frame_count, capture_time = self.frame_queue.get()
+                if thread_id not in frame_groups:
+                    frame_groups[thread_id] = []
+                    frame_counts[thread_id] = 0
+                frame_groups[thread_id].append((frame, frame_count, capture_time))
+                frame_counts[thread_id] += 1
+                # self.frame_acquired_count_label[thread_id]['text'] = f'{frame_count}'
+                # self.vid_out[thread_id].write(frame)
+                
+                if all(count >= self.frame_process_threshold for count in frame_counts.values()):
+                    with open(self.rows_fname, 'wb') as file:
+                        pickle.dump(self.all_rows, file)
+                    self.rows_fname_available = True
+                    print('Dumped rows into detections.pickle')
+                    
+                    frame_groups = {}
+                    frame_count = {}
+            
+            # Clear the frame queue
+            self.frame_queue.queue.clear()
+            print('Cleared frame queue')
+                
+        except Exception as e:
+            print("Exception occurred in process_marker_on_thread:", type(e).__name__, "| Exception value:", e,
+                  ''.join(traceback.format_tb(e.__traceback__)))
+    
+    def calibrate_on_thread(self):
+        """
+        Calibrates the system on a separate thread.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
+        self.calibration_error = float('inf')
+        print(f'Current error: {self.calibration_error}')
+        try:
+            # if self.calibration_toggle_status:    
+            # self.calibration_process_stats.set('Calibrating...')
+            print(f'Current error: {self.calibration_error}')
+            # if self.recalibrate_status:
+            #     with open(self.rows_fname, 'rb') as f:
+            #         all_rows = pickle.load(f)
+            #     print('Loaded rows from detections.pickle with size: ', len(all_rows))
+            
+            # if self.update_calibration_status:
+            all_rows = copy.deepcopy(self.current_all_rows)
+            print('Loaded rows from current_all_rows')
+            
+            if self.calibration_error is None or self.calibration_error > 0.1:
+                init_matrix = True
+                print('Force init_matrix to True')
+            else:
+                init_matrix = bool(self.init_matrix_check.get())
+                print(f'init_matrix: {init_matrix}')
+                
+            # all_rows = [row[-100:] if len(row) >= 100 else row for row in all_rows]
+            self.calibration_error = self.cgroup.calibrate_rows(all_rows, self.board_calibration,
+                                                                init_intrinsics=init_matrix,
+                                                                init_extrinsics=init_matrix,
+                                                                max_nfev=200, n_iters=6,
+                                                                n_samp_iter=200, n_samp_full=1000,
+                                                                verbose=True)
+            
+            # self.calibration_error_stats['text'] = f'Current error: {self.calibration_error}'
+            self.cgroup.metadata['adjusted'] = False
+            if self.calibration_error is not None:
+                self.cgroup.metadata['error'] = float(self.calibration_error)
+                # self.calibration_error_value.set(f'{self.calibration_error:.5f}')
+                self.error_list.append(self.calibration_error)
+                print(f'Calibration error: {self.calibration_error}')
+            else:
+                print('Failed to calibrate')
+                
+            print('Calibration completed')
+            self.cgroup.dump(self.calibration_out)
+            print('Calibration result dumped')
+            
+            self.rows_fname_available = False
+            self.calibration_toggle_status = False
+
+        except Exception as e:
+            print("Exception occurred:", type(e).__name__, "| Exception value:", e,
+                  ''.join(traceback.format_tb(e.__traceback__)))
+
+    @staticmethod
+    def clear_calibration_file(file_name):
+        """_summary_
+
+        Args:
+            file_name (directory): directory to the calibration files: calibration.toml and detections.pickles
+        """
+        if os.path.exists(file_name):
+            os.remove(file_name)
+            print(f"Deleted calibration file: {file_name}")
+        else:
+            print(f"Calibration file '{file_name}' does not exist.")
+
+    ## ------ Configuration persistence methods ------
     def get_config(self):
         APP_NAME = "BaslerCamGUI"  # any unique name
         # Stores under a per-user location (AppData on Windows, ~/.config on Linux, etc.)

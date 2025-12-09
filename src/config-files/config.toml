@@ -1,60 +1,73 @@
-
-project = 'R11_treadmill'
-
-model_folder = '/home/sam/data/Calibration-Check-Sam-2023-06-14'
-
+project = "IBB-3D"
+model_folder = "\\app\\data\\Martin-Data\\IBB-3D\\IBB-2D-TS-2025-11-13"
 nesting = 1
-video_extension = 'avi'
+video_extension = "avi"
+path = "/app/data/Martin-Data/IBB-3D"
+converted_video_speed = 1
+model_type = "deeplabcut"
+
+[pipeline]
+videos_raw = "videos-raw"
+pose_2d = "pose-2d"
+videos_raw_mp4 = "videos-raw-mp4"
+pose_2d_filter = "pose-2d-filtered"
+pose_2d_projected = "pose-2d-proj"
+pose_3d = "pose-3d"
+pose_3d_filter = "pose-3d-filtered"
+videos_labeled_2d = "videos-labeled"
+videos_labeled_2d_filter = "videos-labeled-filtered"
+calibration_videos = "calibration"
+calibration_results = "calibration"
+videos_labeled_3d = "videos-3d"
+videos_labeled_3d_filter = "videos-3d-filtered"
+angles = "angles"
+summaries = "summaries"
+videos_combined = "videos-combined"
+videos_compare = "videos-compare"
+videos_2d_projected = "videos-2d-proj"
 
 [calibration]
-# checkerboard / charuco / aruco
 board_type = "charuco"
-
-# width and height of grid
-board_size = [11, 8]
-
-# number of bits in the markers, if aruco/charuco
+board_size = [ 8, 5,]
 board_marker_bits = 4
-
-# number of markers in dictionary, if aruco/charuco
 board_marker_dict_number = 50
-
-# length of marker side
-board_marker_length = 18.75 # mm
-
-# If aruco, length of marker separation
-# board_marker_separation_length = 1 # mm
-
-# If charuco or checkerboard, square side length
-board_square_side_length = 25 # mm
-
+board_marker_length = 3
+board_square_side_length = 5
 animal_calibration = false
-
 fisheye = false
 
-[manual_verification]
-# true / false
-manually_verify = false
+[triangulation]
+cam_regex = "cam([0-9])"
+ransac = false
+optim = false
+scale_smooth = 2
+scale_length = 2
+scale_length_weak = 1
+reproj_error_threshold = 5
+score_threshold = 0.8
+n_deriv_smooth = 3
+constraints = []
+constraints_weak = []
+optim_chunking = false
+optim_chunking_size = 1000
 
 [labeling]
-scheme = [
-   ["top_spot", "mid_spot", "bot_spot", "x1", "y1", "x2", "y2"]
-]
+scheme = [ [ "R-Wrist", "R-D2Base", "R-D2Mid",], [ "R-Wrist", "R-D3Base", "R-D3Mid",], [ "R-Wrist", "R-D4Base", "R-D4Mid",], [ "L-Wrist", "L-D2Base", "L-D2Mid",], [ "L-Wrist", "L-D3Base", "L-D3Mid",], [ "L-Wrist", "L-D4Base", "L-D4Mid",],]
 
-[triangulation]
-triangulate = true
-reference_point = "bot_spot"
-cam_regex = 'cam([1-9])'
-ransac = false
-optim = true
+[manual_verification]
+manually_verify = false
 
-scale_smooth = 25
-scale_length = 10
-scale_length_weak = 2
-reproj_error_threshold = 3
-score_threshold = 0.6
-n_deriv_smooth = 2
+[filter]
+enabled = false
+type = "medfilt"
+medfilt = 13
+offset_threshold = 25
+score_threshold = 0.05
+spline = true
+n_back = 5
+multiprocessing = false
 
-[angles]
-topspot = ["top_spot", "mid_spot", "bot_spot"]
-
+[filter3d]
+enabled = false
+medfilt = 17
+offset_threshold = 15

@@ -18,6 +18,7 @@ from typing import Callable, Optional, List, Dict
 from ImagePanel import ImagePanel
 
 from dataclasses import dataclass
+from aniposelib.boards import CharucoBoard
 
 @dataclass
 class CameraSettings:
@@ -90,7 +91,7 @@ class CameraController(wx.Panel):
     
     video_session = VideoRecordingSession(cam_num=0)
 
-    def __init__(self, parent, cam_index, cam_details, multi_cam=False, column_pos=0, row_pos=0, trigger_mode: bool=False, *args, **kwargs):
+    def __init__(self, parent, cam_index, cam_details, multi_cam=False, column_pos=0, row_pos=0, trigger_mode: bool=True, *args, **kwargs):
 
         self.cam_index = cam_index
         self.selected_camera = cam_index
@@ -100,6 +101,7 @@ class CameraController(wx.Panel):
         self.is_multi_cam = multi_cam
         self.parent = parent
         self.trigger_mode = trigger_mode
+        self.calibration_on = False
         self.SetTriggerModeLabel()
         super().__init__(parent)
 
@@ -995,6 +997,11 @@ class CameraController(wx.Panel):
             
         self.height_ctrl.SetValue(self.frame_height)
     
+    def get_image_dimensions(self):
+        height = self.frame_height
+        width = self.frame_width
+        return (width, height) 
+    
     def StartPreview(self):
         self.preview_on = True
         self.EnableGUI(False, preview=True)
@@ -1175,6 +1182,8 @@ class CameraController(wx.Panel):
         # Enable line status chunks.
         self.camera.ChunkSelector.Value = "LineStatusAll"
         self.camera.ChunkEnable.Value = True
+        self.camera.MaxNumBuffer = 2
+        self.camera.OutputQueueSize.Value = 2
         
         # Start the video recording session
         self.video_session.start_recording()
@@ -1249,7 +1258,256 @@ class CameraController(wx.Panel):
             return 0
     
     # ############### Calibration functions
+    def SetupCalibration(self,
+                         board_calibration: CharucoBoard,
+                         frame_queue: queue.Queue,
+                         frame_count_sync,
+                         all_rows,
+                         current_all_rows,
+                         barrier: threading.Barrier = None):
+        ### This function should only be called by the SystemController
+
+        self.board_calibration = board_calibration
+        self.frame_queue = frame_queue
+        self.barrier = barrier
+        self.frame_count_sync = frame_count_sync
+        self.all_rows = all_rows
+        self.current_all_rows = current_all_rows
+
+        # Prepare data output file before starting capture
+        # sequence_length = int(self.sequence_ctrl.GetValue())
+        # video_length = float(self.framescap_ctrl.GetValue())
+        # frames_to_capture = int(video_length * self.framerate)
+        # interval_length = float(self.interval_ctrl.GetValue())
+        
+        fourcc_code = str(self.encoding_mode_combo.GetValue())
+
+        output_path = []
+
+        output_file_name = "calib"
+        # Adding cam index to the file name
+        output_file_name = output_file_name + "_cam" + str(self.cam_index)
+            
+        output_folder_name = self.exportfolder_ctrl.GetValue()
+        if len(output_folder_name) <= 1:
+            output_folder_name = "C:\\"
+        if len(output_folder_name) > 0:
+            output_path = output_folder_name + "\\" + output_file_name
+        else:
+            output_path = output_file_name
+
+        if len(output_file_name) <= 1:
+            wx.MessageBox('Please provide output file name!', 'Warning',
+                          wx.OK | wx.ICON_WARNING)
+            self.calibration_on = False
+            # self.current_step = sequence_length
+            return
+
+        if len(output_folder_name) <= 1:
+            wx.MessageBox('Please provide output folder!', 'Warning',
+                          wx.OK | wx.ICON_WARNING)
+            self.calibration_on = False
+            # self.current_step = sequence_length
+            return
+
+        if self.append_date_flag is True:
+            output_path = output_path + "_" + time.strftime("%Y%m%d_%H%M%S")
+
+        if self.auto_index_on is True:
+            output_path = output_path + "_" + str(self.current_index)
+            self.current_index += 1
+
+        if self.auto_index_on is False and self.append_date_flag is False:
+            wx.MessageBox('Turn on auto indexing or append date to' +
+                            ' file name when capturing sequence!',
+                            'Warning', wx.OK | wx.ICON_WARNING)
+            self.calibration_on = False
+            # self.current_step = sequence_length
+            return
+
+        if len(output_path) <= 4:
+            wx.MessageBox('Invalid name for data output file!',
+                          'Warning', wx.OK | wx.ICON_WARNING)
+            self.calibration_on = False
+            # self.current_step = sequence_length
+            return
+
+        # Making sure the output file is .avi
+        if not output_path.endswith('.avi'):
+            output_path += '.avi'
+
+        # Configure session
+        # Prepare data output file and buffer
+        self.video_session = VideoRecordingSession(cam_num=self.cam_index)
+        print(f"Frame width: {self.frame_width}, Frame height: {self.frame_height}")
+        
+        # TODO: add more options for output file
+        self.video_session.set_params(
+            video_file=output_path,
+            fourcc=fourcc_code,
+            fps=200,
+            dim=(self.frame_width, self.frame_height)
+        )
+
+    def StartCalibrateCapture(self):
+        self.StopPreview()
+
+        # Start the capture and display threads
+        self.calibration_on = True
+        self.calibrate_thread_obj = threading.Thread(target=self.record_calibrate_thread)
+        self.calibrate_thread_obj.start()
+        self.EnableGUI(False)
+        self.capture_btn.SetLabel("Calibrate Capture STOP")
+        self.connect_btn.Disable()
+        self.capture_btn.Enable()
     
+    def StopCalibrateCapture(self):
+        self.calibration_on = False
+        if self.calibrate_thread_obj.is_alive() is True:
+            self.calibrate_thread_obj.join()
+        self.EnableGUI(True)
+        self.capture_btn.SetLabel("Capture START")
+        self.current_state.SetLabel("Current state: idle")
+        self.connect_btn.Enable()
+        
+    def record_calibrate_thread(self):
+        # Create Image Windows to display live video while capturing
+        imageWindow = pylon.PylonImageWindow()
+        imageWindow.Create(self.cam_index, 0, 0, 640, 480)
+        
+        # Enable chunks in general.
+        self.camera.ChunkModeActive.Value = True
+        
+        # Enable time stamp chunks.
+        self.camera.ChunkSelector.Value = "Timestamp"
+        self.camera.ChunkEnable.Value = True
+        
+        # Enable line status chunks.
+        self.camera.ChunkSelector.Value = "LineStatusAll"
+        self.camera.ChunkEnable.Value = True
+        self.camera.MaxNumBuffer = 1
+        self.camera.OutputQueueSize.Value = 1
+        
+        # Start the video recording session
+        self.video_session.start_recording()
+        
+        # Start the camera grabbing
+        self.camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
+
+        current_date_and_time = str(datetime.datetime.now())
+        last_display_time = time.time()
+        display_interval = 1/30  # Update display every 1/60 seconds (to match 60Hz refresh rate)
+        
+        print(f'Capturing video started at: {current_date_and_time}')
+        
+        captured_frames = 0
+
+        # Calibration mode
+        self.calibration_on = True
+        num = self.cam_index
+        if self.barrier is not None:
+            try:
+                # Wait at the barrier. If this is the last thread, it will release all.
+                self.barrier.wait()
+                print(f"Barrier lifted. Continuing.")
+            except threading.BrokenBarrierError:
+                print(f"Thread Barrier was broken.")
+
+        while (self.calibration_on is True) or (self.camera.NumReadyBuffers.GetValue() > 0):
+            # Check frame_count_sync to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
+            if self.barrier is not None:
+                # If other cameras are behind, wait at the barrier:
+                try:
+                    # time.sleep(0.0001)  # small sleep to allow other threads to catch up
+                    self.barrier.wait()
+                    if self.calibration_on is False:
+                        break
+                except threading.BrokenBarrierError:
+                    print(f'Barrier broken for cam {num}. Proceeding...')
+            
+            grab_successful = False
+            grabResult = None
+            try:
+                grabResult = self.camera.RetrieveResult(100, pylon.TimeoutHandling_ThrowException)
+                if grabResult.GrabSucceeded():
+                    grab_successful = True
+            except pylon.TimeoutException:
+                time.sleep(0.001)
+                print(f"Cam {num} - Timeout occurred while waiting for a frame.")
+                grab_successful = False
+                # continue
+            
+            self.frame_count_sync[num] = grab_successful
+            # Wait for the other camera to finish its grab attempt
+            if self.barrier is not None:
+                try:
+                    self.barrier.wait()
+                except threading.BrokenBarrierError:
+                    break
+            
+            all_cameras_succeeded = all(self.frame_count_sync)
+
+            if not all_cameras_succeeded:
+                # If I succeeded but my partner failed, I must discard my frame
+                # to stay in sync with the frame count.
+                if grabResult:
+                    grabResult.Release()
+                # Do NOT increment captured_frames
+                # Loop back and try again together
+                continue
+
+
+            if self.camera.NumReadyBuffers.GetValue() > 0:
+                print(f"Frames in buffer: {self.camera.NumReadyBuffers.GetValue()}")
+
+            if grabResult.GrabSucceeded():
+                frame = grabResult.GetArray()
+                timestamp = time.time()
+                frame_timestamp = grabResult.ChunkTimestamp.Value
+                frame_line_status = grabResult.ChunkLineStatusAll.Value
+                captured_frames += 1
+                # detect the marker as the frame is acquired
+                corners, ids = self.board_calibration.detect_image(frame)
+                if corners is not None and len(corners) > 0:
+                    key = captured_frames
+                    row = {
+                        'framenum': key,
+                        'corners': corners,
+                        'ids': ids
+                    }
+
+                    row = self.board_calibration.fill_points_rows([row])
+                    self.all_rows[num].extend(row)
+                    self.current_all_rows[num].extend(row)
+                    # print(f'Camera {num}: Detected marker at frame {key} with {len(corners)} corners.')
+                    # self.board_detected_count_label[num]['text'] = f'{len(self.all_rows[num])}; {len(corners)}'
+                    # if num == 0:
+                        # self.calibration_current_duration_value.set(f'{time.perf_counter()-start_time:.2f}')
+                # else:
+                #     print(f'No marker detected on cam {num} at frame {captured_frames}')
+                # putting frame into the frame queue along with following information
+                self.frame_queue.put((frame,  # the frame itself
+                                      num,  # the id of the capturing camera
+                                      captured_frames,  # the current frame count
+                                      frame_timestamp))  # captured time
+                note = None
+                self.video_session.acquire_frame(frame, frame_timestamp, captured_frames, frame_line_status, note)
+                if (timestamp - last_display_time) > display_interval:
+                    line_status = self.camera.LineStatus.GetValue()  # Retrieve line status
+                    imageWindow.SetImage(grabResult)
+                    imageWindow.Show()
+                    last_display_time = time.time()
+                
+                self.frame_count_sync[num] = captured_frames
+                
+            grabResult.Release()
+                 
+        self.camera.StopGrabbing()
+        imageWindow.Close()
+        self.video_session.stop_recording()
+        self.barrier.abort()
+
+        print(f'Capturing and calibration finished after grabbing {captured_frames} frames')
         
     # def record_calibrate_on_thread(self, num, barrier):
     #     """
@@ -1313,88 +1571,7 @@ class CameraController(wx.Panel):
     #         print("Exception occurred:", type(e).__name__, "| Exception value:", e,
     #               ''.join(traceback.format_tb(e.__traceback__)))
 
-    # def process_marker_on_thread(self):
-    #     """
-    #     Process marker on a separate thread.
-
-    #     This method retrieves frame information from the frame queue and processes it. The frames are grouped by thread ID
-    #     and stored in a dictionary called frame_groups. The method continuously loops until the calibration_capture_toggle_status
-    #     is True or the frame queue is not empty.
-
-    #     Parameters:
-    #     - self: The current instance of the class.
-
-    #     Returns:
-    #     This method does not return any value.
-
-    #     Raises:
-    #     This method may raise an exception when an error occurs during processing.
-
-    #     Example usage:
-    #     process_marker_on_thread()
-    #     """
-    #     from src.aniposelib.boards import extract_points, merge_rows, reverse_extract_points, reverse_merge_rows
-        
-    #     frame_groups = {}  # Dictionary to store frame groups by thread_id
-    #     frame_counts = {}  # array to store frame counts for each thread_id
-        
-    #     try:
-    #         while any(thread is True for thread in self.recording_threads_status):
-    #             # Retrieve frame information from the queue
-    #             frame, thread_id, frame_count, capture_time = self.frame_queue.get()
-    #             if thread_id not in frame_groups:
-    #                 frame_groups[thread_id] = []  # Create a new group for the thread_id if it doesn't exist
-    #                 frame_counts[thread_id] = 0
-
-    #             # Append frame information to the corresponding group
-    #             frame_groups[thread_id].append((frame, frame_count, capture_time))
-    #             frame_counts[thread_id] += 1
-    #             self.frame_acquired_count_label[thread_id]['text'] = f'{frame_count}'
-    #             self.vid_out[thread_id].write(frame)
-                
-    #             # Process the frame group (frames with the same thread_id)
-    #             # dumping the mix and match rows into detections.pickle to be pickup by calibrate_on_thread
-    #             if all(count >= self.frame_process_threshold for count in frame_counts.values()):
-    #                 with open(self.rows_fname, 'wb') as file:
-    #                     pickle.dump(self.all_rows, file)
-    #                 self.rows_fname_available = True
-    #                 # Clear the processed frames from the group
-    #                 frame_groups = {}
-    #                 frame_count = {}
-            
-    #         # Process the remaining frames in the queue
-    #         while not self.frame_queue.empty():
-    #             print('Processing remaining frames in the queue')
-    #             frame, thread_id, frame_count, capture_time = self.frame_queue.get()
-    #             if thread_id not in frame_groups:
-    #                 frame_groups[thread_id] = []
-    #                 frame_counts[thread_id] = 0
-    #             frame_groups[thread_id].append((frame, frame_count, capture_time))
-    #             frame_counts[thread_id] += 1
-    #             self.frame_acquired_count_label[thread_id]['text'] = f'{frame_count}'
-    #             self.vid_out[thread_id].write(frame)
-                
-    #             if all(count >= self.frame_process_threshold for count in frame_counts.values()):
-    #                 with open(self.rows_fname, 'wb') as file:
-    #                     pickle.dump(self.all_rows, file)
-    #                 self.rows_fname_available = True
-    #                 print('Dumped rows into detections.pickle')
-                    
-    #                 frame_groups = {}
-    #                 frame_count = {}
-            
-    #         # Clear the frame queue
-    #         self.frame_queue.queue.clear()
-    #         print('Cleared frame queue')
-            
-    #         if all(thread is False for thread in self.recording_threads_status):
-    #             print('Terminating thread')
-    #             self.toggle_calibration_capture(termination=True)
-                
-    #     except Exception as e:
-    #         print("Exception occurred:", type(e).__name__, "| Exception value:", e, "| Thread ID:", thread_id,
-    #               "| Frame count:", frame_count, "| Capture time:", capture_time, "| Traceback:",
-    #               ''.join(traceback.format_tb(e.__traceback__)))
+    
 
     # def recalibrate(self):
     #     """
@@ -1446,68 +1623,7 @@ class CameraController(wx.Panel):
     #             self.calibrating_thread.daemon = True
     #             self.calibrating_thread.start()
     
-    # def calibrate_on_thread(self):
-    #     """
-    #     Calibrates the system on a separate thread.
-
-    #     Parameters:
-    #         None
-
-    #     Returns:
-    #         None
-    #     """
-    #     self.calibration_error = float('inf')
-    #     print(f'Current error: {self.calibration_error}')
-    #     try:
-    #         if self.calibration_toggle_status:
-                
-    #             self.calibration_process_stats.set('Calibrating...')
-    #             print(f'Current error: {self.calibration_error}')
-    #             if self.recalibrate_status:
-    #                 with open(self.rows_fname, 'rb') as f:
-    #                     all_rows = pickle.load(f)
-    #                 print('Loaded rows from detections.pickle with size: ', len(all_rows))
-                
-    #             if self.update_calibration_status:
-    #                 all_rows = copy.deepcopy(self.current_all_rows)
-    #                 print('Loaded rows from current_all_rows')
-                
-    #             if self.calibration_error is None or self.calibration_error > 0.1:
-    #                 init_matrix = True
-    #                 print('Force init_matrix to True')
-    #             else:
-    #                 init_matrix = bool(self.init_matrix_check.get())
-    #                 print(f'init_matrix: {init_matrix}')
-                    
-    #             # all_rows = [row[-100:] if len(row) >= 100 else row for row in all_rows]
-    #             self.calibration_error = self.cgroup.calibrate_rows(all_rows, self.board_calibration,
-    #                                                                 init_intrinsics=init_matrix,
-    #                                                                 init_extrinsics=init_matrix,
-    #                                                                 max_nfev=200, n_iters=6,
-    #                                                                 n_samp_iter=200, n_samp_full=1000,
-    #                                                                 verbose=True)
-                
-    #             # self.calibration_error_stats['text'] = f'Current error: {self.calibration_error}'
-    #             self.cgroup.metadata['adjusted'] = False
-    #             if self.calibration_error is not None:
-    #                 self.cgroup.metadata['error'] = float(self.calibration_error)
-    #                 self.calibration_error_value.set(f'{self.calibration_error:.5f}')
-    #                 self.error_list.append(self.calibration_error)
-    #                 print(f'Calibration error: {self.calibration_error}')
-    #             else:
-    #                 print('Failed to calibrate')
-                    
-    #             print('Calibration completed')
-    #             self.cgroup.dump(self.calibration_out)
-    #             print('Calibration result dumped')
-                
-    #             self.rows_fname_available = False
-    #             self.calibration_toggle_status = False
-
-    #     except Exception as e:
-    #         print("Exception occurred:", type(e).__name__, "| Exception value:", e,
-    #               ''.join(traceback.format_tb(e.__traceback__)))
-
+    
     # def capture_status(self, evt):
     #     if self.capture_on is True:
     #         self.capture_status_timer.Start(200, oneShot=True)
