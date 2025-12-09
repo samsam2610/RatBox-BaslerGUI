@@ -583,7 +583,7 @@ class SystemControl(wx.Frame):
                 print("Starting trigger process for system capture...")
                 self.proc = multiprocessing.Process(
                             target=trigger_start_process_continuous,
-                            kwargs={"frequency": 200}, # using 30 Hz for calibration
+                            kwargs={"frequency": 5}, # using 30 Hz for calibration
                             daemon=True,
                             )
                 self.proc.start()

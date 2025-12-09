@@ -1498,7 +1498,7 @@ class CameraController(wx.Panel):
                     imageWindow.Show()
                     last_display_time = time.time()
                 
-                self.frame_count_sync[num] = captured_frames
+                # self.frame_count_sync[num] = captured_frames
                 
             grabResult.Release()
                  
