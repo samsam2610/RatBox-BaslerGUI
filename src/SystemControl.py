@@ -244,6 +244,12 @@ class SystemControl(wx.Frame):
             sizer.Add(self.calibration_status_label, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             row_pos += 1 # Current row position = 1
+
+            self.system_setup_calibration_btn = wx.Button(self.calibration_panel, label="Load Calibration Settings")
+            sizer.Add(self.system_setup_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.system_setup_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemSetupCalibration)
+            row_pos += 1 # Current row position = 2
             
             self.system_capture_calibration_btn = wx.Button(self.calibration_panel, label="Start System Calibration")
             sizer.Add(self.system_capture_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
@@ -335,7 +341,7 @@ class SystemControl(wx.Frame):
             cam_panel.SetTriggerMode(self.trigger_on)
             cam_panel.SetFrameRate(self.common_frame_rate)
             
-    def EnableSystemControls(self, value, preview=True, startup=False):
+    def EnableSystemControls(self, value, preview=True, startup=False, calibration=False, setup_calibration=False):
         if value is True:
             self.exportfile_ctrl.Enable()
             self.select_folder_btn.Enable()
@@ -345,6 +351,8 @@ class SystemControl(wx.Frame):
             self.set_config_btn.Enable()
             self.system_preview_btn.Enable()
             self.system_capture_btn.Enable()
+            self.system_setup_calibration_btn.Enable()
+            self.system_capture_calibration_btn.Disable()
         elif preview is True:
             self.exportfile_ctrl.Disable()
             self.select_folder_btn.Disable()
@@ -354,6 +362,30 @@ class SystemControl(wx.Frame):
             self.set_config_btn.Disable()
             self.system_preview_btn.Enable()
             self.system_capture_btn.Disable()
+            self.system_setup_calibration_btn.Disable()
+            self.system_capture_calibration_btn.Disable()
+        elif setup_calibration is True:
+            self.exportfile_ctrl.Enable()
+            self.select_folder_btn.Enable()
+            self.append_date.Enable()
+            self.auto_index.Enable()
+            self.index_ctrl.Enable()
+            self.set_config_btn.Enable()
+            self.system_preview_btn.Enable()
+            self.system_capture_btn.Enable()
+            self.system_setup_calibration_btn.Enable()
+            self.system_capture_calibration_btn.Enable()
+        elif calibration is True:
+            self.exportfile_ctrl.Disable()
+            self.select_folder_btn.Disable()
+            self.append_date.Disable()
+            self.auto_index.Disable()
+            self.index_ctrl.Disable()
+            self.set_config_btn.Disable()
+            self.system_preview_btn.Disable()
+            self.system_capture_btn.Disable()
+            self.system_setup_calibration_btn.Disable()
+            self.system_capture_calibration_btn.Enable()
         else:
             self.exportfile_ctrl.Disable()
             self.select_folder_btn.Disable()
@@ -506,6 +538,16 @@ class SystemControl(wx.Frame):
             # ao_task.ao_channels.add_ao_voltage_chan("myDAQ1/ao1")
 
     # ------ Calibration methods ------
+    def OnSystemSetupCalibration(self, event):
+        print("Setting folder and file configuration for calibration...")
+        self.set_folder_and_file_configuration_system_wide(calibration=True)
+        
+        # Setup system calibration
+        self.setup_calibration()
+
+        # Enable calibration capture button
+        self.EnableSystemControls(value=False, setup_calibration=True)
+    
     def OnSystemCalibrate(self, event):
         if not self.check_camera_connected_status():
             wx.MessageBox("Please connect all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
@@ -519,21 +561,18 @@ class SystemControl(wx.Frame):
         if not self.check_for_file_name_and_folder():
             wx.MessageBox("Please set export folder and file name for all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
             return
-
         
         if self.check_camera_calibration_status() is False:
             # Setting capture toggle status
             self.recording_threads_status = []
             self.calibration_capture_toggle_status = True
-            
-            # Setup system calibration
-            self.setup_calibration()
+            print("Starting system calibration...")
             for cam_panel in self.camera_panels:
                 cam_panel.StartCalibrateCapture()
                 self.recording_threads_status.append(True)
             
             self.system_capture_calibration_btn.SetLabel("Stop System Calibration")
-            self.EnableSystemControls(value=False, preview=False)
+            self.EnableSystemControls(value=False, calibration=True)
             self.system_capturing_calibration_on = True
             time.sleep(0.5)  # Give some time for the cameras to start writing
             if self.trigger_on is True:
