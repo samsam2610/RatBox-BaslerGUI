@@ -1388,7 +1388,7 @@ class CameraController(wx.Panel):
         self.video_session.start_recording()
         
         # Start the camera grabbing
-        self.camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
+        self.camera.StartGrabbing(pylon.GrabStrategy_OnebyOne)
 
         current_date_and_time = str(datetime.datetime.now())
         last_display_time = time.time()
