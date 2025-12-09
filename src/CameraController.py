@@ -1417,7 +1417,7 @@ class CameraController(wx.Panel):
                 timestamp = time.time()
                 frame_timestamp = grabResult.ChunkTimestamp.Value
                 frame_line_status = grabResult.ChunkLineStatusAll.Value
-                
+                captured_frames += 1
                 # detect the marker as the frame is acquired
                 corners, ids = self.board_calibration.detect_image(frame)
                 if corners is not None and len(corners) > 0:
@@ -1451,7 +1451,6 @@ class CameraController(wx.Panel):
                     last_display_time = time.time()
                 
                 self.frame_count_sync[num] = captured_frames
-                captured_frames += 1
                 
                 # Check frame_count_sync to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
                 if self.barrier is not None:
