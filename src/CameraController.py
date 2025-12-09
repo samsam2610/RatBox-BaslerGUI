@@ -1405,7 +1405,14 @@ class CameraController(wx.Panel):
         # Calibration mode
         self.calibration_on = True
         num = self.cam_index
-        
+        if self.barrier is not None:
+            try:
+                # Wait at the barrier. If this is the last thread, it will release all.
+                self.barrier.wait()
+                print(f"Barrier lifted. Continuing.")
+            except threading.BrokenBarrierError:
+                print(f"Thread Barrier was broken.")
+
         while (self.calibration_on is True) or (self.camera.NumReadyBuffers.GetValue() > 0):
             # Check frame_count_sync to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
             if self.barrier is not None and captured_frames > 0:
