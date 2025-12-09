@@ -1424,12 +1424,38 @@ class CameraController(wx.Panel):
                         break
                 except threading.BrokenBarrierError:
                     print(f'Barrier broken for cam {num}. Proceeding...')
+            
+            grab_successful = False
+            grabResult = None
             try:
                 grabResult = self.camera.RetrieveResult(100, pylon.TimeoutHandling_ThrowException)
+                if grabResult.GrabSucceeded():
+                    grab_successful = True
             except pylon.TimeoutException:
                 time.sleep(0.001)
                 print(f"Cam {num} - Timeout occurred while waiting for a frame.")
+                grab_successful = False
+                # continue
+            
+            self.frame_count_sync[num] = grab_successful
+            # Wait for the other camera to finish its grab attempt
+            if self.barrier is not None:
+                try:
+                    self.barrier.wait()
+                except threading.BrokenBarrierError:
+                    break
+            
+            all_cameras_succeeded = all(self.grab_success.values())
+
+            if not all_cameras_succeeded:
+                # If I succeeded but my partner failed, I must discard my frame
+                # to stay in sync with the frame count.
+                if grabResult:
+                    grabResult.Release()
+                # Do NOT increment captured_frames
+                # Loop back and try again together
                 continue
+
 
             if self.camera.NumReadyBuffers.GetValue() > 0:
                 print(f"Frames in buffer: {self.camera.NumReadyBuffers.GetValue()}")
