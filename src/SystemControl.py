@@ -608,7 +608,7 @@ class SystemControl(wx.Frame):
             self.process_marker_thread.start()
         else:
             print("Stopping system calibration...")
-            self.system_capturing_calibration_on = False
+            
             if self.trigger_on is True:
                 if self.proc.is_alive():
                     print(f"Terminating trigger process with PID {self.proc.pid}")
@@ -617,6 +617,7 @@ class SystemControl(wx.Frame):
                 else:
                     print("Trigger process already terminated.")
             time.sleep(0.5)  # Give some time for the cameras to finalize writing
+            self.system_capturing_calibration_on = False
             for idx, cam_panel in enumerate(self.camera_panels):
                 cam_panel.StopCalibrateCapture()
                 self.recording_threads_status[idx] = False
