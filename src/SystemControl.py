@@ -1025,11 +1025,11 @@ class SystemControl(wx.Frame):
                                            barrier=barrier,
                                            test_calibration_live_threads_status=self.test_calibration_live_threads_status)
 
-        draw_reproject_thread = threading.Thread(target=self.draw_reprojection_on_thread, args=(i,))
+        draw_reproject_thread = threading.Thread(target=self.draw_reprojection_on_thread)
         draw_reproject_thread.daemon = True
         draw_reproject_thread.start()
 
-    def draw_reprojection_on_thread(self, num):
+    def draw_reprojection_on_thread(self):
         frame_groups = {}  # Dictionary to store frame groups by thread_id
         frame_counts = {}  # array to store frame counts for each thread_id
         from src.aniposelib.boards import merge_rows, extract_points
