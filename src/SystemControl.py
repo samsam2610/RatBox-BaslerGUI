@@ -1019,102 +1019,102 @@ class SystemControl(wx.Frame):
         t[-1].daemon = True
         t[-1].start()
 
-def draw_reprojection_on_thread(self, num):
-    frame_groups = {}  # Dictionary to store frame groups by thread_id
-    frame_counts = {}  # array to store frame counts for each thread_id
-    from src.aniposelib.boards import merge_rows, extract_points
+    def draw_reprojection_on_thread(self, num):
+        frame_groups = {}  # Dictionary to store frame groups by thread_id
+        frame_counts = {}  # array to store frame counts for each thread_id
+        from src.aniposelib.boards import merge_rows, extract_points
 
-    window_name = f'Reprojection'
-    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(window_name, 2160, 660)
-    
-    # Define the font settings
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale = 1.5
-    thickness = 1
-    
-    self.reproject_window_status = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) > 0
-    try:
-        while self.reproject_window_status:
-            # Retrieve frame information from the queue
-            frame, thread_id, frame_count,  = self.frame_queue.get()
-            if thread_id not in frame_groups:
-                frame_groups[thread_id] = []  # Create a new group for the thread_id if it doesn't exist
-                frame_counts[thread_id] = 0
+        window_name = f'Reprojection'
+        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(window_name, 2160, 660)
+        
+        # Define the font settings
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 1.5
+        thickness = 1
+        
+        self.reproject_window_status = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) > 0
+        try:
+            while self.reproject_window_status:
+                # Retrieve frame information from the queue
+                frame, thread_id, frame_count,  = self.frame_queue.get()
+                if thread_id not in frame_groups:
+                    frame_groups[thread_id] = []  # Create a new group for the thread_id if it doesn't exist
+                    frame_counts[thread_id] = 0
 
-            # Append frame information to the corresponding group
-            frame_groups[thread_id].append((frame, frame_count))
-            frame_counts[thread_id] += 1
-            
-            # Process the frame group (frames with the same thread_id)
-            # dumping the mix and match rows into detections.pickle to be pickup by calibrate_on_thread
-            try:
-                if all(count >= 2 for count in frame_counts.values()):
-                    all_rows = [row[-2:] for row in self.all_rows_test]
-                    for i, (row, cam) in enumerate(zip(all_rows, self.cgroup_test.cameras)):
-                        all_rows[i] = self.board_calibration.estimate_pose_rows(cam, row)
-                        
-                    merged = merge_rows(all_rows)
-                    imgp, extra = extract_points(merged, self.board_calibration, min_cameras=2)
-                    p3ds = self.cgroup_test.triangulate(imgp)
-                   
-                    # Project the 3D points back to 2D
-                    try:
-                        p2ds = self.cgroup_test.project(p3ds)
-                    except Exception as e:
-                        print("Exception occurred:", type(e).__name__, "| Exception value:", e,
-                              ''.join(traceback.format_tb(e.__traceback__)))
-                        print('#########')
+                # Append frame information to the corresponding group
+                frame_groups[thread_id].append((frame, frame_count))
+                frame_counts[thread_id] += 1
+                
+                # Process the frame group (frames with the same thread_id)
+                # dumping the mix and match rows into detections.pickle to be pickup by calibrate_on_thread
+                try:
+                    if all(count >= 2 for count in frame_counts.values()):
+                        all_rows = [row[-2:] for row in self.all_rows_test]
+                        for i, (row, cam) in enumerate(zip(all_rows, self.cgroup_test.cameras)):
+                            all_rows[i] = self.board_calibration.estimate_pose_rows(cam, row)
+                            
+                        merged = merge_rows(all_rows)
+                        imgp, extra = extract_points(merged, self.board_calibration, min_cameras=2)
+                        p3ds = self.cgroup_test.triangulate(imgp)
                     
-                    # Draw the reprojection
+                        # Project the 3D points back to 2D
+                        try:
+                            p2ds = self.cgroup_test.project(p3ds)
+                        except Exception as e:
+                            print("Exception occurred:", type(e).__name__, "| Exception value:", e,
+                                ''.join(traceback.format_tb(e.__traceback__)))
+                            print('#########')
+                        
+                        # Draw the reprojection
+                        frames = []
+                        for num in range(len(self.cam_panels)):
+                            frame_group = frame_groups[num]
+                            frame = frame_group[-1][0]
+                            c_corners = all_rows[num][0]['corners']
+                            ids = all_rows[num][0]['ids']
+                            
+                            n_corners = c_corners.size // 2
+                            reshape_corners = np.reshape(c_corners, (n_corners, 1, 2))
+                            cv2.aruco.drawDetectedCornersCharuco(frame, reshape_corners, ids, cornerColor=(0, 255, 0))
+                    
+                            p_ids = extra['ids']
+                            p_corners = p2ds[num].astype('float32')
+                            np_corners = p_corners.size // 2
+                            reshape_np_corners = np.reshape(p_corners, (np_corners, 1, 2))
+                            frames.append(cv2.aruco.drawDetectedCornersCharuco(frame, reshape_np_corners, p_ids, cornerColor=(0, 0, 255)))
+
+                        frame = cv2.hconcat(frames)
+                        
+                        # Add the text to the frame
+                        cv2.putText(frame, 'Detection', (30, 50), font, font_scale, (0, 255, 0), thickness)
+                        cv2.putText(frame, 'Reprojection', (30, 100), font, font_scale, (0, 0, 255), thickness)
+
+                        cv2.imshow(window_name, frame)
+                        cv2.waitKey(1)
+                        
+                        # Clear the processed frames from the group
+                        frame_groups = {}
+                        frame_count = {}
+                except Exception as e:
+                    print("Exception occurred:", type(e).__name__, "| Exception value:", e,
+                        ''.join(traceback.format_tb(e.__traceback__)))
                     frames = []
-                    for num in range(len(self.cam_panels)):
+                    for num in range(len(self.cam)):
                         frame_group = frame_groups[num]
                         frame = frame_group[-1][0]
-                        c_corners = all_rows[num][0]['corners']
-                        ids = all_rows[num][0]['ids']
-                        
-                        n_corners = c_corners.size // 2
-                        reshape_corners = np.reshape(c_corners, (n_corners, 1, 2))
-                        cv2.aruco.drawDetectedCornersCharuco(frame, reshape_corners, ids, cornerColor=(0, 255, 0))
-                   
-                        p_ids = extra['ids']
-                        p_corners = p2ds[num].astype('float32')
-                        np_corners = p_corners.size // 2
-                        reshape_np_corners = np.reshape(p_corners, (np_corners, 1, 2))
-                        frames.append(cv2.aruco.drawDetectedCornersCharuco(frame, reshape_np_corners, p_ids, cornerColor=(0, 0, 255)))
-
-                    frame = cv2.hconcat(frames)
+                        frames.append(frame)
                     
-                    # Add the text to the frame
-                    cv2.putText(frame, 'Detection', (30, 50), font, font_scale, (0, 255, 0), thickness)
-                    cv2.putText(frame, 'Reprojection', (30, 100), font, font_scale, (0, 0, 255), thickness)
-
+                    frame = cv2.hconcat(frames)
+                    cv2.putText(frame, 'No board detected', (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 0, 0), 1)
                     cv2.imshow(window_name, frame)
                     cv2.waitKey(1)
                     
-                    # Clear the processed frames from the group
-                    frame_groups = {}
-                    frame_count = {}
-            except Exception as e:
-                print("Exception occurred:", type(e).__name__, "| Exception value:", e,
-                      ''.join(traceback.format_tb(e.__traceback__)))
-                frames = []
-                for num in range(len(self.cam)):
-                    frame_group = frame_groups[num]
-                    frame = frame_group[-1][0]
-                    frames.append(frame)
-                
-                frame = cv2.hconcat(frames)
-                cv2.putText(frame, 'No board detected', (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 0, 0), 1)
-                cv2.imshow(window_name, frame)
-                cv2.waitKey(1)
-                
-            self.reproject_window_status = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) > 0
-        
-    except Exception as e:
-        print("Exception occurred:", type(e).__name__, "| Exception value:", e,
-              ''.join(traceback.format_tb(e.__traceback__)))
+                self.reproject_window_status = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) > 0
+            
+        except Exception as e:
+            print("Exception occurred:", type(e).__name__, "| Exception value:", e,
+                ''.join(traceback.format_tb(e.__traceback__)))
         
     @staticmethod
     def clear_calibration_file(file_name):
