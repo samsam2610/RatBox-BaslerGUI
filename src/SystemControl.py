@@ -1032,7 +1032,7 @@ class SystemControl(wx.Frame):
     def draw_reprojection_on_thread(self):
         frame_groups = {}  # Dictionary to store frame groups by thread_id
         frame_counts = {}  # array to store frame counts for each thread_id
-        from src.aniposelib.boards import merge_rows, extract_points
+        from aniposelib.boards import merge_rows, extract_points
 
         window_name = f'Reprojection'
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
