@@ -1564,6 +1564,7 @@ class CameraController(wx.Panel):
         self.camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
 
         num = self.cam_index
+        captured_frames = 0
         while self.calibration_test_on is True:
             if self.barrier is not None:
                 try:
@@ -1598,8 +1599,6 @@ class CameraController(wx.Panel):
                 # to stay in sync with the frame count.
                 if grabResult:
                     grabResult.Release()
-                # Do NOT increment captured_frames
-                # Loop back and try again together
                 continue
 
 
