@@ -256,6 +256,7 @@ class SystemControl(wx.Frame):
             sizer.Add(self.system_capture_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.system_capture_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemCalibrate)
+            row_pos += 1 # Current row position = 3
 
             self.system_test_calibration_btn = wx.Button(self.calibration_panel, label="Test Calibration")
             sizer.Add(self.system_test_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
