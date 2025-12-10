@@ -23,6 +23,7 @@ from CameraController import CameraController
 import pickle
 from aniposelib.boards import CharucoBoard, Checkerboard
 import copy
+from _calibration_func import detect_raw_board_on_thread, draw_detection_on_thread, draw_reprojection_on_thread, detect_markers_on_thread
 
 # Testing system
 def GenPulse(sampling_rate, frequency, duration=3600):
@@ -255,6 +256,12 @@ class SystemControl(wx.Frame):
             sizer.Add(self.system_capture_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.system_capture_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemCalibrate)
+
+            self.system_test_calibration_btn = wx.Button(self.calibration_panel, label="Test Calibration")
+            sizer.Add(self.system_test_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.system_test_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemTestCalibration)
+            row_pos += 1 # Current row position = 3
             
             self.calibration_panel.SetSizer(sizer)
             self.calibration_panel.Layout()
@@ -415,6 +422,11 @@ class SystemControl(wx.Frame):
         all_calibrating = all(panel.calibration_on for panel in self.camera_panels)
         self.calibrating_on = all_calibrating
         return all_calibrating
+    
+    def check_camera_test_calibration_status(self):
+        all_testing = all(panel.calibration_test_on for panel in self.camera_panels)
+        self.testing_on = all_testing
+        return all_testing
     
     def check_camera_trigger_status(self):
         modes = [panel.trigger_mode for panel in self.camera_panels]
@@ -619,6 +631,51 @@ class SystemControl(wx.Frame):
             self.calibrate_on_thread()
             self.system_capture_calibration_btn.SetLabel("Start System Calibration")
             self.EnableSystemControls(value=True, preview=False)
+    
+    def OnSystemTestCalibration(self, event):
+        if not self.check_camera_connected_status():
+            wx.MessageBox("Please connect all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        if self.check_camera_preview_status():
+            wx.MessageBox("Please stop all camera previews before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        if self.check_camera_trigger_status() is None:
+            wx.MessageBox("Please set the same trigger mode for all cameras before starting capture.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        
+        if self.check_camera_test_calibration_status() is False:
+            # Setting capture toggle status
+            self.recording_threads_status = []
+            self.calibration_capture_toggle_status = True
+            print("Starting system calibration test...")
+            self.test_calibration_live()
+            
+            self.system_test_calibration_btn.SetLabel("Stop System Calibration Test")
+            self.EnableSystemControls(value=False, calibration=True)
+            self.system_capturing_calibration_on = True
+            time.sleep(0.5)  # Give some time for the cameras to start writing
+            if self.trigger_on is True:
+                # Check to make sure both cameras are ready to reeceive triggers
+                print("Waiting for cameras to be ready for system calibration test...")
+                while self.check_camera_calibration_status() is False:
+                    time.sleep(0.1)
+                print("Starting trigger process for system calibration test...")
+                self.proc = multiprocessing.Process(
+                            target=trigger_start_process_continuous,
+                            kwargs={"frequency": 5}, # using 30 Hz for calibration
+                            daemon=True,
+                            )
+                self.proc.start()
+                print(f"Spawned trigger process with PID {self.proc.pid}")
+            
+            thread_name = f"Marker processing thread" 
+            self.process_marker_thread = threading.Thread(target=self.process_marker_on_thread, name=thread_name)
+            # self.process_marker_thread.daemon = True
+            self.process_marker_thread.start()
+        else:
+            print("Stopping system calibration test...")
+            self.system_capturing_calibration_on = False
+            
 
     def load_calibration_settings(self, draw_calibration_board=False):
         from utils import load_config, get_calibration_board
@@ -923,6 +980,142 @@ class SystemControl(wx.Frame):
             print("Exception occurred:", type(e).__name__, "| Exception value:", e,
                   ''.join(traceback.format_tb(e.__traceback__)))
 
+    def test_calibration_live(self):
+        print('')
+        try:
+            self.load_calibration_settings()
+            calibration_file = self.calibration_out
+        except:
+            print('Calibration is not setup. Will attempt to load calibration file.')
+            calibration_file = os.path.join(self.dir_output.get(), 'calibration.toml')
+        
+        from aniposelib.cameras import CameraGroup
+        
+        # Load the calibration file
+        try:
+            # if not os.path.exists(calibration_file):
+            #     messagebox.showerror('Error', 'Calibration file not found!')
+            self.cgroup_test = CameraGroup.load(calibration_file) # cgroup_test is loaded with the calibration file
+            print('Calibration file loaded')
+        except:
+            self.cgroup_test = None
+            print('Failed to load calibration file. Using none instead.')
+        
+        barrier = threading.Barrier(len(self.cam))
+        t = []
+        # recording_threads_status is a list of False with length of number of cameras
+        self.frame_queue = queue.Queue(maxsize=10)
+        self.test_calibration_live_threads_status = [True] * len(self.cam)
+        self.all_rows_test = [[] for _ in range(len(self.cam))]
+        self.frame_count_test = [0] * len(self.cam)
+        
+        self.reproject_window_status = True
+        for i in range(len(self.camera_panels)):
+            t.append(threading.Thread(target=detect_markers_on_thread, args=(self, i, barrier)))
+            t[-1].daemon = True
+            t[-1].start()
+
+        t.append(threading.Thread(target=draw_reprojection_on_thread, args=(self, i)))
+        t[-1].daemon = True
+        t[-1].start()
+
+def draw_reprojection_on_thread(self, num):
+    frame_groups = {}  # Dictionary to store frame groups by thread_id
+    frame_counts = {}  # array to store frame counts for each thread_id
+    from src.aniposelib.boards import merge_rows, extract_points
+
+    window_name = f'Reprojection'
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(window_name, 2160, 660)
+    
+    # Define the font settings
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 1.5
+    thickness = 1
+    
+    self.reproject_window_status = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) > 0
+    try:
+        while self.reproject_window_status:
+            # Retrieve frame information from the queue
+            frame, thread_id, frame_count,  = self.frame_queue.get()
+            if thread_id not in frame_groups:
+                frame_groups[thread_id] = []  # Create a new group for the thread_id if it doesn't exist
+                frame_counts[thread_id] = 0
+
+            # Append frame information to the corresponding group
+            frame_groups[thread_id].append((frame, frame_count))
+            frame_counts[thread_id] += 1
+            
+            # Process the frame group (frames with the same thread_id)
+            # dumping the mix and match rows into detections.pickle to be pickup by calibrate_on_thread
+            try:
+                if all(count >= 2 for count in frame_counts.values()):
+                    all_rows = [row[-2:] for row in self.all_rows_test]
+                    for i, (row, cam) in enumerate(zip(all_rows, self.cgroup_test.cameras)):
+                        all_rows[i] = self.board_calibration.estimate_pose_rows(cam, row)
+                        
+                    merged = merge_rows(all_rows)
+                    imgp, extra = extract_points(merged, self.board_calibration, min_cameras=2)
+                    p3ds = self.cgroup_test.triangulate(imgp)
+                   
+                    # Project the 3D points back to 2D
+                    try:
+                        p2ds = self.cgroup_test.project(p3ds)
+                    except Exception as e:
+                        print("Exception occurred:", type(e).__name__, "| Exception value:", e,
+                              ''.join(traceback.format_tb(e.__traceback__)))
+                        print('#########')
+                    
+                    # Draw the reprojection
+                    frames = []
+                    for num in range(len(self.cam_panels)):
+                        frame_group = frame_groups[num]
+                        frame = frame_group[-1][0]
+                        c_corners = all_rows[num][0]['corners']
+                        ids = all_rows[num][0]['ids']
+                        
+                        n_corners = c_corners.size // 2
+                        reshape_corners = np.reshape(c_corners, (n_corners, 1, 2))
+                        cv2.aruco.drawDetectedCornersCharuco(frame, reshape_corners, ids, cornerColor=(0, 255, 0))
+                   
+                        p_ids = extra['ids']
+                        p_corners = p2ds[num].astype('float32')
+                        np_corners = p_corners.size // 2
+                        reshape_np_corners = np.reshape(p_corners, (np_corners, 1, 2))
+                        frames.append(cv2.aruco.drawDetectedCornersCharuco(frame, reshape_np_corners, p_ids, cornerColor=(0, 0, 255)))
+
+                    frame = cv2.hconcat(frames)
+                    
+                    # Add the text to the frame
+                    cv2.putText(frame, 'Detection', (30, 50), font, font_scale, (0, 255, 0), thickness)
+                    cv2.putText(frame, 'Reprojection', (30, 100), font, font_scale, (0, 0, 255), thickness)
+
+                    cv2.imshow(window_name, frame)
+                    cv2.waitKey(1)
+                    
+                    # Clear the processed frames from the group
+                    frame_groups = {}
+                    frame_count = {}
+            except Exception as e:
+                print("Exception occurred:", type(e).__name__, "| Exception value:", e,
+                      ''.join(traceback.format_tb(e.__traceback__)))
+                frames = []
+                for num in range(len(self.cam)):
+                    frame_group = frame_groups[num]
+                    frame = frame_group[-1][0]
+                    frames.append(frame)
+                
+                frame = cv2.hconcat(frames)
+                cv2.putText(frame, 'No board detected', (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 0, 0), 1)
+                cv2.imshow(window_name, frame)
+                cv2.waitKey(1)
+                
+            self.reproject_window_status = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) > 0
+        
+    except Exception as e:
+        print("Exception occurred:", type(e).__name__, "| Exception value:", e,
+              ''.join(traceback.format_tb(e.__traceback__)))
+        
     @staticmethod
     def clear_calibration_file(file_name):
         """_summary_

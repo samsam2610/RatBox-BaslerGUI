@@ -102,6 +102,7 @@ class CameraController(wx.Panel):
         self.parent = parent
         self.trigger_mode = trigger_mode
         self.calibration_on = False
+        self.calibration_test_on = False
         self.SetTriggerModeLabel()
         super().__init__(parent)
 
@@ -1508,70 +1509,101 @@ class CameraController(wx.Panel):
         self.barrier.abort()
 
         print(f'Capturing and calibration finished after grabbing {captured_frames} frames')
+
+    def SetupCalibrationTest(self):
+        pass
+
+    def StartCalibrationTest(self):
+        self.calibration_test_on = True
+
+    def StopCalibrationTest(self):
+        self.calibration_test_on = False
+
+    def detect_marker_thread(self):
+        # Enable chunks in general.
+        self.camera.ChunkModeActive.Value = True
         
-    # def record_calibrate_on_thread(self, num, barrier):
-    #     """
-    #     Records frames from a camera on a separate thread for calibration purposes.
+        # Enable time stamp chunks.
+        self.camera.ChunkSelector.Value = "Timestamp"
+        self.camera.ChunkEnable.Value = True
+        
+        # Enable line status chunks.
+        self.camera.ChunkSelector.Value = "LineStatusAll"
+        self.camera.ChunkEnable.Value = True
+        self.camera.MaxNumBuffer = 2
+        self.camera.OutputQueueSize.Value = 1 
 
-    #     :param num: The ID of the capturing camera.
-    #     :param barrier: A threading.barrier object used to synchronize the start of frame capturing.
+        # Start the camera grabbing
+        self.camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
 
-    #     :return: None
+        num = self.cam_index
+        while self.calibration_test_on is True:
+           # Check frame_count_sync to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
+            if self.barrier is not None:
+                # If other cameras are behind, wait at the barrier:
+                try:
+                    # time.sleep(0.0001)  # small sleep to allow other threads to catch up
+                    self.barrier.wait()
+                except threading.BrokenBarrierError:
+                    print(f'Barrier broken for cam {num}. Proceeding...')
+            
+            grab_successful = False
+            grabResult = None
+            try:
+                grabResult = self.camera.RetrieveResult(100, pylon.TimeoutHandling_ThrowException)
+                if grabResult.GrabSucceeded():
+                    grab_successful = True
+            except pylon.TimeoutException:
+                time.sleep(0.001)
+                print(f"Cam {num} - Timeout occurred while waiting for a frame.")
+                grab_successful = False
+                # continue
+            
+            self.frame_count_sync[num] = grab_successful
+            # Wait for the other camera to finish its grab attempt
+            if self.barrier is not None:
+                try:
+                    self.barrier.wait()
+                except threading.BrokenBarrierError:
+                    break
+            
+            all_cameras_succeeded = all(self.frame_count_sync)
 
-    #     """
-    #     fps = int(self.fps.get())
-    #     start_time = time.perf_counter()
-    #     next_frame = start_time
-    #     try:
-    #         while self.calibration_capture_toggle_status and (time.perf_counter()-start_time < self.calibration_duration):
-    #             if time.perf_counter() >= next_frame:
-    #                 try:
-    #                     barrier.wait(timeout=1)
-    #                 except threading.BrokenBarrierError:
-    #                     print(f'Barrier broken for cam {num}. Proceeding...')
-    #                     break
-                        
-    #                 self.frame_times[num].append(time.perf_counter())
-    #                 self.frame_count[num] += 1
-    #                 frame_current = self.cam[num].get_image()
-    #                 # detect the marker as the frame is acquired
-    #                 corners, ids = self.board_calibration.detect_image(frame_current)
-    #                 if corners is not None:
-    #                     key = self.frame_count[num]
-    #                     row = {
-    #                         'framenum': key,
-    #                         'corners': corners,
-    #                         'ids': ids
-    #                     }
+            if not all_cameras_succeeded:
+                # If I succeeded but my partner failed, I must discard my frame
+                # to stay in sync with the frame count.
+                if grabResult:
+                    grabResult.Release()
+                # Do NOT increment captured_frames
+                # Loop back and try again together
+                continue
 
-    #                     row = self.board_calibration.fill_points_rows([row])
-    #                     self.all_rows[num].extend(row)
-    #                     self.current_all_rows[num].extend(row)
-    #                     self.board_detected_count_label[num]['text'] = f'{len(self.all_rows[num])}; {len(corners)}'
-    #                     if num == 0:
-    #                         self.calibration_current_duration_value.set(f'{time.perf_counter()-start_time:.2f}')
-    #                 else:
-    #                     print(f'No marker detected on cam {num} at frame {self.frame_count[num]}')
+
+            if self.camera.NumReadyBuffers.GetValue() > 0:
+                print(f"Frames in buffer: {self.camera.NumReadyBuffers.GetValue()}")
+
+            if grabResult.GrabSucceeded():
+                frame = grabResult.GetArray()
+                frame_timestamp = grabResult.ChunkTimestamp.Value
+                captured_frames += 1
+                # detect the marker as the frame is acquired
+                corners, ids = self.board_calibration.detect_image(frame)
+                if corners is not None and len(corners) > 0:
+                    key = captured_frames
+                    row = {
+                        'framenum': key,
+                        'corners': corners,
+                        'ids': ids
+                    }
+
+                    row = self.board_calibration.fill_points_rows([row])
+                    self.all_rows[num].extend(row)
+                    self.current_all_rows[num].extend(row)
                     
-    #                 # putting frame into the frame queue along with following information
-    #                 self.frame_queue.put((frame_current,  # the frame itself
-    #                                       num,  # the id of the capturing camera
-    #                                       self.frame_count[num],  # the current frame count
-    #                                       self.frame_times[num][-1]))  # captured time
-
-    #                 next_frame = max(next_frame + 1.0/fps, self.frame_times[num][-1] + 0.5/fps)
-                    
-    #         barrier.abort()
-    #         if (time.perf_counter() - start_time) > self.calibration_duration or self.calibration_capture_toggle_status:
-    #             print(f"Calibration capture on cam {num}: duration exceeded or toggle status is True")
-    #             self.recording_threads_status[num] = False
-    #             # self.toggle_calibration_capture(termination=True)
-                
-    #     except Exception as e:
-    #         print("Exception occurred:", type(e).__name__, "| Exception value:", e,
-    #               ''.join(traceback.format_tb(e.__traceback__)))
-
-    
+                self.frame_queue.put((frame,  # the frame itself
+                                      num,  # the id of the capturing camera
+                                      captured_frames,  # the current frame count
+                                      frame_timestamp))  # captured time 
 
     # def recalibrate(self):
     #     """
