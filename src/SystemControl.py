@@ -1002,7 +1002,7 @@ class SystemControl(wx.Frame):
             self.cgroup_test = None
             print('Failed to load calibration file. Using none instead.')
         
-        barrier = threading.Barrier(len(self.cam))
+        barrier = threading.Barrier(len(self.camera_panels))
         t = []
         # recording_threads_status is a list of False with length of number of cameras
         self.frame_queue = queue.Queue(maxsize=10)
