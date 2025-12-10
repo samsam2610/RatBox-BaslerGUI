@@ -1092,7 +1092,7 @@ class SystemControl(wx.Frame):
                             
                             n_corners = c_corners.size // 2
                             reshape_corners = np.reshape(c_corners, (n_corners, 1, 2))
-                            frame = cv2.cvtColor(frame >> 0, cv.COLOR_GRAY2BGR)
+                            frame = cv2.cvtColor(frame >> 0, cv2.COLOR_GRAY2BGR)
                             cv2.aruco.drawDetectedCornersCharuco(frame, reshape_corners, ids, cornerColor=(0, 255, 0))
                     
                             p_ids = extra['ids']
