@@ -1052,7 +1052,7 @@ class SystemControl(wx.Frame):
         try:
             while self.reproject_window_status:
                 # Retrieve frame information from the queue
-                frame, thread_id, frame_count,  = self.frame_queue.get()
+                frame, thread_id, frame_count, frame_timestamp  = self.frame_queue.get()
                 if thread_id not in frame_groups:
                     frame_groups[thread_id] = []  # Create a new group for the thread_id if it doesn't exist
                     frame_counts[thread_id] = 0
