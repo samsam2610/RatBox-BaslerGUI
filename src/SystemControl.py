@@ -1046,8 +1046,8 @@ class SystemControl(wx.Frame):
         
         # Define the font settings
         font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = 1.5
-        thickness = 1
+        font_scale = 2
+        thickness = 3
         
         self.reproject_window_status = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) > 0
         try:
