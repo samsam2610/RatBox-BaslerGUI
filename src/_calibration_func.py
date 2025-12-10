@@ -271,7 +271,7 @@ def draw_reprojection_on_thread(self, num):
                     
                     # Draw the reprojection
                     frames = []
-                    for num in range(len(self.cam)):
+                    for num in range(len(self.camera_panels)):
                         frame_group = frame_groups[num]
                         frame = frame_group[-1][0]
                         c_corners = all_rows[num][0]['corners']
