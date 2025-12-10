@@ -797,7 +797,7 @@ class SystemControl(wx.Frame):
         # Create a shared queue to store frames
         self.frame_queue = queue.Queue(maxsize=self.queue_frame_threshold)
         self.barrier = threading.Barrier(parties=len(self.camera_panels))
-        self.frame_count_sync = []
+        self.grab_success_sync = []
 
         # Boolean for detections.pickle is updated
         self.detection_update = False
@@ -815,14 +815,14 @@ class SystemControl(wx.Frame):
             self.current_frame_count.append(0)
             self.frame_times.append([])
             self.current_all_rows.append([])
-            self.frame_count_sync.append(0)
+            self.grab_success_sync.append(0)
 
             cam_panel.SetupCalibration(board_calibration=self.board_calibration,
                                        frame_queue=self.frame_queue,
                                        all_rows=self.all_rows,
                                        current_all_rows=self.current_all_rows,
                                        barrier=self.barrier,
-                                       frame_count_sync=self.frame_count_sync)
+                                       grab_success_sync=self.grab_success_sync)
 
         self.set_folder_and_file_configuration_system_wide(calibration=True)             
  
@@ -1006,19 +1006,28 @@ class SystemControl(wx.Frame):
         t = []
         # recording_threads_status is a list of False with length of number of cameras
         self.frame_queue = queue.Queue(maxsize=10)
-        self.test_calibration_live_threads_status = [True] * len(self.cam)
-        self.all_rows_test = [[] for _ in range(len(self.cam))]
-        self.frame_count_test = [0] * len(self.cam)
+        self.test_calibration_live_threads_status = []
+        self.all_rows_test = [[] for _ in range(len(self.camera_panels))]
+        self.frame_count_test = []
+        self.grab_success_sync = []
         
         self.reproject_window_status = True
-        for i in range(len(self.camera_panels)):
-            t.append(threading.Thread(target=detect_markers_on_thread, args=(self, i, barrier)))
-            t[-1].daemon = True
-            t[-1].start()
+        for cam_panel in self.camera_panels:
+            self.frame_count_test.append(1)
+            self.grab_success_sync.append(0)
+            self.test_calibration_live_threads_status.append(True)
 
-        t.append(threading.Thread(target=draw_reprojection_on_thread, args=(self, i)))
-        t[-1].daemon = True
-        t[-1].start()
+
+            cam_panel.SetupCalibrationTest(board_calibration=self.board_calibration,
+                                           frame_queue=self.frame_queue,
+                                           all_rows=self.all_rows_test,
+                                           frame_count=self.frame_count_test,
+                                           barrier=barrier,
+                                           test_calibration_live_threads_status=self.test_calibration_live_threads_status)
+
+        draw_reproject_thread = threading.Thread(target=self.draw_reprojection_on_thread, args=(i,))
+        draw_reproject_thread.daemon = True
+        draw_reproject_thread.start()
 
     def draw_reprojection_on_thread(self, num):
         frame_groups = {}  # Dictionary to store frame groups by thread_id

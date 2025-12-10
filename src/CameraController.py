@@ -1262,7 +1262,7 @@ class CameraController(wx.Panel):
     def SetupCalibration(self,
                          board_calibration: CharucoBoard,
                          frame_queue: queue.Queue,
-                         frame_count_sync,
+                         grab_success_sync,
                          all_rows,
                          current_all_rows,
                          barrier: threading.Barrier = None):
@@ -1271,7 +1271,7 @@ class CameraController(wx.Panel):
         self.board_calibration = board_calibration
         self.frame_queue = frame_queue
         self.barrier = barrier
-        self.frame_count_sync = frame_count_sync
+        self.grab_success_sync = grab_success_sync  
         self.all_rows = all_rows
         self.current_all_rows = current_all_rows
 
@@ -1415,7 +1415,8 @@ class CameraController(wx.Panel):
                 print(f"Thread Barrier was broken.")
 
         while (self.calibration_on is True) or (self.camera.NumReadyBuffers.GetValue() > 0):
-            # Check frame_count_sync to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
+            # Check grab_success_sync  
+        # to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
             if self.barrier is not None:
                 # If other cameras are behind, wait at the barrier:
                 try:
@@ -1438,7 +1439,8 @@ class CameraController(wx.Panel):
                 grab_successful = False
                 # continue
             
-            self.frame_count_sync[num] = grab_successful
+            self.grab_success_sync[
+    num] = grab_successful
             # Wait for the other camera to finish its grab attempt
             if self.barrier is not None:
                 try:
@@ -1446,7 +1448,8 @@ class CameraController(wx.Panel):
                 except threading.BrokenBarrierError:
                     break
             
-            all_cameras_succeeded = all(self.frame_count_sync)
+            all_cameras_succeeded = all(self.grab_success_sync)
+
 
             if not all_cameras_succeeded:
                 # If I succeeded but my partner failed, I must discard my frame
@@ -1498,9 +1501,7 @@ class CameraController(wx.Panel):
                     imageWindow.SetImage(grabResult)
                     imageWindow.Show()
                     last_display_time = time.time()
-                
-                # self.frame_count_sync[num] = captured_frames
-                
+                 
             grabResult.Release()
                  
         self.camera.StopGrabbing()
@@ -1510,14 +1511,41 @@ class CameraController(wx.Panel):
 
         print(f'Capturing and calibration finished after grabbing {captured_frames} frames')
 
-    def SetupCalibrationTest(self):
+    def SetupCalibrationTest(self,
+                             board_calibration: CharucoBoard,
+                             frame_queue: queue.Queue,
+                             all_rows,
+                             frame_count_test,
+                             test_calibration_live_threads_status,
+                             barrier: threading.Barrier = None):
+        self.board_calibration = board_calibration
+        self.frame_queue = frame_queue
+        self.barrier = barrier
+        self.frame_count_test = frame_count_test
+        self.test_calibration_live_threads_status = test_calibration_live_threads_status
+        self.all_rows = all_rows
         pass
 
     def StartCalibrationTest(self):
+        self.StopPreview()
+
+        # Start the capture and display threads
         self.calibration_test_on = True
+        self.calibrate_test_thread_obj = threading.Thread(target=self.detect_marker_thread)
+        self.calibrate_test_thread_obj.start()
+        self.EnableGUI(False)
+        self.capture_btn.SetLabel("Calibrate Capture STOP")
+        self.connect_btn.Disable()
+        self.capture_btn.Enable()
 
     def StopCalibrationTest(self):
         self.calibration_test_on = False
+        if self.calibrate_test_thread_obj.is_alive() is True:
+            self.calibrate_test_thread_obj.join()
+        self.EnableGUI(True)
+        self.capture_btn.SetLabel("Capture START")
+        self.current_state.SetLabel("Current state: idle")
+        self.connect_btn.Enable()
 
     def detect_marker_thread(self):
         # Enable chunks in general.
@@ -1538,11 +1566,8 @@ class CameraController(wx.Panel):
 
         num = self.cam_index
         while self.calibration_test_on is True:
-           # Check frame_count_sync to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
             if self.barrier is not None:
-                # If other cameras are behind, wait at the barrier:
                 try:
-                    # time.sleep(0.0001)  # small sleep to allow other threads to catch up
                     self.barrier.wait()
                 except threading.BrokenBarrierError:
                     print(f'Barrier broken for cam {num}. Proceeding...')
@@ -1559,7 +1584,7 @@ class CameraController(wx.Panel):
                 grab_successful = False
                 # continue
             
-            self.frame_count_sync[num] = grab_successful
+            self.grab_success_sync[num] = grab_successful
             # Wait for the other camera to finish its grab attempt
             if self.barrier is not None:
                 try:
@@ -1567,7 +1592,8 @@ class CameraController(wx.Panel):
                 except threading.BrokenBarrierError:
                     break
             
-            all_cameras_succeeded = all(self.frame_count_sync)
+            all_cameras_succeeded = all(self.grab_success_sync)
+
 
             if not all_cameras_succeeded:
                 # If I succeeded but my partner failed, I must discard my frame
