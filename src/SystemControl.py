@@ -1030,7 +1030,6 @@ class SystemControl(wx.Frame):
                                            test_calibration_live_threads_status=self.test_calibration_live_threads_status)
             
             cam_panel.StartCalibrationTest()
-            self.recording_threads_status.append(True)
 
         draw_reproject_thread = threading.Thread(target=self.draw_reprojection_on_thread)
         draw_reproject_thread.daemon = True
