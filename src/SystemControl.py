@@ -23,7 +23,7 @@ from CameraController import CameraController
 import pickle
 from aniposelib.boards import CharucoBoard, Checkerboard
 import copy
-from _calibration_func import detect_raw_board_on_thread, draw_detection_on_thread, draw_reprojection_on_thread, detect_markers_on_thread
+# from _calibration_func import detect_raw_board_on_thread, draw_detection_on_thread, draw_reprojection_on_thread, detect_markers_on_thread
 
 # Testing system
 def GenPulse(sampling_rate, frequency, duration=3600):
