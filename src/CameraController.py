@@ -1514,7 +1514,7 @@ class CameraController(wx.Panel):
     def SetupCalibrationTest(self,
                              board_calibration: CharucoBoard,
                              frame_queue: queue.Queue,
-                             all_rows,
+                             all_rows_test,
                              frame_count_test,
                              test_calibration_live_threads_status,
                              barrier: threading.Barrier = None):
@@ -1523,8 +1523,7 @@ class CameraController(wx.Panel):
         self.barrier = barrier
         self.frame_count_test = frame_count_test
         self.test_calibration_live_threads_status = test_calibration_live_threads_status
-        self.all_rows = all_rows
-        pass
+        self.all_rows_test = all_rows_test
 
     def StartCalibrationTest(self):
         self.StopPreview()
@@ -1594,7 +1593,6 @@ class CameraController(wx.Panel):
             
             all_cameras_succeeded = all(self.grab_success_sync)
 
-
             if not all_cameras_succeeded:
                 # If I succeeded but my partner failed, I must discard my frame
                 # to stay in sync with the frame count.
@@ -1623,8 +1621,7 @@ class CameraController(wx.Panel):
                     }
 
                     row = self.board_calibration.fill_points_rows([row])
-                    self.all_rows[num].extend(row)
-                    self.current_all_rows[num].extend(row)
+                    self.all_rows_test[num].extend(row)
                     
                 self.frame_queue.put((frame,  # the frame itself
                                       num,  # the id of the capturing camera

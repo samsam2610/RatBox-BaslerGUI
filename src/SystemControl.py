@@ -1020,8 +1020,8 @@ class SystemControl(wx.Frame):
 
             cam_panel.SetupCalibrationTest(board_calibration=self.board_calibration,
                                            frame_queue=self.frame_queue,
-                                           all_rows=self.all_rows_test,
-                                           frame_count=self.frame_count_test,
+                                           all_rows_test=self.all_rows_test,
+                                           frame_count_test=self.frame_count_test,
                                            barrier=barrier,
                                            test_calibration_live_threads_status=self.test_calibration_live_threads_status)
 
