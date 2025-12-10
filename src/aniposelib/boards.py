@@ -550,7 +550,7 @@ class CharucoBoard(CalibrationObject):
         self.dictionary = aruco.getPredefinedDictionary(ARUCO_DICTS[dkey])
         
         self.board = aruco.CharucoBoard((squaresX, squaresY), square_length, marker_length, self.dictionary)
-        
+        self.board.setLegacyPattern(True) 
         total_size = (squaresX - 1) * (squaresY - 1)
         
         objp = np.zeros((total_size, 3), np.float64)
