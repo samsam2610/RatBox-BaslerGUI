@@ -1083,7 +1083,7 @@ class SystemControl(wx.Frame):
                         
                         # Draw the reprojection
                         frames = []
-                        for num in range(len(self.cam_panels)):
+                        for num in range(len(self.camera_panels)):
                             frame_group = frame_groups[num]
                             frame = frame_group[-1][0]
                             c_corners = all_rows[num][0]['corners']
@@ -1115,7 +1115,7 @@ class SystemControl(wx.Frame):
                     print("Exception occurred:", type(e).__name__, "| Exception value:", e,
                         ''.join(traceback.format_tb(e.__traceback__)))
                     frames = []
-                    for num in range(len(self.cam)):
+                    for num in range(len(self.camera_panels)):
                         frame_group = frame_groups[num]
                         frame = frame_group[-1][0]
                         frames.append(frame)
