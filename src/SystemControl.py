@@ -646,7 +646,6 @@ class SystemControl(wx.Frame):
         
         if self.check_camera_test_calibration_status() is False:
             # Setting capture toggle status
-            self.recording_threads_status = []
             self.calibration_capture_toggle_status = True
             print("Starting system calibration test...")
             self.test_calibration_live()
@@ -676,6 +675,9 @@ class SystemControl(wx.Frame):
         else:
             print("Stopping system calibration test...")
             self.system_capturing_calibration_on = False
+            for cam_panel in self.camera_panels:
+                cam_panel.StopCalibrationTest()
+
             
 
     def load_calibration_settings(self, draw_calibration_board=False):
@@ -1024,6 +1026,8 @@ class SystemControl(wx.Frame):
                                            frame_count_test=self.frame_count_test,
                                            barrier=barrier,
                                            test_calibration_live_threads_status=self.test_calibration_live_threads_status)
+            
+            cam_panel.StartCalibrationTest()
 
         draw_reproject_thread = threading.Thread(target=self.draw_reprojection_on_thread)
         draw_reproject_thread.daemon = True
