@@ -755,6 +755,10 @@ class SystemControl(wx.Frame):
             self.draw_reproject_thread.daemon = True
             self.draw_reproject_thread.start()
         else:
+            self.system_capturing_calibration_on = False
+            print("Waiting for reprojection drawing thread to finish...")
+            if self.draw_reproject_thread.is_alive() is True:
+                self.draw_reproject_thread.join()
             print("Stopping system calibration test...")
             if self.trigger_on is True:
                 if self.proc.is_alive():
@@ -764,12 +768,9 @@ class SystemControl(wx.Frame):
                 else:
                     print("Trigger process already terminated.")
             time.sleep(0.5)  # Give some time for the cameras to finalize writing
-            self.system_capturing_calibration_on = False
             for cam_panel in self.camera_panels:
                 cam_panel.StopCalibrationTest()
-            print("Waiting for reprojection drawing thread to finish...")
-            if self.draw_reproject_thread.is_alive() is True:
-                self.draw_reproject_thread.join()
+
             self.system_test_calibration_btn.SetLabel("Test Calibration")
             self.EnableSystemControls(value=False, setup_calibration=True)
             print("Calibration test completed successfully.")
@@ -1176,7 +1177,7 @@ class SystemControl(wx.Frame):
                     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
                     cv2.resizeWindow(window_name, 2160, 660)
                 # Retrieve frame information from the queue
-                frame_data = self.frame_queue.get(timeout=10)
+                frame_data = self.frame_queue.get()
                 frame, thread_id, frame_count, frame_timestamp = frame_data
 
                 if thread_id not in frame_groups:
