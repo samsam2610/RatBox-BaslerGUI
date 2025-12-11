@@ -697,7 +697,7 @@ class SystemControl(wx.Frame):
             self.process_marker_thread.start()
 
             self.draw_reproject_thread = threading.Thread(target=self.draw_reprojection_on_thread)
-            self.draw_reproject_thread.daemon = True
+            # self.draw_reproject_thread.daemon = True
             self.draw_reproject_thread.start()
         else:
             print("Stopping system calibration test...")
@@ -705,13 +705,13 @@ class SystemControl(wx.Frame):
             for cam_panel in self.camera_panels:
                 cam_panel.StopCalibrationTest()
                 self.recording_threads_status.append(False)
+            print("Waiting for marker processing thread to finish...")
             if self.process_marker_thread.is_alive() is True:
                 thread_status = any(thread is True for thread in self.recording_threads_status)
                 print(f"Recording threads still active: {thread_status}")
-                print("Waiting for marker processing thread to finish...")
                 self.process_marker_thread.join()
+            print("Waiting for reprojection drawing thread to finish...")
             if self.draw_reproject_thread.is_alive() is True:
-                print("Waiting for reprojection drawing thread to finish...")
                 self.draw_reproject_thread.join()
             self.system_test_calibration_btn.SetLabel("Test Calibration")
             self.EnableSystemControls(value=True, preview=False)
