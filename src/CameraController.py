@@ -1126,9 +1126,9 @@ class CameraController(wx.Panel):
         
         # Adding capture parameters to the file name
         if self.trigger_mode is True:
-            params = f"_trig1_fps{self.framerate}_exposure{self.exposure}_gain{self.gain}"
+            params = f"_trig1_fps{self.framerate:.0f}_exposure{self.exposure:.0f}_gain{self.gain:.0f}"
         else:
-            params = f"_trig0_fps{self.framerate}_exposure{self.exposure}_gain{self.gain}"
+            params = f"_trig0_fps{self.framerate:.0f}_exposure{self.exposure:.0f}_gain{self.gain:.0f}"
         output_path += params
 
         if self.auto_index_on is False and self.append_date_flag is False:
