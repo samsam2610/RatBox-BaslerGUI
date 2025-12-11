@@ -1530,6 +1530,7 @@ class CameraController(wx.Panel):
         # Start the capture and display threads
         self.calibration_test_on = True
         self.calibrate_test_thread_obj = threading.Thread(target=self.detect_marker_thread)
+        self.calibrate_test_thread_obj.daemon = True
         self.calibrate_test_thread_obj.start()
         self.EnableGUI(False)
         self.capture_btn.SetLabel("Calibrate Capture STOP")
@@ -1540,6 +1541,8 @@ class CameraController(wx.Panel):
         self.calibration_test_on = False
         if self.calibrate_test_thread_obj.is_alive() is True:
             self.calibrate_test_thread_obj.join()
+        else: # force stop
+            self.calibrate_test_thread_obj._stop()
         self.EnableGUI(True)
         self.capture_btn.SetLabel("Capture START")
         self.current_state.SetLabel("Current state: idle")
