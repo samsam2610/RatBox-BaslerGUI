@@ -1123,6 +1123,10 @@ class CameraController(wx.Panel):
         if self.auto_index_on is True:
             output_path = output_path + "_" + str(self.current_index)
             self.current_index += 1
+        
+        # Adding capture parameters to the file name
+        params = f"_trig{self.trigger_mode_label}_framerate{self.framerate}_exposure{self.exposure}_gain{self.gain}"
+        output_path += params
 
         if self.auto_index_on is False and self.append_date_flag is False:
             wx.MessageBox('Turn on auto indexing or append date to' +
@@ -1343,6 +1347,7 @@ class CameraController(wx.Panel):
         print(f"Frame width: {self.frame_width}, Frame height: {self.frame_height}")
         
         # TODO: add more options for output file
+
         self.video_session.set_params(
             video_file=output_path,
             fourcc=fourcc_code,
