@@ -1104,8 +1104,9 @@ class SystemControl(wx.Frame):
         font_scale = 2
         thickness = 3
         
+        self.reproject_window_status = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) > 0
         try:
-            while self.system_capturing_calibration_on:
+            while self.system_capturing_calibration_on and self.reproject_window_status:
                 # Retrieve frame information from the queue
                 frame, thread_id, frame_count, frame_timestamp  = self.frame_queue.get()
                 if thread_id not in frame_groups:
@@ -1188,8 +1189,6 @@ class SystemControl(wx.Frame):
         except Exception as e:
             print("Exception occurred:", type(e).__name__, "| Exception value:", e,
                 ''.join(traceback.format_tb(e.__traceback__)))
-        
-        cv2.destroyAllWindows()
         
     @staticmethod
     def clear_calibration_file(file_name):
