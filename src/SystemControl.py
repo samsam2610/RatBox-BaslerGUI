@@ -250,6 +250,11 @@ class SystemControl(wx.Frame):
             sizer.Add(self.system_setup_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.system_setup_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemSetupCalibration)
+
+            self.draw_calibration_box = wx.CheckBox(self.calibration_panel, label="Draw calibration box")
+            sizer.Add(self.draw_calibration_box, pos=(row_pos, column_pos + 2), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.draw_calibration_box.SetValue(False)  # Set checkbox to unchecked by default
             row_pos += 1 # Current row position = 2
             
             self.system_capture_calibration_btn = wx.Button(self.calibration_panel, label="Start System Calibration")
@@ -262,7 +267,7 @@ class SystemControl(wx.Frame):
             sizer.Add(self.system_test_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.system_test_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemTestCalibration)
-            row_pos += 1 # Current row position = 3
+            row_pos += 1 # Current row position = 4
             
             self.calibration_panel.SetSizer(sizer)
             self.calibration_panel.Layout()
@@ -361,6 +366,7 @@ class SystemControl(wx.Frame):
             self.system_capture_btn.Enable()
             self.system_setup_calibration_btn.Enable()
             self.system_capture_calibration_btn.Disable()
+            self.system_test_calibration_btn.Disable()
         elif preview is True:
             self.exportfile_ctrl.Disable()
             self.select_folder_btn.Disable()
@@ -372,6 +378,7 @@ class SystemControl(wx.Frame):
             self.system_capture_btn.Disable()
             self.system_setup_calibration_btn.Disable()
             self.system_capture_calibration_btn.Disable()
+            self.system_test_calibration_btn.Disable()
         elif setup_calibration is True:
             self.exportfile_ctrl.Enable()
             self.select_folder_btn.Enable()
@@ -383,6 +390,7 @@ class SystemControl(wx.Frame):
             self.system_capture_btn.Enable()
             self.system_setup_calibration_btn.Enable()
             self.system_capture_calibration_btn.Enable()
+            self.system_test_calibration_btn.Enable()
         elif calibration is True:
             self.exportfile_ctrl.Disable()
             self.select_folder_btn.Disable()
@@ -394,6 +402,7 @@ class SystemControl(wx.Frame):
             self.system_capture_btn.Disable()
             self.system_setup_calibration_btn.Disable()
             self.system_capture_calibration_btn.Enable()
+            self.system_test_calibration_btn.Disable()
         else:
             self.exportfile_ctrl.Disable()
             self.select_folder_btn.Disable()
@@ -472,6 +481,7 @@ class SystemControl(wx.Frame):
         if self.check_camera_trigger_status() is None:
             wx.MessageBox("Please set the same trigger mode for all cameras before starting preview.", "Error", wx.OK | wx.ICON_ERROR)
             return
+        self.check_camera_frame_rate_status()
         if self.check_camera_preview_status() is False:
             for cam_panel in self.camera_panels:
                 cam_panel.StartPreview()
@@ -673,12 +683,26 @@ class SystemControl(wx.Frame):
             self.process_marker_thread = threading.Thread(target=self.process_marker_on_thread, name=thread_name)
             # self.process_marker_thread.daemon = True
             self.process_marker_thread.start()
+
+            self.draw_reproject_thread = threading.Thread(target=self.draw_reprojection_on_thread)
+            self.draw_reproject_thread.daemon = True
+            self.draw_reproject_thread.start()
         else:
             print("Stopping system calibration test...")
             self.system_capturing_calibration_on = False
             for cam_panel in self.camera_panels:
                 cam_panel.StopCalibrationTest()
                 self.recording_threads_status.append(False)
+            if self.process_marker_thread.is_alive() is True:
+                thread_status = any(thread is True for thread in self.recording_threads_status)
+                print(f"Recording threads still active: {thread_status}")
+                print("Waiting for marker processing thread to finish...")
+                self.process_marker_thread.join()
+            if self.draw_reproject_thread.is_alive() is True:
+                print("Waiting for reprojection drawing thread to finish...")
+                self.draw_reproject_thread.join()
+            self.system_test_calibration_btn.SetLabel("Test Calibration")
+            self.EnableSystemControls(value=True, preview=False)
 
             
 
@@ -693,15 +717,30 @@ class SystemControl(wx.Frame):
         self.calibration_status_label.SetLabel(calibration_stats_message)
         print(calibration_stats_message)
         
-        # Get current folder of this script
-        path = Path(os.path.realpath(__file__))
-        config_folder_path = Path(path.parent, 'config-files')
-        # Navigate to the outer parent directory and join the filename
-        config_toml_path = Path(config_folder_path, 'config.toml')
-        # config_toml_path = os.path.normpath(str(path.parents/ 'config-files' / 'config.toml'))
-        config_anipose = load_config(config_toml_path)
-        calibration_stats_message = 'Found config.toml directory. Loading config ...'
-        print(calibration_stats_message)
+        ## Check if config.toml already exists in the export folder, if yes, load it, if no, check if it exists in the config-files directory
+        config_toml_path = Path(self.exportfolder_ctrl.GetValue(), 'config.toml')
+        if config_toml_path.exists():
+            config_anipose = load_config(config_toml_path)
+            calibration_stats_message = 'Found config.toml in export directory. Loading config ...'
+            self.calibration_status_label.SetLabel(calibration_stats_message)
+            print(calibration_stats_message)
+        else:
+            calibration_stats_message = 'config.toml not found in export directory. Looking for config.toml in config-files directory ...'
+            self.calibration_status_label.SetLabel(calibration_stats_message)
+            print(calibration_stats_message)
+
+            # Get current folder of this script
+            path = Path(os.path.realpath(__file__))
+            config_folder_path = Path(path.parent, 'config-files')
+            # Navigate to the outer parent directory and join the filename
+            config_toml_path = Path(config_folder_path, 'config.toml')
+            # config_toml_path = os.path.normpath(str(path.parents/ 'config-files' / 'config.toml'))
+            config_anipose = load_config(config_toml_path)
+            calibration_stats_message = 'Found config.toml directory. Loading config ...'
+            print(calibration_stats_message)
+            if not config_toml_path.exists():
+                wx.MessageBox("Could not find config.toml file in the specified directory.", "Error", wx.OK | wx.ICON_ERROR)
+                return None
         
         calibration_stats_message = 'Successfully found and loaded config. Determining calibration board ...'
         self.calibration_status_label.SetLabel(calibration_stats_message)
@@ -753,7 +792,9 @@ class SystemControl(wx.Frame):
         - None
         """
         self.calibration_status_label.SetLabel('Initializing calibration process...')
-        config_anipose = self.load_calibration_settings()
+        # Check if draw calibration board is ticked
+        draw_calibration_board = self.draw_calibration_box.GetValue()
+        config_anipose = self.load_calibration_settings(draw_calibration_board=draw_calibration_board)
         
         self.calibration_status_label.SetLabel('Initializing camera calibration objects ...')
         from aniposelib.cameras import CameraGroup
@@ -1031,9 +1072,7 @@ class SystemControl(wx.Frame):
             
             cam_panel.StartCalibrationTest()
 
-        draw_reproject_thread = threading.Thread(target=self.draw_reprojection_on_thread)
-        draw_reproject_thread.daemon = True
-        draw_reproject_thread.start()
+
 
     def draw_reprojection_on_thread(self):
         frame_groups = {}  # Dictionary to store frame groups by thread_id
@@ -1090,11 +1129,13 @@ class SystemControl(wx.Frame):
                             c_corners = all_rows[num][0]['corners']
                             ids = all_rows[num][0]['ids']
                             
+                            # Draw the detected board
                             n_corners = c_corners.size // 2
                             reshape_corners = np.reshape(c_corners, (n_corners, 1, 2))
                             frame = cv2.cvtColor(frame >> 0, cv2.COLOR_GRAY2BGR)
                             cv2.aruco.drawDetectedCornersCharuco(frame, reshape_corners, ids, cornerColor=(0, 255, 0))
                     
+                            # Draw the reprojection
                             p_ids = extra['ids']
                             p_corners = p2ds[num].astype('float32')
                             np_corners = p_corners.size // 2

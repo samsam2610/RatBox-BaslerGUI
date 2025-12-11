@@ -1415,8 +1415,7 @@ class CameraController(wx.Panel):
                 print(f"Thread Barrier was broken.")
 
         while (self.calibration_on is True) or (self.camera.NumReadyBuffers.GetValue() > 0):
-            # Check grab_success_sync  
-        # to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
+            # to see if all the other cameras have captured the same number of frames, if not, wait at the barrier
             if self.barrier is not None:
                 # If other cameras are behind, wait at the barrier:
                 try:
@@ -1439,8 +1438,7 @@ class CameraController(wx.Panel):
                 grab_successful = False
                 # continue
             
-            self.grab_success_sync[
-    num] = grab_successful
+            self.grab_success_sync[num] = grab_successful
             # Wait for the other camera to finish its grab attempt
             if self.barrier is not None:
                 try:
@@ -1449,7 +1447,6 @@ class CameraController(wx.Panel):
                     break
             
             all_cameras_succeeded = all(self.grab_success_sync)
-
 
             if not all_cameras_succeeded:
                 # If I succeeded but my partner failed, I must discard my frame
@@ -1483,13 +1480,7 @@ class CameraController(wx.Panel):
                     row = self.board_calibration.fill_points_rows([row])
                     self.all_rows[num].extend(row)
                     self.current_all_rows[num].extend(row)
-                    # print(f'Camera {num}: Detected marker at frame {key} with {len(corners)} corners.')
-                    # self.board_detected_count_label[num]['text'] = f'{len(self.all_rows[num])}; {len(corners)}'
-                    # if num == 0:
-                        # self.calibration_current_duration_value.set(f'{time.perf_counter()-start_time:.2f}')
-                # else:
-                #     print(f'No marker detected on cam {num} at frame {captured_frames}')
-                # putting frame into the frame queue along with following information
+
                 self.frame_queue.put((frame,  # the frame itself
                                       num,  # the id of the capturing camera
                                       captured_frames,  # the current frame count
