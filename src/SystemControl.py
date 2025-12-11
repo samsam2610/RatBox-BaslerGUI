@@ -828,10 +828,10 @@ class SystemControl(wx.Frame):
         calib = config_anipose['calibration']
         self.cal_param_board_type.SetLabel(calib['board_type'])
         self.cal_param_board_size.SetLabel(str(calib['board_size']))
-        self.cal_param_marker_bits.SetLabel(str(calib['marker_bits']))
-        self.cal_param_dict_number.SetLabel(str(calib['dict_number']))
-        self.cal_param_marker_len.SetLabel(str(calib['marker_len']))
-        self.cal_param_square_len.SetLabel(str(calib['square_len']))
+        self.cal_param_marker_bits.SetLabel(str(calib['board_marker_bits']))
+        self.cal_param_dict_number.SetLabel(str(calib['board_marker_dict_number']))
+        self.cal_param_marker_len.SetLabel(str(calib['board_marker_length']))
+        self.cal_param_square_len.SetLabel(str(calib['board_square_side_length']))
         self.cal_param_animal.SetLabel(str(calib['animal_calibration']))
         self.cal_param_fisheye.SetLabel(str(calib['fisheye']))
         
