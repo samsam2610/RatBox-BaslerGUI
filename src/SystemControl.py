@@ -771,7 +771,7 @@ class SystemControl(wx.Frame):
             if self.draw_reproject_thread.is_alive() is True:
                 self.draw_reproject_thread.join()
             self.system_test_calibration_btn.SetLabel("Test Calibration")
-            self.EnableSystemControls(value=True, setup_calibration=True)
+            self.EnableSystemControls(value=False, setup_calibration=True)
             print("Calibration test completed successfully.")
 
             
