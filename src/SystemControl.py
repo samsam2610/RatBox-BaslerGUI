@@ -1176,7 +1176,7 @@ class SystemControl(wx.Frame):
                     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
                     cv2.resizeWindow(window_name, 2160, 660)
                 # Retrieve frame information from the queue
-                frame_data = self.frame_queue.get(timeout=0.1)
+                frame_data = self.frame_queue.get(timeout=10)
                 frame, thread_id, frame_count, frame_timestamp = frame_data
 
                 if thread_id not in frame_groups:
