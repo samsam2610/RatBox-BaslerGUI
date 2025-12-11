@@ -1138,7 +1138,6 @@ class SystemControl(wx.Frame):
         self.frame_count_test = []
         self.grab_success_sync = []
         
-        self.reproject_window_status = True
         for cam_panel in self.camera_panels:
             self.frame_count_test.append(1)
             self.grab_success_sync.append(0)
@@ -1172,9 +1171,19 @@ class SystemControl(wx.Frame):
         
         self.reproject_window_status = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) > 0
         try:
-            while self.system_capturing_calibration_on and self.reproject_window_status:
+            while self.system_capturing_calibration_on:
+                if cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) < 1:
+                    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+                    cv2.resizeWindow(window_name, 2160, 660)
                 # Retrieve frame information from the queue
-                frame, thread_id, frame_count, frame_timestamp  = self.frame_queue.get()
+                try:
+                    frame_data = self.frame_queue.get(timeout=0.1)
+                    frame, thread_id, frame_count, frame_timestamp = frame_data
+                except queue.Empty:
+                    # Important: Process GUI events even when queue is empty
+                    cv2.waitKey(1)
+                    continue
+
                 if thread_id not in frame_groups:
                     frame_groups[thread_id] = []  # Create a new group for the thread_id if it doesn't exist
                     frame_counts[thread_id] = 0
@@ -1250,7 +1259,6 @@ class SystemControl(wx.Frame):
                     cv2.imshow(window_name, frame)
                     cv2.waitKey(1)
                     
-                self.reproject_window_status = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) > 0
             
         except Exception as e:
             print("Exception occurred:", type(e).__name__, "| Exception value:", e,
