@@ -824,15 +824,16 @@ class SystemControl(wx.Frame):
         self.rows_fname = os.path.join(self.exportfolder_ctrl.GetValue(), 'detections.pickle')
         self.calibration_out = os.path.join(self.exportfolder_ctrl.GetValue(), 'calibration.toml')
         
-        # Update the calibration parameters in the UI
-        self.cal_param_board_type.SetLabel(self.board_calibration.get_board_type())
-        self.cal_param_board_size.SetLabel(str(self.board_calibration.get_size()))
-        self.cal_param_marker_bits.SetLabel(str(self.board_calibration.get_marker_bits()))
-        self.cal_param_dict_number.SetLabel(str(self.board_calibration.get_dict_number()))
-        self.cal_param_marker_len.SetLabel(str(self.board_calibration.get_marker_len()))
-        self.cal_param_square_len.SetLabel(str(self.board_calibration.get_square_len()))
-        self.cal_param_animal.SetLabel(str(self.board_calibration.get_animal()))
-        self.cal_param_fisheye.SetLabel(str(self.board_calibration.get_fisheye()))
+        # Update the calibration parameters in the UI, read directly from config_anipose
+        calib = config_anipose['calibration']
+        self.cal_param_board_type.SetLabel(calib['board_type'])
+        self.cal_param_board_size.SetLabel(str(calib['board_size']))
+        self.cal_param_marker_bits.SetLabel(str(calib['marker_bits']))
+        self.cal_param_dict_number.SetLabel(str(calib['dict_number']))
+        self.cal_param_marker_len.SetLabel(str(calib['marker_len']))
+        self.cal_param_square_len.SetLabel(str(calib['square_len']))
+        self.cal_param_animal.SetLabel(str(calib['animal_calibration']))
+        self.cal_param_fisheye.SetLabel(str(calib['fisheye']))
         
         if draw_calibration_board:
             numx, numy = self.board_calibration.get_size()
