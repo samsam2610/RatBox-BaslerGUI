@@ -727,6 +727,9 @@ class SystemControl(wx.Frame):
             print("Starting system calibration test...")
             self.test_calibration_live()
             self.recording_threads_status = [] 
+            for cam_panel in self.camera_panels:
+                cam_panel.StartCalibrationTest()
+                self.recording_threads_status.append(True)
             self.system_test_calibration_btn.SetLabel("Stop System Calibration Test")
             self.EnableSystemControls(value=False, test_calibration=True)
             self.system_capturing_calibration_on = True
@@ -755,10 +758,18 @@ class SystemControl(wx.Frame):
             self.draw_reproject_thread.start()
         else:
             print("Stopping system calibration test...")
+            if self.trigger_on is True:
+                if self.proc.is_alive():
+                    print(f"Terminating trigger process with PID {self.proc.pid}")
+                    self.proc.terminate()
+                    self.proc.join()  
+                else:
+                    print("Trigger process already terminated.")
+            time.sleep(0.5)  # Give some time for the cameras to finalize writing
             self.system_capturing_calibration_on = False
-            for cam_panel in self.camera_panels:
+            for idx, cam_panel in enumerate(self.camera_panels):
                 cam_panel.StopCalibrationTest()
-                self.recording_threads_status.append(False)
+                self.recording_threads_status[idx] = False
             print("Waiting for marker processing thread to finish...")
             if self.process_marker_thread.is_alive() is True:
                 thread_status = any(thread is True for thread in self.recording_threads_status)
@@ -1151,8 +1162,6 @@ class SystemControl(wx.Frame):
                                            barrier=barrier,
                                            test_calibration_live_threads_status=self.test_calibration_live_threads_status)
             
-            cam_panel.StartCalibrationTest()
-
 
 
     def draw_reprojection_on_thread(self):
