@@ -190,8 +190,8 @@ class CameraController(wx.Panel):
         self.gain_ctrl_label = wx.StaticText(panel, label="Gain (dB):")
         sizer.Add(self.gain_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
-        self.gain_slider = FS.FloatSpin(panel, -1,  min_val=0, max_val=1,
-                                        size=(140, -1), increment=0.01, value=0.1, digits=0,
+        self.gain_slider = FS.FloatSpin(panel, -1,  min_val=0, max_val=100,
+                                        size=(140, -1), increment=0.1, value=0.1, digits=0,
                                         agwStyle=FS.FS_LEFT)
         self.gain_slider.Bind(FS.EVT_FLOATSPIN, self.GainSliderScroll)
         self.gain_slider.SetFormat("%f")
@@ -1125,7 +1125,10 @@ class CameraController(wx.Panel):
             self.current_index += 1
         
         # Adding capture parameters to the file name
-        params = f"_trig{self.trigger_mode_label}_framerate{self.framerate}_exposure{self.exposure}_gain{self.gain}"
+        if self.trigger_mode is True:
+            params = f"_trig1_fps{self.framerate}_exposure{self.exposure}_gain{self.gain}"
+        else:
+            params = f"_trig0_fps{self.framerate}_exposure{self.exposure}_gain{self.gain}"
         output_path += params
 
         if self.auto_index_on is False and self.append_date_flag is False:
