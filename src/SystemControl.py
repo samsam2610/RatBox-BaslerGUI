@@ -261,6 +261,10 @@ class SystemControl(wx.Frame):
             sizer.Add(self.system_capture_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.system_capture_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemCalibrate)
+
+            self.calibration_error_label = wx.StaticText(self.calibration_panel, label="Calibration Error: None")
+            sizer.Add(self.calibration_error_label, pos=(row_pos, column_pos + 2), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5)
             row_pos += 1 # Current row position = 3
 
             self.system_test_calibration_btn = wx.Button(self.calibration_panel, label="Test Calibration")
@@ -653,6 +657,17 @@ class SystemControl(wx.Frame):
 
             print("Start calibration computation...")
             self.calibrate_on_thread()
+            print("Calibration completed successfully.")
+            # Display calibration error with 5 digits after the decimal when possible
+            err = self.calibration_error
+            if err is None:
+                label_text = "Calibration Error: None"
+            else:
+                try:
+                    label_text = f"Calibration Error: {float(err):.5f}"
+                except Exception:
+                    label_text = f"Calibration Error: {err}"
+            self.calibration_error_label.SetLabel(label_text)
             self.system_capture_calibration_btn.SetLabel("Start System Calibration")
             self.EnableSystemControls(value=True, preview=False)
     
@@ -715,6 +730,7 @@ class SystemControl(wx.Frame):
                 self.draw_reproject_thread.join()
             self.system_test_calibration_btn.SetLabel("Test Calibration")
             self.EnableSystemControls(value=True, preview=False)
+            print("Calibration test completed successfully.")
 
             
 
