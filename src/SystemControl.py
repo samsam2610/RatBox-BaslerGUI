@@ -1185,13 +1185,8 @@ class SystemControl(wx.Frame):
                     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
                     cv2.resizeWindow(window_name, 2160, 660)
                 # Retrieve frame information from the queue
-                try:
-                    frame_data = self.frame_queue.get()
-                    frame, thread_id, frame_count, frame_timestamp = frame_data
-                except queue.Empty:
-                    # Important: Process GUI events even when queue is empty
-                    cv2.waitKey(1)
-                    continue
+                frame_data = self.frame_queue.get()
+                frame, thread_id, frame_count, frame_timestamp = frame_data
 
                 if thread_id not in frame_groups:
                     frame_groups[thread_id] = []  # Create a new group for the thread_id if it doesn't exist
