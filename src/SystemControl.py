@@ -354,7 +354,7 @@ class SystemControl(wx.Frame):
             cam_panel.SetTriggerMode(self.trigger_on)
             cam_panel.SetFrameRate(self.common_frame_rate)
             
-    def EnableSystemControls(self, value, preview=False, calibration=False, setup_calibration=False):
+    def EnableSystemControls(self, value, preview=False, calibration=False, setup_calibration=False, test_calibration=False):
         if value is True:
             self.exportfile_ctrl.Enable()
             self.select_folder_btn.Enable()
@@ -403,6 +403,18 @@ class SystemControl(wx.Frame):
             self.system_setup_calibration_btn.Disable()
             self.system_capture_calibration_btn.Enable()
             self.system_test_calibration_btn.Disable()
+        elif test_calibration is True:
+            self.exportfile_ctrl.Disable()
+            self.select_folder_btn.Disable()
+            self.append_date.Disable()
+            self.auto_index.Disable()
+            self.index_ctrl.Disable()
+            self.set_config_btn.Disable()
+            self.system_preview_btn.Disable()
+            self.system_capture_btn.Disable()
+            self.system_setup_calibration_btn.Disable()
+            self.system_capture_calibration_btn.Disable()
+            self.system_test_calibration_btn.Enable()
         else:
             self.exportfile_ctrl.Disable()
             self.select_folder_btn.Disable()
@@ -662,7 +674,7 @@ class SystemControl(wx.Frame):
             self.test_calibration_live()
             self.recording_threads_status = [] 
             self.system_test_calibration_btn.SetLabel("Stop System Calibration Test")
-            self.EnableSystemControls(value=False, calibration=True)
+            self.EnableSystemControls(value=False, test_calibration=True)
             self.system_capturing_calibration_on = True
             time.sleep(0.5)  # Give some time for the cameras to start writing
             if self.trigger_on is True:
