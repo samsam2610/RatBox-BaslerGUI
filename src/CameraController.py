@@ -1617,7 +1617,7 @@ class CameraController(wx.Panel):
                 captured_frames += 1
                 # detect the marker as the frame is acquired
                 corners, ids = self.board_calibration.detect_image(frame)
-                if corners is not None:
+                if corners is not None and len(corners) > 0:
                     key = captured_frames
                     row = {
                         'framenum': key,
