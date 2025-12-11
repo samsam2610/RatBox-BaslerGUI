@@ -1530,7 +1530,7 @@ class CameraController(wx.Panel):
         # Start the capture and display threads
         self.calibration_test_on = True
         self.calibrate_test_thread_obj = threading.Thread(target=self.detect_marker_thread)
-        self.calibrate_test_thread_obj.daemon = True
+        # self.calibrate_test_thread_obj.daemon = True
         self.calibrate_test_thread_obj.start()
         print(f"Calibration test thread for cam {self.cam_index} started.")
         self.EnableGUI(False)
