@@ -271,8 +271,46 @@ class SystemControl(wx.Frame):
             sizer.Add(self.system_test_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.system_test_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemTestCalibration)
-            row_pos += 1 # Current row position = 4
+            row_pos += 2 # Current row position = 4
+ 
+            # 1. Create the Static Box and Sizer
+            self.params_box = wx.StaticBox(self.calibration_panel, label="Calibration Parameters")
+            params_sizer = wx.StaticBoxSizer(self.params_box, wx.VERTICAL)
             
+            # 2. Create a FlexGridSizer for aligned "Label: Value" pairs
+            # (cols=2, vgap=5, hgap=10)
+            self.params_grid = wx.FlexGridSizer(cols=2, vgap=5, hgap=10)
+            
+            # 3. Helper function to create the label/value pairs cleanly
+            def add_param_row(label_text, default_val="-"):
+                lbl = wx.StaticText(self.calibration_panel, label=label_text)
+                lbl.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
+                
+                val = wx.StaticText(self.calibration_panel, label=str(default_val))
+                
+                self.params_grid.Add(lbl, flag=wx.ALIGN_CENTER_VERTICAL)
+                self.params_grid.Add(val, flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+                return val
+
+            # 4. Create the specific fields and save references to self 
+            # so you can update them later (e.g. self.cal_param_board_type.SetLabel("..."))
+            self.cal_param_board_type = add_param_row("Board Type:")
+            self.cal_param_board_size = add_param_row("Board Size:")
+            self.cal_param_marker_bits = add_param_row("Marker Bits:")
+            self.cal_param_dict_number = add_param_row("Dict Number:")
+            self.cal_param_marker_len = add_param_row("Marker Length:")
+            self.cal_param_square_len = add_param_row("Square Side:")
+            self.cal_param_animal = add_param_row("Animal Calib:")
+            self.cal_param_fisheye = add_param_row("Fisheye:")
+
+            # 5. Add the grid to the static box sizer
+            params_sizer.Add(self.params_grid, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+            
+            # 6. Add the static box sizer to the main GridBagSizer
+            # Spanning 4 columns so it fills the width of the panel
+            sizer.Add(params_sizer, pos=(row_pos, column_pos), span=(1, 4), 
+                      flag=wx.EXPAND | wx.ALL, border=5)
+             
             self.calibration_panel.SetSizer(sizer)
             self.calibration_panel.Layout()
             # Add to below the system controls
