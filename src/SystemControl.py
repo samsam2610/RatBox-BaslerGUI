@@ -766,7 +766,7 @@ class SystemControl(wx.Frame):
             time.sleep(0.5)  # Give some time for the cameras to finalize writing
             self.system_capturing_calibration_on = False
             self.barrier = None
-            for idx, cam_panel in enumerate(self.camera_panels):
+            for cam_panel in self.camera_panels:
                 cam_panel.StopCalibrationTest()
             print("Waiting for reprojection drawing thread to finish...")
             if self.draw_reproject_thread.is_alive() is True:
