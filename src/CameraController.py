@@ -1635,6 +1635,8 @@ class CameraController(wx.Panel):
             grabResult.Release()
             
         self.camera.StopGrabbing()
+        self.barrier.abort()
+        print(f'Calibration test finished for cam {num}')
 
     # def recalibrate(self):
     #     """
