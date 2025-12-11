@@ -740,7 +740,7 @@ class SystemControl(wx.Frame):
                 print("Starting trigger process for system calibration test...")
                 self.proc = multiprocessing.Process(
                             target=trigger_start_process_continuous,
-                            kwargs={"frequency": 30}, # using 30 Hz for calibration
+                            kwargs={"frequency": 10}, # using 30 Hz for calibration
                             daemon=True,
                             )
                 self.proc.start()
@@ -765,6 +765,7 @@ class SystemControl(wx.Frame):
                     print("Trigger process already terminated.")
             time.sleep(0.5)  # Give some time for the cameras to finalize writing
             self.system_capturing_calibration_on = False
+            self.barrier = None
             for idx, cam_panel in enumerate(self.camera_panels):
                 cam_panel.StopCalibrationTest()
             print("Waiting for reprojection drawing thread to finish...")
