@@ -169,7 +169,7 @@ class CameraController(wx.Panel):
         sizer.Add(self.framerate_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.framerate_slider = FS.FloatSpin(panel, -1,  min_val=100, max_val=500,
-                                             size=(140, -1), increment=1.0, digits=0,
+                                             size=(140, -1), increment=5.0, digits=0,
                                              value=0.1, agwStyle=FS.FS_LEFT)
         self.framerate_slider.Bind(FS.EVT_FLOATSPIN, self.FramerteSliderScroll)
         sizer.Add(self.framerate_slider, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
@@ -191,11 +191,11 @@ class CameraController(wx.Panel):
         sizer.Add(self.gain_ctrl_label, pos=(self.row_pos, self.column_pos), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.gain_slider = FS.FloatSpin(panel, -1,  min_val=0, max_val=100,
-                                        size=(140, -1), increment=0.1, value=0.1, digits=0,
+                                        size=(140, -1), increment=1, value=0.1, digits=0,
                                         agwStyle=FS.FS_LEFT)
         self.gain_slider.Bind(FS.EVT_FLOATSPIN, self.GainSliderScroll)
         self.gain_slider.SetFormat("%f")
-        self.gain_slider.SetDigits(3)
+        # self.gain_slider.SetDigits(3)
         sizer.Add(self.gain_slider, pos=(self.row_pos, self.column_pos + 1), span=(1, 1),
                   flag=wx.EXPAND | wx.ALL, border=5)
         self.row_pos += 1 # Current row position = 11
