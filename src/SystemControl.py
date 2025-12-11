@@ -724,6 +724,8 @@ class SystemControl(wx.Frame):
             calibration_stats_message = 'Found config.toml in export directory. Loading config ...'
             self.calibration_status_label.SetLabel(calibration_stats_message)
             print(calibration_stats_message)
+
+            board_dir = Path(self.exportfolder_ctrl.GetValue(), 'board.png')
         else:
             calibration_stats_message = 'config.toml not found in export directory. Looking for config.toml in config-files directory ...'
             self.calibration_status_label.SetLabel(calibration_stats_message)
@@ -738,6 +740,8 @@ class SystemControl(wx.Frame):
             config_anipose = load_config(config_toml_path)
             calibration_stats_message = 'Found config.toml directory. Loading config ...'
             print(calibration_stats_message)
+
+            board_dir = os.path.join(config_folder_path, 'board.png')
             if not config_toml_path.exists():
                 wx.MessageBox("Could not find config.toml file in the specified directory.", "Error", wx.OK | wx.ICON_ERROR)
                 return None
@@ -754,7 +758,7 @@ class SystemControl(wx.Frame):
         self.rows_fname = os.path.join(self.exportfolder_ctrl.GetValue(), 'detections.pickle')
         self.calibration_out = os.path.join(self.exportfolder_ctrl.GetValue(), 'calibration.toml')
         
-        board_dir = os.path.join(config_folder_path, 'board.png')
+        
         if draw_calibration_board:
             numx, numy = self.board_calibration.get_size()
             size = numx*200, numy*200
