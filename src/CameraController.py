@@ -1625,6 +1625,9 @@ class CameraController(wx.Panel):
                                       num,  # the id of the capturing camera
                                       captured_frames,  # the current frame count
                                       frame_timestamp))  # captured time 
+                grabResult.Release()
+            
+        self.camera.StopGrabbing()
 
     # def recalibrate(self):
     #     """

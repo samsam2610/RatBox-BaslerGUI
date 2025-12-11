@@ -740,7 +740,7 @@ class SystemControl(wx.Frame):
                 print("Starting trigger process for system calibration test...")
                 self.proc = multiprocessing.Process(
                             target=trigger_start_process_continuous,
-                            kwargs={"frequency": 5}, # using 30 Hz for calibration
+                            kwargs={"frequency": 30}, # using 30 Hz for calibration
                             daemon=True,
                             )
                 self.proc.start()
@@ -1154,7 +1154,6 @@ class SystemControl(wx.Frame):
                                            barrier=barrier,
                                            test_calibration_live_threads_status=self.test_calibration_live_threads_status)
             
-
 
     def draw_reprojection_on_thread(self):
         frame_groups = {}  # Dictionary to store frame groups by thread_id
