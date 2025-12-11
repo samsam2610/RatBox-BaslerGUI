@@ -693,11 +693,11 @@ class SystemControl(wx.Frame):
             
             thread_name = f"Marker processing thread" 
             self.process_marker_thread = threading.Thread(target=self.process_marker_on_thread, name=thread_name)
-            # self.process_marker_thread.daemon = True
+            self.process_marker_thread.daemon = True
             self.process_marker_thread.start()
 
             self.draw_reproject_thread = threading.Thread(target=self.draw_reprojection_on_thread)
-            # self.draw_reproject_thread.daemon = True
+            self.draw_reproject_thread.daemon = True
             self.draw_reproject_thread.start()
         else:
             print("Stopping system calibration test...")
