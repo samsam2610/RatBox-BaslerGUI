@@ -669,7 +669,7 @@ class SystemControl(wx.Frame):
                     label_text = f"Calibration Error: {err}"
             self.calibration_error_label.SetLabel(label_text)
             self.system_capture_calibration_btn.SetLabel("Start System Calibration")
-            self.EnableSystemControls(value=True, preview=False)
+            self.EnableSystemControls(value=False, setup_calibration=True)
     
     def OnSystemTestCalibration(self, event):
         if not self.check_camera_connected_status():
