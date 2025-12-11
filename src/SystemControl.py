@@ -302,6 +302,7 @@ class SystemControl(wx.Frame):
             self.cal_param_square_len = add_param_row("Square Side:")
             self.cal_param_animal = add_param_row("Animal Calib:")
             self.cal_param_fisheye = add_param_row("Fisheye:")
+            self.cal_param_directory = add_param_row("Config Directory:")
 
             # 5. Add the grid to the static box sizer
             params_sizer.Add(self.params_grid, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
@@ -834,6 +835,7 @@ class SystemControl(wx.Frame):
         self.cal_param_square_len.SetLabel(f"{str(calib['board_square_side_length'])} mm")
         self.cal_param_animal.SetLabel(str(calib['animal_calibration']))
         self.cal_param_fisheye.SetLabel(str(calib['fisheye']))
+        self.cal_param_directory.SetLabel(str(config_toml_path))
         
         if draw_calibration_board:
             numx, numy = self.board_calibration.get_size()
