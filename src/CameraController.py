@@ -1540,6 +1540,7 @@ class CameraController(wx.Panel):
 
     def StopCalibrationTest(self):
         self.calibration_test_on = False
+        print(f"Stopping calibration test thread for cam {self.cam_index}...")
         if self.calibrate_test_thread_obj.is_alive() is True:
             self.calibrate_test_thread_obj.join()
             print(f"Calibration test thread for cam {self.cam_index} stopped.")
@@ -1631,7 +1632,7 @@ class CameraController(wx.Panel):
                                       num,  # the id of the capturing camera
                                       captured_frames,  # the current frame count
                                       frame_timestamp))  # captured time 
-                grabResult.Release()
+            grabResult.Release()
             
         self.camera.StopGrabbing()
 
