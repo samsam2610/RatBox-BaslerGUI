@@ -1579,7 +1579,7 @@ class CameraController(wx.Panel):
             # Wait for the other camera to finish its grab attempt
             if self.barrier is not None:
                 try:
-                    self.barrier.wait()
+                    self.barrier.wait(1)
                 except threading.BrokenBarrierError:
                     break
             
