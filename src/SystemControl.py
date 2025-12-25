@@ -1,5 +1,6 @@
 import queue
 import re
+from tabnanny import verbose
 import traceback
 import wx
 import os
@@ -1309,7 +1310,12 @@ class SystemControl(wx.Frame):
                 cam_names.append(match.groups()[0])
         
         self.cgroup = CameraGroup.from_names(cam_names)
-        all_rows = self.cgroup.get_rows_videos(video_list, self.board_calibration)
+        all_rows = []
+        verbose = True
+        for video_path in video_list:
+            rows = self.board_calibration.detect_video(video_path, progress=verbose)
+            all_rows.append(rows)
+
         with open(self.rows_fname, 'wb') as f:
             pickle.dump(all_rows, f)
         
