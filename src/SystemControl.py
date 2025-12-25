@@ -865,7 +865,7 @@ class SystemControl(wx.Frame):
         
         return config_anipose
     
-    def setup_calibration(self, override=False):
+    def setup_calibration(self, override=False, create_vid_file=True):
         """
         Method: setup_calibration
 
@@ -970,8 +970,9 @@ class SystemControl(wx.Frame):
                                        barrier=self.barrier,
                                        grab_success_sync=self.grab_success_sync)
 
-        self.set_folder_and_file_configuration_system_wide(calibration=True)             
- 
+        if create_vid_file:
+            self.set_folder_and_file_configuration_system_wide(calibration=True)             
+        
         self.calibration_status_label.SetLabel('Setting the frame sizes...')
         self.cgroup.set_camera_sizes_images(frame_sizes=frame_sizes)
         self.calibration_status_label.SetLabel('Prepping done. Ready to capture calibration frames...')
@@ -1294,6 +1295,7 @@ class SystemControl(wx.Frame):
                 ''.join(traceback.format_tb(e.__traceback__)))
 
     def calibrate_offline(self):
+        self.setup_calibration(create_vid_file=False)
         # Get list of latest video recordings
         video_list = []
         frame_sizes = []
