@@ -1162,8 +1162,14 @@ class SystemControl(wx.Frame):
         from aniposelib.boards import merge_rows, extract_points
 
         window_name = f'Reprojection'
+        # Get the frame dimensions from the first camera in the panel
+        first_cam_panel = self.camera_panels[0]
+        frame_height = first_cam_panel.frame_height
+        frame_width = first_cam_panel.frame_width
+        window_frame_width = frame_width*2
+        window_frame_height = frame_height
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(window_name, 2160, 660)
+        cv2.resizeWindow(window_name, window_frame_width, window_frame_height)
         
         # Define the font settings
         font = cv2.FONT_HERSHEY_SIMPLEX
@@ -1175,7 +1181,7 @@ class SystemControl(wx.Frame):
             while self.system_capturing_calibration_on:
                 if cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) < 1:
                     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-                    cv2.resizeWindow(window_name, 2160, 660)
+                    cv2.resizeWindow(window_name, window_frame_width, window_frame_height)
                 # Retrieve frame information from the queue
                 frame_data = self.frame_queue.get()
                 frame, thread_id, frame_count, frame_timestamp = frame_data
@@ -1229,11 +1235,16 @@ class SystemControl(wx.Frame):
                             reshape_np_corners = np.reshape(p_corners, (np_corners, 1, 2))
                             frames.append(cv2.aruco.drawDetectedCornersCharuco(frame, reshape_np_corners, p_ids, cornerColor=(0, 0, 255)))
 
-                        # Check if frames have the same dimensions
-                        min_height = min(frame.shape[0] for frame in frames)
-                        min_width = min(frame.shape[1] for frame in frames)
-                        frames = [cv2.resize(frame, (min_width, min_height)) for frame in frames]
-                        frame = cv2.hconcat(frames)
+                        # # Check if frames have the same dimensions
+                        # min_height = min(frame.shape[0] for frame in frames)
+                        # min_width = min(frame.shape[1] for frame in frames)
+                        # frames = [cv2.resize(frame, (min_width, min_height)) for frame in frames]
+                        try:
+                            frame = cv2.hconcat(frames)
+                        except Exception as e:
+                            print("Exception occurred while concatenating frames:", type(e).__name__, "| Exception value:", e,
+                                ''.join(traceback.format_tb(e.__traceback__)))
+                            continue
                         
                         # Add the text to the frame
                         cv2.putText(frame, 'Detection', (30, 50), font, font_scale, (0, 255, 0), thickness)
