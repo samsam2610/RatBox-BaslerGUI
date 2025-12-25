@@ -88,6 +88,8 @@ class CameraController(wx.Panel):
     capture_thread_obj = None
     process_thread_obj = None
     max_contrast = 0.8
+
+    output_video_path = None
     
     video_session = VideoRecordingSession(cam_num=0)
 
@@ -1149,6 +1151,7 @@ class CameraController(wx.Panel):
         # Making sure the output file is .avi
         if not output_path.endswith('.avi'):
             output_path += '.avi'
+        self.output_video_path = output_path
 
         # Configure session
         # Prepare data output file and buffer
@@ -1542,7 +1545,7 @@ class CameraController(wx.Panel):
         self.calibration_test_on = False
         print(f"Stopping calibration test thread for cam {self.cam_index}...")
         if self.calibrate_test_thread_obj.is_alive() is True:
-            self.calibrate_test_thread_obj.join()
+            self.calibrate_test_thread_obj.join(timeout=2.0)
             print(f"Calibration test thread for cam {self.cam_index} stopped.")
         else: # force stop
             self.calibrate_test_thread_obj._stop()

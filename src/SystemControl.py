@@ -1,4 +1,5 @@
 import queue
+import re
 import traceback
 import wx
 import os
@@ -12,6 +13,7 @@ import datetime
 import time
 import threading, multiprocessing
 from pypylon import pylon
+from aniposelib.cameras import CameraGroup
 import nidaqmx
 from nidaqmx.constants import AcquisitionType, RegenerationMode
 import wx.lib.agw.floatspin as FS
@@ -271,7 +273,13 @@ class SystemControl(wx.Frame):
             sizer.Add(self.system_test_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.system_test_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemTestCalibration)
-            row_pos += 2 # Current row position = 4
+            row_pos += 1 # Current row position = 4
+
+            self.system_calibration_offline = wx.Button(self.calibration_panel, label="Do Not Touch")
+            sizer.Add(self.system_calibration_offline, pos=(row_pos, column_pos), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.system_calibration_offline.Bind(wx.EVT_BUTTON, self.OnSystemCalibrationOffline)
+            row_pos += 1 # Current row position = 5
  
             # 1. Create the Static Box and Sizer
             self.params_box = wx.StaticBox(self.calibration_panel, label="Calibration Parameters")
@@ -756,26 +764,31 @@ class SystemControl(wx.Frame):
             self.draw_reproject_thread.start()
         else:
             self.system_capturing_calibration_on = False
-            print("Waiting for reprojection drawing thread to finish...")
-            if self.draw_reproject_thread.is_alive() is True:
-                self.draw_reproject_thread.join()
             print("Stopping system calibration test...")
             if self.trigger_on is True:
                 if self.proc.is_alive():
                     print(f"Terminating trigger process with PID {self.proc.pid}")
                     self.proc.terminate()
-                    self.proc.join()  
+                    self.proc.join(timeout=2.0)  
                 else:
                     print("Trigger process already terminated.")
-            time.sleep(0.5)  # Give some time for the cameras to finalize writing
+            
+            print("Stopping calibration test for all camera panels...")
+            time.sleep(0.5)
             for cam_panel in self.camera_panels:
                 cam_panel.StopCalibrationTest()
 
+            print("Waiting for reprojection drawing thread to finish...")
+            if self.draw_reproject_thread.is_alive() is True:
+                self.draw_reproject_thread.join()
+
+            time.sleep(0.5)  # Give some time for the cameras to finalize writing
             self.system_test_calibration_btn.SetLabel("Test Calibration")
             self.EnableSystemControls(value=False, setup_calibration=True)
             print("Calibration test completed successfully.")
 
-            
+    def OnSystemCalibrationOffline(self, event):
+        self.calibrate_offline()
 
     def load_calibration_settings(self, draw_calibration_board=False):
         from utils import load_config, get_calibration_board
@@ -1277,7 +1290,58 @@ class SystemControl(wx.Frame):
         except Exception as e:
             print("Exception occurred:", type(e).__name__, "| Exception value:", e,
                 ''.join(traceback.format_tb(e.__traceback__)))
+
+    def calibrate_offline(self):
+        # Get list of latest video recordings
+        video_list = []
+        for cam_panel in self.camera_panels:
+            video_list.append(cam_panel.output_video_path)
         
+        # Load calibration settings
+        config_anipose = self.load_calibration_settings()
+
+        # Get cam names from the config file
+        cam_regex = config_anipose['triangulation']['cam_regex']
+        cam_names = []
+        for name in self.cam_names:
+            match = re.match(cam_regex, name)
+            if match:
+                cam_names.append(match.groups()[0])
+        
+        self.cgroup = CameraGroup.from_names(cam_names)
+        all_rows = self.cgroup.get_rows_videos(video_list, self.board_calibration)
+        with open(self.rows_fname, 'wb') as f:
+            pickle.dump(all_rows, f)
+        
+        self.cgroup.set_camera_sizes_videos(video_list)
+
+        if self.calibration_error is None or self.calibration_error > 0.1:
+            init_matrix = True
+            print('Force init_matrix to True')
+        else:
+            init_matrix = bool(self.init_matrix_check.get())
+            print(f'init_matrix: {init_matrix}')
+            
+        # all_rows = [row[-100:] if len(row) >= 100 else row for row in all_rows]
+        self.calibration_error = self.cgroup.calibrate_rows(all_rows, self.board_calibration,
+                                                            init_intrinsics=init_matrix,
+                                                            init_extrinsics=init_matrix,
+                                                            max_nfev=200, n_iters=6,
+                                                            n_samp_iter=200, n_samp_full=1000,
+                                                            verbose=True)
+        self.cgroup.metadata['adjusted'] = False
+        if self.calibration_error is not None:
+            self.cgroup.metadata['error'] = float(self.calibration_error)
+            # self.calibration_error_value.set(f'{self.calibration_error:.5f}')
+            self.error_list.append(self.calibration_error)
+            print(f'Calibration error: {self.calibration_error}')
+        else:
+            print('Failed to calibrate')
+            
+        print('Calibration completed')
+        self.cgroup.dump(self.calibration_out)
+        print('Calibration result dumped')
+
     @staticmethod
     def clear_calibration_file(file_name):
         """_summary_
