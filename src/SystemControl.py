@@ -1315,8 +1315,11 @@ class SystemControl(wx.Frame):
         all_rows = []
         verbose = True
         for video_path in video_list:
+            rows_cam = []
             rows = self.board_calibration.detect_video(video_path, progress=verbose)
-            all_rows.append(rows)
+            print("{} boards detected".format(len(rows)))
+            rows_cam.extend(rows)
+            all_rows.append(rows_cam)
 
         with open(self.rows_fname, 'wb') as f:
             pickle.dump(all_rows, f)
