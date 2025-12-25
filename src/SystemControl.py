@@ -1320,7 +1320,7 @@ class SystemControl(wx.Frame):
             pickle.dump(all_rows, f)
         
         # self.cgroup.set_camera_sizes_videos(video_list)
-
+        self.calibration_error = float('inf')
         if self.calibration_error is None or self.calibration_error > 0.1:
             init_matrix = True
             print('Force init_matrix to True')
