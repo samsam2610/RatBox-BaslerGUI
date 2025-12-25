@@ -1295,8 +1295,10 @@ class SystemControl(wx.Frame):
     def calibrate_offline(self):
         # Get list of latest video recordings
         video_list = []
+        frame_sizes = []
         for cam_panel in self.camera_panels:
             video_list.append(cam_panel.output_video_path)
+            frame_sizes.append(cam_panel.get_image_dimensions())
         
         # Load calibration settings
         config_anipose = self.load_calibration_settings()
@@ -1319,7 +1321,7 @@ class SystemControl(wx.Frame):
         with open(self.rows_fname, 'wb') as f:
             pickle.dump(all_rows, f)
         
-        # self.cgroup.set_camera_sizes_videos(video_list)
+        self.cgroup.set_camera_sizes_images(frame_sizes=frame_sizes)
         self.calibration_error = float('inf')
         if self.calibration_error is None or self.calibration_error > 0.1:
             init_matrix = True
