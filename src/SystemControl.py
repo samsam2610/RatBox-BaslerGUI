@@ -1319,7 +1319,7 @@ class SystemControl(wx.Frame):
         with open(self.rows_fname, 'wb') as f:
             pickle.dump(all_rows, f)
         
-        self.cgroup.set_camera_sizes_videos(video_list)
+        # self.cgroup.set_camera_sizes_videos(video_list)
 
         if self.calibration_error is None or self.calibration_error > 0.1:
             init_matrix = True
