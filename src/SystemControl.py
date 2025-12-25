@@ -1244,6 +1244,9 @@ class SystemControl(wx.Frame):
                         except Exception as e:
                             print("Exception occurred while concatenating frames:", type(e).__name__, "| Exception value:", e,
                                 ''.join(traceback.format_tb(e.__traceback__)))
+                            # Print dimensions of all frames in frames
+                            for i, f in enumerate(frames):
+                                print(f"Frame {i} dimensions: {f.shape}")
                             continue
                         
                         # Add the text to the frame
