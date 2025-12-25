@@ -1229,6 +1229,10 @@ class SystemControl(wx.Frame):
                             reshape_np_corners = np.reshape(p_corners, (np_corners, 1, 2))
                             frames.append(cv2.aruco.drawDetectedCornersCharuco(frame, reshape_np_corners, p_ids, cornerColor=(0, 0, 255)))
 
+                        # Check if frames have the same dimensions
+                        min_height = min(frame.shape[0] for frame in frames)
+                        min_width = min(frame.shape[1] for frame in frames)
+                        frames = [cv2.resize(frame, (min_width, min_height)) for frame in frames]
                         frame = cv2.hconcat(frames)
                         
                         # Add the text to the frame

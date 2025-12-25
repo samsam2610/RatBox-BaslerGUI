@@ -149,7 +149,7 @@ class CameraController(wx.Panel):
 
         self.Window = ImagePanel(panel)
         # self.Window.SetSize((480, 360))
-        # self.Window.Fit()
+        self.Window.Fit()
         row_span = 4
         sizer.Add(self.Window, pos=(self.row_pos, self.column_pos), span=(row_span, 3),
                   flag=wx.LEFT | wx.TOP | wx.EXPAND, border=5)
@@ -1159,7 +1159,7 @@ class CameraController(wx.Panel):
         self.video_session.set_params(
             video_file=output_path,
             fourcc=fourcc_code,
-            fps=200,
+            fps=self.framerate,
             dim=(self.frame_width, self.frame_height)
         )
  
@@ -1354,7 +1354,7 @@ class CameraController(wx.Panel):
         self.video_session.set_params(
             video_file=output_path,
             fourcc=fourcc_code,
-            fps=200,
+            fps=self.framerate,
             dim=(self.frame_width, self.frame_height)
         )
 
