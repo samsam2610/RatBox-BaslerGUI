@@ -790,6 +790,7 @@ class SystemControl(wx.Frame):
 
     def OnSystemCalibrationOffline(self, event):
         self.calibrate_offline()
+        self.EnableSystemControls(value=False, setup_calibration=True)
 
     def load_calibration_settings(self, draw_calibration_board=False):
         from utils import load_config, get_calibration_board
@@ -1296,6 +1297,7 @@ class SystemControl(wx.Frame):
         # Get list of latest video recordings
         video_list = []
         frame_sizes = []
+        self.error_list = []
         for cam_panel in self.camera_panels:
             video_list.append(cam_panel.output_video_path)
             frame_sizes.append(cam_panel.get_image_dimensions())
