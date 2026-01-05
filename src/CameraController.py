@@ -591,12 +591,13 @@ class CameraController(wx.Panel):
 
 
                         self.camera = pylon.InstantCamera(tlFactory.CreateDevice(devices[i]))
-                        self.camera.PixelFormat.Value = "Mono8"
+                        
                         self.camera.Open()
                     
                         # Configure GPIO Pin 3 (Line3) as Input and Enable Event
                         self.camera.LineSelector.Value = "Line3"  # Select GPIO Pin 3
                         self.camera.LineMode.Value = "Input"  # Configure as Input
+                        self.camera.PixelFormat.Value = "Mono8"
                         # self.camera.LineEventSource.Value = "RisingEdge" # Trigger on Rising Edge
                         # self.camera.LineEventEnable.Value = True  # Enable event generation     
                             
