@@ -591,6 +591,7 @@ class CameraController(wx.Panel):
 
 
                         self.camera = pylon.InstantCamera(tlFactory.CreateDevice(devices[i]))
+                        self.camera.PixelFormat.Value = "Mono8"
                         self.camera.Open()
                     
                         # Configure GPIO Pin 3 (Line3) as Input and Enable Event
