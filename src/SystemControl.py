@@ -270,16 +270,16 @@ class SystemControl(wx.Frame):
                     flag=wx.EXPAND | wx.ALL, border=5)
             row_pos += 1 # Current row position = 3
 
+            self.system_calibration_offline = wx.Button(self.calibration_panel, label="Calibrate Latest Recording")
+            sizer.Add(self.system_calibration_offline, pos=(row_pos, column_pos), span=(1, 2),
+                    flag=wx.EXPAND | wx.ALL, border=5)
+            self.system_calibration_offline.Bind(wx.EVT_BUTTON, self.OnSystemCalibrationOffline)
+            row_pos += 1 # Current row position = 4
+
             self.system_test_calibration_btn = wx.Button(self.calibration_panel, label="Test Calibration")
             sizer.Add(self.system_test_calibration_btn, pos=(row_pos, column_pos), span=(1, 2),
                     flag=wx.EXPAND | wx.ALL, border=5)
             self.system_test_calibration_btn.Bind(wx.EVT_BUTTON, self.OnSystemTestCalibration)
-            row_pos += 1 # Current row position = 4
-
-            self.system_calibration_offline = wx.Button(self.calibration_panel, label="Do Not Touch")
-            sizer.Add(self.system_calibration_offline, pos=(row_pos, column_pos), span=(1, 2),
-                    flag=wx.EXPAND | wx.ALL, border=5)
-            self.system_calibration_offline.Bind(wx.EVT_BUTTON, self.OnSystemCalibrationOffline)
             row_pos += 1 # Current row position = 5
  
             # 1. Create the Static Box and Sizer
